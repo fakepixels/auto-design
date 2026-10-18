@@ -76,6 +76,9 @@ const FILL_PAIRS: [RoleName, RoleName, "brand" | "status"][] = [
   ["sidebar-accent", "sidebar-accent-foreground", "status"],
 ];
 
+/** Round down for display, so a ratio just under a threshold never prints as passing. */
+const floor2 = (n: number) => Math.floor(n * 100) / 100;
+
 export const TEXT_MIN = 4.5;
 export const UI_MIN = 3;
 
@@ -185,12 +188,18 @@ function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], 
  * states), so it steps lighter along its own scale until it reads as text on
  * the hardest dark surface, muted (4.5:1).
  */
-function primaryFor(mode: Mode, brand: Scale, seedStep: Step, n: Scale, report: BuildReport): Oklch {
+function primaryFor(mode: Mode, brand: Scale, seedStep: Step, n: Scale, report: BuildReport, page: Oklch): Oklch {
   const seed = brand[seedStep];
   if (mode === "light") {
-    if (contrast(seed, n[100]) < TEXT_MIN) {
+    const onPage = contrast(seed, page);
+    const onPanel = contrast(seed, n[100]);
+    if (onPage < TEXT_MIN) {
       report.notes.push(
-        `light: the brand color is ${contrast(seed, WHITE).toFixed(1)}:1 on white, too light for text. Use it for fills; links and highlighted text use text-foreground with an underline.`,
+        `light: the brand color is ${floor2(onPage)}:1 on the page, too light for text. Use it for fills; links and highlighted text use text-foreground with an underline.`,
+      );
+    } else if (onPanel < TEXT_MIN) {
+      report.notes.push(
+        `light: the brand color reads as text on the page (${floor2(onPage)}:1) but not on gray panels such as code blocks (${floor2(onPanel)}:1). Keep text-primary off bg-muted.`,
       );
     }
     return seed;
@@ -221,7 +230,7 @@ function enforce(mode: Mode, roles: Roles, n: Scale, report: BuildReport) {
       role,
       against,
       mode,
-      before: +contrast(before, roles[against]).toFixed(2),
+      before: floor2(contrast(before, roles[against])),
       after: +contrast(after, roles[against]).toFixed(2),
       from: toCss(before),
       to: toCss(after),
@@ -258,7 +267,7 @@ function enforce(mode: Mode, roles: Roles, n: Scale, report: BuildReport) {
         role: fill,
         against: label,
         mode,
-        before: +contrast(before, preferred).toFixed(2),
+        before: floor2(contrast(before, preferred)),
         after: +contrast(moved, preferred).toFixed(2),
         from: toCss(before),
         to: toCss(moved),
@@ -273,9 +282,33 @@ function enforce(mode: Mode, roles: Roles, n: Scale, report: BuildReport) {
       report.notes.push(`${mode}: ${label} uses ${chosen.l > 0.5 ? "light" : "dark"} text to read on ${fill}.`);
     }
     const fixed = ensureContrast(chosen, roles[fill], TEXT_MIN);
-    if (!fixed) throw new BuildError(`${mode}: no label color reaches ${TEXT_MIN}:1 on ${fill}`, report);
-    if (fixed !== chosen) record(label, fill, chosen, fixed);
-    roles[label] = fixed;
+    if (fixed) {
+      if (fixed !== chosen) record(label, fill, chosen, fixed);
+      roles[label] = fixed;
+      continue;
+    }
+    // Mid-tone brands (around L 0.55-0.6) can't carry white or black text at
+    // 4.5:1. Keep the hue and strength, and move the fill just far enough.
+    const before = roles[fill];
+    const label0 = chosen.l > 0.5 ? lightLabel : darkLabel;
+    const moved = ensureContrast(before, label0, TEXT_MIN);
+    if (!moved) throw new BuildError(`${mode}: no label color reaches ${TEXT_MIN}:1 on ${fill}`, report);
+    roles[fill] = moved;
+    roles[label] = label0;
+    report.fixes.push({
+      role: fill,
+      against: label,
+      mode,
+      before: floor2(contrast(before, label0)),
+      after: +contrast(moved, label0).toFixed(2),
+      from: toCss(before),
+      to: toCss(moved),
+    });
+    report.notes.push(`${mode}: the brand color sits where neither white nor black text reads on it, so ${fill} is shifted slightly ${moved.l < before.l ? "darker" : "lighter"}.`);
+    if (fill === "primary") {
+      if (toCss(roles.ring) === toCss(before)) roles.ring = moved;
+      if (toCss(roles["chart-1"]) === toCss(before)) roles["chart-1"] = moved;
+    }
   }
 
   // 3. Focus rings must be visible against the page (WCAG 2.2 non-text contrast).
@@ -333,7 +366,8 @@ export function buildSystem(input: DesignConfig): DesignSystem {
   const report: BuildReport = { fixes: [], checks: [], notes: [] };
   const roles = {} as Record<Mode, Roles>;
   for (const mode of ["light", "dark"] as const) {
-    roles[mode] = rolesFor(mode, config, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report));
+    const page = config.texture === "minimal" || config.texture === "technical" ? WHITE : palettes.neutral[50];
+    roles[mode] = rolesFor(mode, config, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report, page));
     enforce(mode, roles[mode], palettes.neutral, report);
     collectChecks(mode, roles[mode], report);
   }

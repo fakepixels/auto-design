@@ -5,18 +5,28 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "auto-design": "./dist/bin.js"
+    "auto-design": "./bin.mjs"
   },
-  "files": ["dist", "templates"],
+  "files": [
+    "bin.mjs",
+    "dist"
+  ],
   "scripts": {
-    "build": "tsup src/bin.ts --format esm --clean"
+    "build": "tsup src/bin.ts --format esm --clean && cp src/dev/studio.html dist/"
   },
   "dependencies": {
-    "@auto-design/check": "workspace:*",
-    "@auto-design/core": "workspace:*",
-    "@auto-design/presets": "workspace:*",
+    "@auto-design/check": "^0.1.0",
+    "@auto-design/core": "^0.1.0",
+    "@auto-design/presets": "^0.1.0",
     "cac": "^6.7.14",
     "jiti": "^2.4.2",
     "picocolors": "^1.1.1"
+  },
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0"
   }
 }

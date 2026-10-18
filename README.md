@@ -8,8 +8,9 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phase 0.** The compiler, the checker, the CLI and the Quiet preset work end to end.
-> The onboarding app, the other four presets, and the agent surfaces (MCP Apps, iMessage) come next.
+> Status: **Phase 0 done, Phase 1 in progress.** The compiler, the checker, the CLI, the studio and the
+> Quiet preset work end to end. The full onboarding flow, the other four presets, and the agent surfaces
+> (MCP Apps, iMessage) come next.
 > See the [build plan](#roadmap).
 
 ## Why guardrails, not guidelines
@@ -30,21 +31,43 @@ dark mode. The compiler fixes what it can and says what it changed.
 
 ## Try it
 
+You need Node 20 or newer.
+
 ```sh
-pnpm install
-pnpm ad init my-design --preset quiet    # create a design system repo
-pnpm ad build --cwd my-design            # recompile after editing my-design/design.config.ts
-pnpm ad check --cwd path/to/your/app     # lint an app against the system
+npm install
+npm run dev        # opens the studio for examples/quiet-design and keeps examples/next-quiet in sync
+```
+
+To see the synced app, run it in a second terminal:
+
+```sh
+cd examples/next-quiet && npm install && npm run dev   # http://localhost:3000
+```
+
+![The studio: pick a brand color visually or by code, and see light and dark mode update live](docs/studio.png)
+
+The studio is the no-code way in:
+
+- **Pick a brand color.** Drag in the picker, which only offers colors screens can show, or type any code: hex, `rgb()`, `hsl()` or `oklch()`. Chromium browsers also get an eyedropper.
+- **Choose gray temperature and corner radius.**
+- **Check contrast as you go.** The preview shows light and dark mode, the generated color scales, and every contrast adjustment the compiler made.
+- **Save.** Saving rewrites only the edited values in `design.config.ts`, rebuilds the system and copies the CSS into connected apps, which reload on their own. If you edit `design.config.ts` by hand instead, the studio picks that up too.
+
+From the command line:
+
+```sh
+npx auto-design init my-design --preset quiet      # create a design system repo
+npx auto-design dev --cwd my-design --app ../my-app # studio + live sync into an app
+npx auto-design build --cwd my-design              # rebuild after editing design.config.ts
+npx auto-design check --cwd ../my-app              # lint an app against the system
 ```
 
 ```text
 ✓ Quiet: wrote 26 files to my-design
 ✓ 43/43 contrast checks pass (WCAG AA)
-~ light: muted-foreground on muted was 4.3:1, adjusted to 4.58:1
+~ light: muted-foreground on muted was 4.29:1, adjusted to 4.58:1
 i dark: primary uses brand-400, a lighter step of the brand color, so it reads as text on dark surfaces.
 ```
-
-Once published, this becomes `npx auto-design init`.
 
 ## What a design system repo contains
 
@@ -90,11 +113,11 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 | [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, contrast enforcement, emitters |
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | [`@auto-design/presets`](packages/presets) | Starter systems. Quiet ships now |
-| [`auto-design`](packages/cli) | The CLI: `init`, `build`, `check`, `presets` |
+| [`auto-design`](packages/cli) | The CLI: `init`, `dev` (the studio), `build`, `check`, `presets` |
 
 ```sh
-pnpm test        # 27 tests, including: every generated component passes the check for every preset
-pnpm typecheck
+npm test          # includes a sweep of 2,052 brand colors and a check of every generated component
+npm run typecheck
 ```
 
 ## Roadmap

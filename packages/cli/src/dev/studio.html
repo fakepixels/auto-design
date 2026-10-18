@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>auto-design studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23161616'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --ui-bg: #f7f7f7;
+    --ui-panel: #ffffff;
+    --ui-line: #e4e4e4;
+    --ui-text: #161616;
+    --ui-muted: #666666;
+    --ui-faint: #9a9a9a;
+    --ui-focus: #2563eb;
+    --ui-danger: #b42318;
+    --ui-ok: #157f3c;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+  .top {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    background: color-mix(in srgb, var(--ui-bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--ui-line);
+  }
+  .title { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+  .title strong { font-weight: 600; }
+  .title span { color: var(--ui-muted); }
+  .status { color: var(--ui-muted); font-size: 13px; }
+  .status.dirty { color: var(--ui-text); }
+  .status.err { color: var(--ui-danger); }
+  .btn {
+    height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid transparent;
+    cursor: pointer; font-weight: 500;
+    transition: background-color 120ms cubic-bezier(.23,1,.32,1), opacity 120ms;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--ui-text); color: #fff; }
+  .btn.primary:hover { background: #333; }
+  .btn.primary:disabled { opacity: .35; cursor: default; transform: none; }
+  .btn.ghost { background: transparent; border-color: var(--ui-line); }
+  .btn.ghost:hover { background: #efefef; }
+
+  .layout {
+    display: grid; grid-template-columns: 340px 1fr; gap: 0;
+    min-height: calc(100vh - 53px);
+  }
+  .controls {
+    background: var(--ui-panel); border-right: 1px solid var(--ui-line);
+    padding: 20px; display: flex; flex-direction: column; gap: 28px;
+  }
+  .controls h2 { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
+  .hint { color: var(--ui-muted); font-size: 12.5px; margin: 0 0 10px; }
+  .error { color: var(--ui-danger); font-size: 12.5px; margin: 6px 0 0; }
+
+  .area-wrap { position: relative; width: 100%; aspect-ratio: 300 / 190; border-radius: 8px; overflow: hidden; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .area-wrap canvas { display: block; width: 100%; height: 100%; }
+  .marker {
+    position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
+    pointer-events: none;
+  }
+  .axis { display: flex; justify-content: space-between; color: var(--ui-faint); font-size: 11.5px; margin-top: 6px; }
+  .hue-wrap { position: relative; height: 14px; margin-top: 14px; border-radius: 7px; overflow: visible; touch-action: none; cursor: ew-resize; }
+  .hue-wrap canvas { display: block; width: 100%; height: 100%; border-radius: 7px; }
+  .knob {
+    position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 1px 4px rgba(0,0,0,.25); pointer-events: none;
+  }
+  .code { display: block; margin-top: 16px; }
+  .code > span { display: block; font-size: 12.5px; color: var(--ui-muted); margin-bottom: 6px; }
+  .code-row { display: flex; align-items: center; gap: 8px; }
+  .chip { width: 32px; height: 32px; border-radius: 6px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  #code {
+    flex: 1; min-width: 0; height: 32px; padding: 0 10px; border-radius: 6px;
+    border: 1px solid var(--ui-line); background: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+  }
+  #code[aria-invalid="true"] { border-color: var(--ui-danger); }
+  .icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; border: 1px solid var(--ui-line); background: #fff; cursor: pointer; flex: none; }
+  .icon:hover { background: #f2f2f2; }
+  .starts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .start {
+    display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px 0 5px;
+    border-radius: 13px; border: 1px solid var(--ui-line); background: #fff; cursor: pointer; font-size: 12.5px;
+  }
+  .start:hover { background: #f4f4f4; }
+  .start i { width: 14px; height: 14px; border-radius: 50%; display: block; }
+
+  .seg { display: inline-flex; padding: 2px; border-radius: 8px; background: #efefef; }
+  .seg button { height: 28px; padding: 0 12px; border: 0; background: transparent; border-radius: 6px; cursor: pointer; color: var(--ui-muted); }
+  .seg button[aria-checked="true"] { background: #fff; color: var(--ui-text); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .range-row { display: flex; align-items: center; gap: 12px; }
+  .range-row input { flex: 1; accent-color: var(--ui-text); }
+  .range-row output { width: 40px; text-align: right; color: var(--ui-muted); font-variant-numeric: tabular-nums; }
+
+  .contrast p { margin: 0 0 8px; }
+  .contrast .ok { color: var(--ui-ok); font-weight: 500; }
+  .contrast ul { margin: 0; padding: 0 0 0 16px; color: var(--ui-muted); font-size: 12.5px; }
+  .contrast li + li { margin-top: 4px; }
+
+  .stage { padding: 24px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mode-label { font-size: 12.5px; color: var(--ui-muted); margin: 0 0 8px; }
+
+  /* The preview: drawn only from the system's role variables. */
+  .pv {
+    background: var(--background); color: var(--foreground);
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+    border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px);
+    overflow: hidden; display: grid; grid-template-columns: 116px 1fr;
+    transition: background-color 180ms, color 180ms;
+  }
+  .pv-side { background: var(--sidebar); color: var(--sidebar-foreground); border-right: 1px solid var(--sidebar-border); padding: 12px 8px; font-size: 13px; }
+  .pv-side b { display: block; padding: 4px 8px 10px; font-weight: 600; }
+  .pv-side span { display: block; padding: 5px 8px; border-radius: max(0px, calc(var(--radius) - 2px)); color: var(--muted-foreground); }
+  .pv-side span.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 500; }
+  .pv-main { padding: 16px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .pv-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pv h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .pv .muted { color: var(--muted-foreground); font-size: 13px; margin: 0; }
+  .pv .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 1px 8px; border-radius: 999px; background: color-mix(in oklab, var(--warning) 22%, transparent); }
+  .pv .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+  .pv .badge.ok { background: color-mix(in oklab, var(--success) 16%, transparent); }
+  .pv .badge.ok::before { background: var(--success); }
+  .pv .b { height: 32px; padding: 0 12px; border-radius: max(0px, calc(var(--radius) - 2px)); font-size: 13px; font-weight: 500; border: 1px solid transparent; font-family: inherit; }
+  .pv .b.p { background: var(--primary); color: var(--primary-foreground); }
+  .pv .b.o { background: var(--background); color: var(--foreground); border-color: var(--input); }
+  .pv .b.d { background: var(--destructive); color: var(--destructive-foreground); }
+  .pv input { height: 32px; width: 100%; padding: 0 10px; border-radius: max(0px, calc(var(--radius) - 2px)); border: 1px solid var(--input); background: var(--background); color: var(--foreground); font-size: 13px; font-family: inherit; }
+  .pv input::placeholder { color: var(--muted-foreground); }
+  .pv table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pv th { text-align: left; font-weight: 500; color: var(--muted-foreground); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); }
+  .pv td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .pv tr:last-child td { border-bottom: 0; }
+  .pv .num { text-align: right; }
+  .pv .chat { display: flex; flex-direction: column; gap: 8px; }
+  .pv .bubble { align-self: flex-end; background: var(--secondary); color: var(--secondary-foreground); padding: 6px 12px; border-radius: calc(var(--radius) + 4px); font-size: 13px; }
+  .pv .chat p { margin: 0; font-size: 13px; }
+  .pv .link { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+  .pv pre { margin: 0; padding: 10px 12px; background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px; overflow: auto; }
+  .pv pre .t { color: var(--primary); }
+  .pv pre .c { color: var(--muted-foreground); }
+  .pv .card { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+
+  .palettes { display: grid; gap: 14px; }
+  .pal h3 { font-size: 12.5px; color: var(--ui-muted); font-weight: 500; margin: 0 0 6px; }
+  .swatches { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; }
+  .sw { height: 40px; border-radius: 6px; position: relative; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .sw span { position: absolute; left: 6px; bottom: 4px; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .sw.seed { box-shadow: 0 0 0 2px var(--ui-panel), 0 0 0 4px var(--ui-text); }
+  .synced { color: var(--ui-muted); font-size: 12.5px; margin: 0; }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    .controls { border-right: 0; border-bottom: 1px solid var(--ui-line); }
+    .modes { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="title"><strong>auto-design</strong><span id="sysname"></span></div>
+  <span class="status" id="status" role="status" aria-live="polite">Loading</span>
+  <button class="btn ghost" id="revert" hidden>Revert</button>
+  <button class="btn primary" id="save" disabled>Save</button>
+</header>
+
+<main class="layout">
+  <aside class="controls">
+    <section aria-labelledby="h-brand">
+      <h2 id="h-brand">Brand color</h2>
+      <p class="hint">Drag to pick, or type a code below. Hatched areas can't be shown on most screens.</p>
+      <div class="area-wrap" id="area-wrap" tabindex="0" role="slider" aria-label="Lightness and color strength" aria-valuetext="">
+        <canvas id="area"></canvas>
+        <div class="marker" id="marker"></div>
+      </div>
+      <div class="axis"><span>Grayer</span><span>Up is lighter</span><span>More color</span></div>
+      <div class="hue-wrap" id="hue-wrap" tabindex="0" role="slider" aria-label="Hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
+        <canvas id="hue"></canvas>
+        <div class="knob" id="knob"></div>
+      </div>
+      <label class="code">
+        <span>Color code</span>
+        <div class="code-row">
+          <i class="chip" id="chip"></i>
+          <input id="code" spellcheck="false" autocomplete="off" aria-describedby="code-hint code-error">
+          <button class="icon" id="eyedrop" type="button" title="Pick a color from your screen" aria-label="Pick a color from your screen" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+          </button>
+        </div>
+      </label>
+      <p class="hint" id="code-hint" style="margin-top:6px">Hex, rgb(), hsl() or oklch(). Press Enter to apply.</p>
+      <p class="error" id="code-error" hidden></p>
+      <div class="starts" id="starts" role="group" aria-label="Starting points"></div>
+    </section>
+
+    <section aria-labelledby="h-grays">
+      <h2 id="h-grays">Grays</h2>
+      <p class="hint">A hint of blue or warmth in every gray, border and shadow.</p>
+      <div class="seg" role="radiogroup" aria-labelledby="h-grays" id="neutral">
+        <button role="radio" data-v="cool">Cool</button>
+        <button role="radio" data-v="neutral">Neutral</button>
+        <button role="radio" data-v="warm">Warm</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-corners">
+      <h2 id="h-corners">Corners</h2>
+      <div class="range-row">
+        <input type="range" id="radius" min="0" max="20" step="1" aria-labelledby="h-corners">
+        <output id="radius-out" for="radius"></output>
+      </div>
+    </section>
+
+    <section class="contrast" aria-labelledby="h-contrast">
+      <h2 id="h-contrast">Contrast</h2>
+      <p id="contrast-summary"></p>
+      <ul id="fixes"></ul>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Preview">
+    <div class="modes">
+      <div><p class="mode-label">Light</p><div class="pv" data-mode="light"></div></div>
+      <div><p class="mode-label">Dark</p><div class="pv" data-mode="dark"></div></div>
+    </div>
+    <div class="palettes">
+      <div class="pal"><h3>Brand scale</h3><div class="swatches" id="pal-brand"></div></div>
+      <div class="pal"><h3>Gray scale</h3><div class="swatches" id="pal-neutral"></div></div>
+    </div>
+    <p class="synced" id="synced"></p>
+  </section>
+</main>
+
+<template id="pv-body">
+  <div class="pv-side"><b>Meridian</b><span>Overview</span><span>Customers</span><span class="on">Invoices</span><span>Meters</span></div>
+  <div class="pv-main">
+    <div class="pv-row"><h3>October invoice run</h3><span class="badge">In review</span></div>
+    <p class="muted">214 invoices drafted from usage through October 31.</p>
+    <div class="pv-row"><button class="b p" tabindex="-1">Approve run</button><button class="b o" tabindex="-1">Export</button><button class="b d" tabindex="-1">Delete run</button></div>
+    <input placeholder="Filter by customer" tabindex="-1" aria-hidden="true">
+    <table>
+      <thead><tr><th>Customer</th><th class="num">Amount</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Acme Robotics</td><td class="num">$41,920</td><td><span class="badge">Needs review</span></td></tr>
+        <tr><td>Larkspur AI</td><td class="num">$96,105</td><td><span class="badge ok">Expected</span></td></tr>
+      </tbody>
+    </table>
+    <div class="card chat">
+      <div class="bubble">Why did Acme’s invoice go up?</div>
+      <p>Almost all of the increase is one meter. <span class="link">See usage by meter</span></p>
+    </div>
+    <pre><span class="c"># Report usage as it happens</span>
+curl -d meter=<span class="t">image_inference</span> -d quantity=<span class="t">1200</span></pre>
+  </div>
+</template>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const CMAX = 0.37;
+  const STARTS = [
+    ["Ink", "oklch(0.49 0.13 256)"],
+    ["Crimson", "#e11d48"],
+    ["Teal", "#0f766e"],
+    ["Forest", "#166534"],
+    ["Signal", "#ea580c"],
+    ["Graphite", "#3f3f46"],
+  ];
+
+  const state = {
+    saved: null,          // { brand, neutral, radius } as on disk
+    edits: null,          // what the controls show now
+    pick: { l: 0.5, c: 0.1, h: 250 },
+    payload: null,
+    inflight: false,
+    pending: false,
+    apps: [],
+  };
+
+  /* ---------- OKLCH math (Björn Ottosson's OKLab, public domain) ---------- */
+  function oklchToRgb(l, c, h) {
+    const hr = (h * Math.PI) / 180;
+    const a = c * Math.cos(hr), b = c * Math.sin(hr);
+    const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
+    const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
+    const s_ = l - 0.0894841775 * a - 1.291485548 * b;
+    const L = l_ ** 3, M = m_ ** 3, S = s_ ** 3;
+    const lin = [
+      4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S,
+      -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S,
+      -0.0041960863 * L - 0.7034186147 * M + 1.707614701 * S,
+    ];
+    return lin.map((x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.sign(x) * Math.abs(x) ** (1 / 2.4) - 0.055));
+  }
+  const inGamut = (rgb) => rgb.every((v) => v >= -0.0008 && v <= 1.0008);
+  function maxChroma(l, h) {
+    let lo = 0, hi = CMAX;
+    for (let i = 0; i < 18; i++) {
+      const mid = (lo + hi) / 2;
+      if (inGamut(oklchToRgb(l, mid, h))) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+  const fmt = (p) => `oklch(${p.l.toFixed(3)} ${p.c.toFixed(3)} ${p.h.toFixed(1)})`;
+  // The widest displayable chroma at a hue, so the picker always fills its box.
+  const spanCache = new Map();
+  function span(h) {
+    const key = Math.round(h);
+    if (!spanCache.has(key)) {
+      let m = 0;
+      for (let l = 0.02; l < 1; l += 0.02) m = Math.max(m, maxChroma(l, key));
+      spanCache.set(key, Math.min(CMAX, Math.max(0.04, m * 1.08)));
+    }
+    return spanCache.get(key);
+  }
+
+  /* ---------- Picker drawing ---------- */
+  const area = $("area"), hue = $("hue");
+  function sizeCanvas(cv) {
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+  }
+  function drawArea() {
+    const ctx = area.getContext("2d");
+    const { width: W, height: H } = area;
+    const img = ctx.createImageData(W, H);
+    const h = state.pick.h;
+    const cmax = span(h);
+    for (let y = 0; y < H; y++) {
+      const l = 1 - y / (H - 1);
+      const edge = maxChroma(l, h);
+      for (let x = 0; x < W; x++) {
+        const c = (x / (W - 1)) * cmax;
+        const i = (y * W + x) * 4;
+        if (c <= edge) {
+          const rgb = oklchToRgb(l, c, h);
+          img.data[i] = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255);
+          img.data[i + 1] = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255);
+          img.data[i + 2] = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255);
+        } else {
+          const stripe = (x + y) % 10 < 1;
+          const v = stripe ? 222 : 238;
+          img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+        }
+        img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function drawHue() {
+    const ctx = hue.getContext("2d");
+    const { width: W, height: H } = hue;
+    const img = ctx.createImageData(W, H);
+    for (let x = 0; x < W; x++) {
+      const h = (x / (W - 1)) * 360;
+      const c = Math.min(0.16, maxChroma(0.72, h));
+      const rgb = oklchToRgb(0.72, c, h).map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255));
+      for (let y = 0; y < H; y++) {
+        const i = (y * W + x) * 4;
+        img.data[i] = rgb[0]; img.data[i + 1] = rgb[1]; img.data[i + 2] = rgb[2]; img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function placeMarkers() {
+    const p = state.pick;
+    const m = $("marker");
+    m.style.left = `${Math.min(1, p.c / span(p.h)) * 100}%`;
+    m.style.top = `${(1 - p.l) * 100}%`;
+    m.style.background = fmt(p);
+    $("knob").style.left = `${(p.h / 360) * 100}%`;
+    $("area-wrap").setAttribute("aria-valuetext", `Lightness ${Math.round(p.l * 100)}%, strength ${p.c.toFixed(3)}`);
+    $("hue-wrap").setAttribute("aria-valuenow", String(Math.round(p.h)));
+  }
+
+  /* ---------- Talking to the dev server ---------- */
+  async function post(path, body) {
+    const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Something went wrong");
+    return data;
+  }
+  async function preview() {
+    if (state.inflight) { state.pending = true; return; }
+    state.inflight = true;
+    try {
+      const data = await post("/api/preview", state.edits);
+      showError(null);
+      apply(data, { fromServer: false });
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      state.inflight = false;
+      if (state.pending) { state.pending = false; preview(); }
+    }
+  }
+  function showError(msg) {
+    const el = $("code-error");
+    el.hidden = !msg;
+    el.textContent = msg || "";
+    $("code").setAttribute("aria-invalid", msg ? "true" : "false");
+  }
+
+  /* ---------- Rendering a payload ---------- */
+  function setVars(el, roles, p) {
+    for (const [k, v] of Object.entries(roles)) el.style.setProperty(`--${k}`, v);
+    el.style.setProperty("--radius", `${p.radius}px`);
+    el.style.setProperty("--font-sans", p.fonts.sans);
+    el.style.setProperty("--font-mono", p.fonts.mono);
+  }
+  function swatches(el, list, seedStep) {
+    el.replaceChildren(...list.map((s, i) => {
+      const d = document.createElement("div");
+      d.className = "sw" + (s.step === seedStep ? " seed" : "");
+      d.style.background = s.css;
+      d.title = `${s.step}  ${s.css}`;
+      const label = document.createElement("span");
+      label.textContent = s.step;
+      label.style.color = i < 5 ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.75)";
+      d.append(label);
+      return d;
+    }));
+  }
+  const ROLE_WORDS = {
+    "muted-foreground": "Helper text", "primary-foreground": "Text on the brand color", foreground: "Body text",
+    destructive: "Error color", success: "Success color", warning: "Warning color", ring: "Focus ring",
+    "sidebar-primary-foreground": "Sidebar text on the brand color", "secondary": "Secondary fill", "accent": "Hover fill",
+  };
+  function apply(p, { fromServer }) {
+    state.payload = p;
+    $("sysname").textContent = p.name;
+    document.querySelectorAll(".pv").forEach((el) => setVars(el, p.roles[el.dataset.mode], p));
+    swatches($("pal-brand"), p.palettes.brand, p.seedStep);
+    swatches($("pal-neutral"), p.palettes.neutral, null);
+    $("chip").style.background = p.seed.css;
+
+    if (fromServer || !state.dragging) {
+      state.pick = { l: p.seed.l, c: p.seed.c, h: p.seed.h || state.pick.h };
+      placeMarkers();
+    }
+    if (document.activeElement !== $("code")) $("code").value = state.edits.brand;
+
+    const r = p.report;
+    const sum = $("contrast-summary");
+    sum.innerHTML = "";
+    const ok = document.createElement("span");
+    ok.className = r.passed === r.total ? "ok" : "";
+    ok.textContent = `${r.passed} of ${r.total} checks pass`;
+    sum.append(ok, document.createTextNode(r.fixes.length ? `, after ${r.fixes.length} automatic adjustment${r.fixes.length === 1 ? "" : "s"}:` : ". Nothing needed adjusting."));
+    $("fixes").replaceChildren(
+      ...r.fixes.map((f) => {
+        const li = document.createElement("li");
+        li.textContent = `${ROLE_WORDS[f.role] || f.role} in ${f.mode} mode: ${f.before}:1 raised to ${f.after}:1`;
+        return li;
+      }),
+      ...r.notes.map((n) => {
+        const li = document.createElement("li");
+        li.textContent = n.replace(/^(light|dark): /, (_, m) => m[0].toUpperCase() + m.slice(1) + " mode: ");
+        return li;
+      }),
+    );
+    syncControls();
+    updateDirty();
+  }
+  function syncControls() {
+    document.querySelectorAll("#neutral button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.v === state.edits.neutral)));
+    $("radius").value = String(state.edits.radius);
+    $("radius-out").textContent = `${state.edits.radius}px`;
+  }
+  const same = (a, b) => a && b && a.brand === b.brand && a.neutral === b.neutral && a.radius === b.radius;
+  function updateDirty(message) {
+    const dirty = !same(state.edits, state.saved);
+    $("save").disabled = !dirty;
+    $("revert").hidden = !dirty;
+    const s = $("status");
+    s.className = "status" + (dirty ? " dirty" : "");
+    s.textContent = message || (dirty ? "Unsaved changes" : "All changes saved");
+  }
+
+  /* ---------- Controls ---------- */
+  function setBrand(value) {
+    state.edits.brand = value;
+    preview();
+  }
+  function pickFromPointer(e) {
+    const r = $("area-wrap").getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    const l = 1 - y;
+    const c = Math.min(x * span(state.pick.h), maxChroma(l, state.pick.h));
+    state.pick = { ...state.pick, l, c };
+    placeMarkers();
+    setBrand(fmt(state.pick));
+  }
+  function hueFromPointer(e) {
+    const r = $("hue-wrap").getBoundingClientRect();
+    const h = Math.min(360, Math.max(0, ((e.clientX - r.left) / r.width) * 360));
+    state.pick = { ...state.pick, h, c: Math.min(state.pick.c, maxChroma(state.pick.l, h)) };
+    drawArea();
+    placeMarkers();
+    setBrand(fmt(state.pick));
+  }
+  function drag(el, onMove) {
+    el.addEventListener("pointerdown", (e) => {
+      el.setPointerCapture(e.pointerId);
+      state.dragging = true;
+      onMove(e);
+      const move = (ev) => onMove(ev);
+      const up = () => {
+        state.dragging = false;
+        el.removeEventListener("pointermove", move);
+        el.removeEventListener("pointerup", up);
+        el.removeEventListener("pointercancel", up);
+      };
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", up);
+      el.addEventListener("pointercancel", up);
+    });
+  }
+  drag($("area-wrap"), pickFromPointer);
+  drag($("hue-wrap"), hueFromPointer);
+
+  $("area-wrap").addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 0.05 : 0.01;
+    const p = { ...state.pick };
+    if (e.key === "ArrowUp") p.l = Math.min(1, p.l + step);
+    else if (e.key === "ArrowDown") p.l = Math.max(0, p.l - step);
+    else if (e.key === "ArrowRight") p.c = p.c + step * 0.3;
+    else if (e.key === "ArrowLeft") p.c = Math.max(0, p.c - step * 0.3);
+    else return;
+    e.preventDefault();
+    p.c = Math.min(p.c, maxChroma(p.l, p.h));
+    state.pick = p;
+    placeMarkers();
+    setBrand(fmt(p));
+  });
+  $("hue-wrap").addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 15 : 2;
+    let h = state.pick.h;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") h = (h + step) % 360;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") h = (h - step + 360) % 360;
+    else return;
+    e.preventDefault();
+    state.pick = { ...state.pick, h, c: Math.min(state.pick.c, maxChroma(state.pick.l, h)) };
+    drawArea();
+    placeMarkers();
+    setBrand(fmt(state.pick));
+  });
+
+  $("code").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); applyCode(); }
+  });
+  $("code").addEventListener("change", applyCode);
+  async function applyCode() {
+    const v = $("code").value.trim();
+    if (!v || v === state.edits.brand) return;
+    state.edits.brand = v;
+    try {
+      const data = await post("/api/preview", state.edits);
+      showError(null);
+      apply(data, { fromServer: true });
+      drawArea();
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  if ("EyeDropper" in window) {
+    $("eyedrop").hidden = false;
+    $("eyedrop").addEventListener("click", async () => {
+      try {
+        const { sRGBHex } = await new window.EyeDropper().open();
+        $("code").value = sRGBHex;
+        applyCode();
+      } catch { /* cancelled */ }
+    });
+  }
+
+  $("starts").replaceChildren(...STARTS.map(([name, value]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "start";
+    const dot = document.createElement("i");
+    dot.style.background = value;
+    b.append(dot, document.createTextNode(name));
+    b.addEventListener("click", () => { $("code").value = value; applyCode(); });
+    return b;
+  }));
+
+  document.querySelectorAll("#neutral button").forEach((b) =>
+    b.addEventListener("click", () => { state.edits.neutral = b.dataset.v; syncControls(); preview(); }),
+  );
+  $("radius").addEventListener("input", (e) => {
+    state.edits.radius = Number(e.target.value);
+    syncControls();
+    preview();
+  });
+
+  $("save").addEventListener("click", async () => {
+    $("save").disabled = true;
+    $("status").textContent = "Saving";
+    try {
+      const data = await post("/api/save", state.edits);
+      state.saved = { ...state.edits };
+      apply(data, { fromServer: true });
+      const css = (data.synced || []).filter((f) => f.endsWith(".css"));
+      updateDirty("Saved");
+      $("synced").textContent = css.length
+        ? `Saved design.config.ts and updated ${css.join(", ")}. Apps running in dev reload on their own.`
+        : "Saved design.config.ts and rebuilt the system.";
+    } catch (err) {
+      $("status").className = "status err";
+      $("status").textContent = err.message;
+      $("save").disabled = false;
+    }
+  });
+  $("revert").addEventListener("click", async () => {
+    state.edits = { ...state.saved };
+    const data = await post("/api/preview", state.edits);
+    apply(data, { fromServer: true });
+    drawArea();
+  });
+
+  /* ---------- Start ---------- */
+  function loadFonts(packages) {
+    for (const pkg of packages) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `/pkg/${pkg}/index.css`;
+      document.head.append(link);
+    }
+  }
+  function onSaved(p) {
+    state.saved = { brand: p.brand, neutral: p.neutral, radius: p.radius };
+    state.edits = { ...state.saved };
+    apply(p, { fromServer: true });
+    drawArea();
+  }
+
+  function layout() {
+    sizeCanvas(area); sizeCanvas(hue);
+    drawArea(); drawHue(); placeMarkers();
+  }
+  window.addEventListener("resize", layout);
+
+  document.querySelectorAll(".pv").forEach((el) => el.append($("pv-body").content.cloneNode(true)));
+
+  fetch("/api/state").then((r) => r.json()).then((p) => {
+    state.apps = p.apps || [];
+    loadFonts(p.fontPackages || []);
+    layout();
+    onSaved(p);
+    if (state.apps.length) $("synced").textContent = `Saving updates ${state.apps.join(", ")}.`;
+  });
+
+  const events = new EventSource("/api/events");
+  events.addEventListener("rebuilt", (e) => {
+    const p = JSON.parse(e.data);
+    if (same(state.edits, state.saved)) { onSaved(p); updateDirty("Reloaded from design.config.ts"); }
+    else updateDirty("design.config.ts changed on disk. Save to overwrite or Revert to load it.");
+  });
+  events.addEventListener("error", (e) => {
+    if (e.data) { $("status").className = "status err"; $("status").textContent = JSON.parse(e.data).message; }
+  });
+})();
+</script>
+</body>
+</html>

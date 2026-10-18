@@ -8,11 +8,15 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean"
   },
   "dependencies": {
-    "@auto-design/core": "workspace:*"
+    "@auto-design/core": "^0.1.0",
+    "@fontsource-variable/geist": "^5.2.0",
+    "@fontsource-variable/geist-mono": "^5.2.0"
   }
 }

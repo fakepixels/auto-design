@@ -15,7 +15,7 @@ import pc from "picocolors";
 
 export const CONFIG_FILE = "design.config.ts";
 
-function write(root: string, files: Record<string, string>) {
+export function writeFiles(root: string, files: Record<string, string>) {
   for (const [path, content] of Object.entries(files)) {
     const full = join(root, path);
     mkdirSync(dirname(full), { recursive: true });
@@ -143,7 +143,7 @@ export async function runBuild(opts: { cwd: string; config?: string; quiet?: boo
   const config = await loadConfig(root, opts.config);
   const s = buildSystem(config);
   const files = emitAll(s);
-  write(root, files);
+  writeFiles(root, files);
   if (!opts.quiet) printBuild(s, Object.keys(files).length, root);
   return s;
 }
@@ -166,7 +166,7 @@ export async function runInit(opts: { dir: string; preset: string }) {
     ".gitignore": "node_modules/\n",
     ...emitAll(s),
   };
-  write(root, files);
+  writeFiles(root, files);
   printBuild(s, Object.keys(files).length, root);
   console.log(`\nNext: ${pc.cyan(`cd ${relative(process.cwd(), root) || "."}`)} and edit ${pc.cyan(CONFIG_FILE)}, then ${pc.cyan("npx auto-design build")}.`);
 }

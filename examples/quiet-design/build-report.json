@@ -4,7 +4,7 @@
       "role": "muted-foreground",
       "against": "muted",
       "mode": "light",
-      "before": 4.3,
+      "before": 4.29,
       "after": 4.58,
       "from": "oklch(0.556 0.012 256)",
       "to": "oklch(0.541 0.012 256)"
@@ -13,7 +13,7 @@
       "role": "success",
       "against": "success-foreground",
       "mode": "light",
-      "before": 4.26,
+      "before": 4.25,
       "after": 4.54,
       "from": "oklch(0.555 0.146 152)",
       "to": "oklch(0.54 0.142 152)"

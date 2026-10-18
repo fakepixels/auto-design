@@ -45,6 +45,31 @@ describe("buildSystem", () => {
     }
   });
 
+  it("builds for every brand color across the visible range", () => {
+    const failures: string[] = [];
+    for (let l = 0.05; l <= 0.96; l += 0.05) {
+      for (let h = 0; h < 360; h += 24) {
+        for (const c of [0, 0.04, 0.08, 0.12, 0.18, 0.26]) {
+          const brand = `oklch(${l.toFixed(2)} ${c} ${h})`;
+          try {
+            const s = buildSystem(withBrand(brand));
+            if (s.report.checks.some((x) => !x.pass)) failures.push(brand);
+          } catch {
+            failures.push(brand);
+          }
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
+  it("shifts a mid-tone brand just enough to carry a label", () => {
+    const s = buildSystem(withBrand("oklch(0.58 0.106 17.6)"));
+    expect(contrast(s.roles.light.primary, s.roles.light["primary-foreground"])).toBeGreaterThanOrEqual(4.5);
+    expect(Math.abs(s.roles.light.primary.l - 0.58)).toBeLessThan(0.08);
+    expect(s.roles.light.ring).toEqual(s.roles.light.primary);
+  });
+
   it("never emits text smaller than 12px", () => {
     const s = buildSystem({ ...quiet, type: { ...quiet.type, baseSize: 14, ratio: 1.333 } });
     expect(s.type.scale.xs.px).toBeGreaterThanOrEqual(12);
