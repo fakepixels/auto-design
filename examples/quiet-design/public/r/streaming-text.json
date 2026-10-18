@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "streaming-text",
+  "type": "registry:ui",
+  "title": "Streaming text",
+  "description": "Model output as it arrives, with a caret and screen-reader-safe updates.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/streaming-text.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Text that arrives while the model writes. A caret shows it's still going.\n * aria-busy holds screen readers until the text is complete, so they read it\n * once instead of token by token.\n */\nfunction StreamingText({\n  text,\n  streaming,\n  className,\n  ...props\n}: React.ComponentProps<\"div\"> & { text: string; streaming: boolean }) {\n  return (\n    <div\n      data-slot=\"streaming-text\"\n      aria-live=\"polite\"\n      aria-busy={streaming}\n      className={cn(\"whitespace-pre-wrap text-base text-foreground\", className)}\n      {...props}\n    >\n      {text}\n      {streaming ? (\n        <span aria-hidden className=\"ml-0.5 inline-block h-4 w-0.5 translate-y-0.5 animate-pulse bg-foreground motion-reduce:animate-none\" />\n      ) : null}\n    </div>\n  );\n}\n\nexport { StreamingText };\n"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "reasoning",
+  "type": "registry:ui",
+  "title": "Reasoning",
+  "description": "The agent's thinking, folded away with how long it took.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/reasoning.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\n/** What the agent considered before answering, folded away by default. */\nfunction Reasoning({\n  seconds,\n  children,\n  className,\n  ...props\n}: React.ComponentProps<\"details\"> & { seconds?: number }) {\n  return (\n    <details data-slot=\"reasoning\" className={cn(\"group text-sm\", className)} {...props}>\n      <summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md text-muted-foreground transition-colors duration-120 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden\">\n        {seconds === undefined ? \"Thinking\" : `Thought for ${seconds < 60 ? `${Math.max(1, Math.round(seconds))}s` : `${Math.round(seconds / 60)}m`}`}\n        <svg aria-hidden viewBox=\"0 0 16 16\" className=\"size-3.5 transition-transform duration-120 ease-out group-open:rotate-90 motion-reduce:transition-none\">\n          <path d=\"M6 4l4 4-4 4\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"1.5\" strokeLinecap=\"round\" strokeLinejoin=\"round\" />\n        </svg>\n      </summary>\n      <div className=\"mt-2 border-l-2 pl-3 text-muted-foreground\">{children}</div>\n    </details>\n  );\n}\n\nexport { Reasoning };\n"
+    }
+  ]
+}

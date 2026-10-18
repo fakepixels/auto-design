@@ -25,6 +25,7 @@ type RegistryItem = {
   cssVars?: { theme?: Record<string, string>; light?: Record<string, string>; dark?: Record<string, string> };
   css?: Record<string, unknown>;
   docs?: string;
+  meta?: Record<string, unknown>;
 };
 
 function baseItem(s: DesignSystem): RegistryItem {
@@ -67,19 +68,23 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
   const items: RegistryItem[] = [base];
 
   for (const c of componentSources(s)) {
-    files[`registry/ui/${c.file}`] = c.content;
+    const isLib = c.type === "registry:lib";
+    if (!isLib) files[`registry/ui/${c.file}`] = c.content;
     for (const l of c.lib ?? []) files[`registry/lib/${l.file}`] = l.content;
     items.push({
       $schema: ITEM_SCHEMA,
       name: c.name,
-      type: "registry:ui",
+      type: isLib ? "registry:lib" : "registry:ui",
       title: c.title,
       description: c.description,
       dependencies: c.dependencies,
       files: [
-        { path: `registry/ui/${c.file}`, type: "registry:ui", content: c.content },
+        ...(isLib ? [] : [{ path: `registry/ui/${c.file}`, type: "registry:ui", content: c.content }]),
         ...(c.lib ?? []).map((l) => ({ path: `registry/lib/${l.file}`, type: "registry:lib", content: l.content })),
       ],
+      // shadcn would resolve bare names against its own registry, so in-system
+      // dependencies travel in meta; `auto-design add` installs them.
+      ...(c.requires?.length ? { meta: { requires: c.requires } } : {}),
     });
   }
 

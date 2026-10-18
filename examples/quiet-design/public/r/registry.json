@@ -104,6 +104,36 @@
       "type": "registry:ui",
       "title": "Code block",
       "description": "Syntax-highlighted code in the system's colors (Shiki, server-rendered)."
+    },
+    {
+      "name": "approval",
+      "type": "registry:ui",
+      "title": "Approval",
+      "description": "The agent asks before it acts: what will happen, and two short answers."
+    },
+    {
+      "name": "citation",
+      "type": "registry:ui",
+      "title": "Citation",
+      "description": "Inline source numbers and the source list under an answer."
+    },
+    {
+      "name": "streaming-text",
+      "type": "registry:ui",
+      "title": "Streaming text",
+      "description": "Model output as it arrives, with a caret and screen-reader-safe updates."
+    },
+    {
+      "name": "file-card",
+      "type": "registry:ui",
+      "title": "File card",
+      "description": "Attachments and generated files, with type, name and size."
+    },
+    {
+      "name": "reasoning",
+      "type": "registry:ui",
+      "title": "Reasoning",
+      "description": "The agent's thinking, folded away with how long it took."
     }
   ]
 }

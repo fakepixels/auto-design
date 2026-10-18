@@ -24,6 +24,10 @@ export type RuleId =
 export interface Guardrails {
   version: 1;
   system: string;
+  /** The product name, for message checks. Optional for older files. */
+  product?: string;
+  /** Surfaces the system targets. Optional for older files. */
+  surfaces?: string[];
   /** The system's texture (minimal, editorial, glass, tactile, technical). Optional for older files. */
   texture?: string;
   colors: { roles: string[] };
@@ -39,6 +43,10 @@ export interface Guardrails {
   ignore: string[];
   /** Tailwind theme namespaces the system owns. Optional for older guardrail files. */
   lockedNamespaces?: string[];
+  /** Colors and fonts for agent tools; the checker ignores it. */
+  theme?: unknown;
+  /** Where the app installed the system from (a folder or a hosted /r/ URL), written by `auto-design add`. */
+  registry?: string;
 }
 
 /** Guardrails plus lookups derived once per run. */
@@ -79,7 +87,7 @@ export function prepare(g: Guardrails): GuardrailsLike {
   for (const role of g.colors.roles) vars.add(`--${role}`), vars.add(`--color-${role}`);
   for (const s of g.text.steps) vars.add(`--text-${s}`);
   for (const f of g.fonts.families) vars.add(`--font-${f}`);
-  for (const n of ["--glass", "--glass-border", "--glass-highlight", "--radius", "--duration-fast", "--duration-base", "--duration-slow", "--enter-scale", "--enter-distance", "--ease-out", "--ease-in-out"]) {
+  for (const n of ["--glass", "--glass-border", "--glass-highlight", "--radius", "--duration-fast", "--duration-base", "--duration-slow", "--enter-scale", "--enter-distance", "--ease-out", "--ease-in-out", "--safe-top", "--safe-right", "--safe-bottom", "--safe-left"]) {
     vars.add(n);
   }
   return { ...g, systemVars: vars };

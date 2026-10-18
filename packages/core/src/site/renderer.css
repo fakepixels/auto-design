@@ -169,6 +169,11 @@
 .sp-tool code { font-size: var(--sp-t-xs); }
 .sp-tool .args { font-family: var(--sp-mono); font-size: var(--sp-t-xs); color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .sp-tool .st { margin-left: auto; font-size: var(--sp-t-xs); color: var(--muted-foreground); }
+.sp-cite { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin-left: 2px; border-radius: var(--sp-r-sm); background: var(--muted); color: var(--muted-foreground); font-size: var(--sp-t-xs); line-height: 1; vertical-align: super; font-variant-numeric: tabular-nums; }
+.sp-approval { padding: 0; font-size: var(--sp-t-sm); }
+.sp-approval .t { padding: 10px 14px; font-weight: var(--sp-w-medium); }
+.sp-approval .t span { display: block; margin-top: 2px; font-weight: var(--sp-w-body); color: var(--muted-foreground); }
+.sp-approval .a { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
 .sp-composer { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* ---------- Code ---------- */

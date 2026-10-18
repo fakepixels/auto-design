@@ -114,6 +114,36 @@ Profile: **subtle**.
 - No emoji in product UI.
 - Errors say what happened and what to do next. Empty states say what will appear and how to start.
 
+## Surfaces
+
+Quiet targets: web-app, marketing, code, chat. Rules for each:
+
+### Web app
+
+- One page title (`text-2xl` at most), one primary action, then content. Filters and secondary actions are `outline` or `ghost`.
+- Tables use `tabular-nums` and right-align numbers. Empty states say what will appear and how to start.
+
+### Marketing pages
+
+- `text-4xl` to `text-6xl` exist for hero and section heads here, and nowhere in product UI.
+- One primary call to action per section, worded as what happens ("Start free trial"), with the secondary as `outline`.
+- Link previews: og:image at 1200×630 drawn with `npx auto-design card --size og`, og:title under 60 characters.
+
+### Code blocks
+
+- Use `CodeBlock`; its syntax colors come from the brand and pass 4.5:1 in both modes.
+- Inline code is `font-mono` on `bg-muted`. Commands people copy go in a block, one command per line.
+
+### In-app chat
+
+- Assistant turns are plain text on the page (`<Message from="assistant">`); user turns sit on a quiet fill. No avatars on every turn.
+- Stream answers with `StreamingText`. The caret is the only typing indicator; never animate individual tokens.
+- Tool calls collapse to one line with a status (`ToolCall`). A failed call says what failed and what happens next.
+- Ask before acting with `Approval`. The title names the action and its object ("Send the invoice to Maya Chen"); the answers are short verbs ("Send", "Don't send").
+- Answers that use sources cite them with `Citation` and list them with `Sources`.
+- Thinking goes in `Reasoning`, closed by default. Files go in `FileCard`.
+- Lead with the answer in a sentence or two, then the detail. Headings only for answers longer than a screen.
+
 ## Components
 
 Use these before writing your own. They already follow every rule here. Install with
@@ -137,6 +167,11 @@ Use these before writing your own. They already follow every rule here. Install 
 | `switch` | On and off settings. |
 | `avatar` | People and workspaces. |
 | `code-block` | Syntax-highlighted code in the system's colors (Shiki, server-rendered). |
+| `approval` | The agent asks before it acts: what will happen, and two short answers. |
+| `citation` | Inline source numbers and the source list under an answer. |
+| `streaming-text` | Model output as it arrives, with a caret and screen-reader-safe updates. |
+| `file-card` | Attachments and generated files, with type, name and size. |
+| `reasoning` | The agent's thinking, folded away with how long it took. |
 
 ## Checking your work
 

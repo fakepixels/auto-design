@@ -28,3 +28,8 @@ and check work with `npx auto-design check`.
 - [Switch](r/switch.json): On and off settings.
 - [Avatar](r/avatar.json): People and workspaces.
 - [Code block](r/code-block.json): Syntax-highlighted code in the system's colors (Shiki, server-rendered).
+- [Approval](r/approval.json): The agent asks before it acts: what will happen, and two short answers.
+- [Citation](r/citation.json): Inline source numbers and the source list under an answer.
+- [Streaming text](r/streaming-text.json): Model output as it arrives, with a caret and screen-reader-safe updates.
+- [File card](r/file-card.json): Attachments and generated files, with type, name and size.
+- [Reasoning](r/reasoning.json): The agent's thinking, folded away with how long it took.

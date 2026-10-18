@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "citation",
+  "type": "registry:ui",
+  "title": "Citation",
+  "description": "Inline source numbers and the source list under an answer.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/citation.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\n/**\n * An inline source marker: a small number after the claim, linking to where it\n * came from. Its tap area reaches past the chip so it's easy to hit on a phone.\n */\nfunction Citation({\n  index,\n  title,\n  className,\n  ...props\n}: Omit<React.ComponentProps<\"a\">, \"title\"> & { index: number; title: string }) {\n  return (\n    <a\n      data-slot=\"citation\"\n      title={title}\n      target=\"_blank\"\n      rel=\"noreferrer\"\n      className={cn(\n        \"relative ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-sm bg-muted px-1 align-super after:absolute after:-inset-2 text-xs font-medium tabular-nums text-muted-foreground no-underline transition-colors duration-120 ease-out hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring\",\n        className,\n      )}\n      {...props}\n    >\n      <span className=\"sr-only\">Source </span>\n      {index}\n    </a>\n  );\n}\n\n/** The numbered sources under an answer, matching the inline markers. */\nfunction Sources({\n  sources,\n  className,\n  ...props\n}: React.ComponentProps<\"ol\"> & { sources: { title: string; href: string }[] }) {\n  return (\n    <ol data-slot=\"sources\" className={cn(\"flex flex-col text-sm\", className)} {...props}>\n      {sources.map((source, i) => (\n        <li key={source.href} className=\"flex min-w-0 items-baseline gap-2\">\n          <span className=\"w-4 shrink-0 text-xs tabular-nums text-muted-foreground\">{i + 1}</span>\n          <a href={source.href} target=\"_blank\" rel=\"noreferrer\" className=\"min-w-0 truncate py-1 text-foreground underline-offset-4 hover:underline\">\n            {source.title}\n          </a>\n          <span className=\"shrink-0 text-xs text-muted-foreground\">{hostOf(source.href)}</span>\n        </li>\n      ))}\n    </ol>\n  );\n}\n\nfunction hostOf(href: string) {\n  try {\n    return new URL(href).hostname.replace(/^www\\./, \"\");\n  } catch {\n    return \"\";\n  }\n}\n\nexport { Citation, Sources };\n"
+    }
+  ]
+}

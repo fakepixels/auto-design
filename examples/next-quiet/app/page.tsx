@@ -9,7 +9,10 @@ async function Code(props: React.ComponentProps<typeof CodeBlock>) {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Message, ToolCall } from "@/components/ui/message";
-import { ApproveRun, ModeToggle } from "@/components/specimen/controls";
+import { Citation, Sources } from "@/components/ui/citation";
+import { FileCard } from "@/components/ui/file-card";
+import { Reasoning } from "@/components/ui/reasoning";
+import { ApproveRun, ApproveSend, ModeToggle, StreamingReply } from "@/components/specimen/controls";
 
 function Surface({ name, note, children }: { name: string; note: string; children: React.ReactNode }) {
   return (
@@ -157,22 +160,39 @@ export default function Specimen() {
         </div>
       </Surface>
 
-      <Surface name="Agent chat" note="User turns sit on a quiet fill. Answers read like a document. Tool calls collapse to one line.">
+      <Surface name="Agent chat" note="User turns sit on a quiet fill. Answers read like a document. The agent cites its sources and asks before it acts.">
         <div className="flex max-w-2xl flex-col gap-5">
           <Message from="user">Why did Acme Robotics’ invoice go up 38% this month?</Message>
+          <Reasoning seconds={6}>
+            Compared October usage with September by meter. Only image inference moved more than 3%, so I checked when
+            the change started and what else happened that week.
+          </Reasoning>
           <ToolCall name="query_usage" status="done" open>
             customer: acme-robotics, period: 2026-10, group_by: meter
           </ToolCall>
           <Message from="assistant">
             <p>
               Almost all of the increase is one meter. Image inference calls rose from 11.4M in September to 19.9M in
-              October, starting on October 14, when Acme moved its nightly batch jobs onto your API.
+              October
+              <Citation index={1} href="https://meridian.example/usage/acme-robotics" title="Acme Robotics usage, October" />,
+              starting on October 14, when Acme moved its nightly batch jobs onto your API
+              <Citation index={2} href="https://meridian.example/changelog/acme-batch" title="Acme changelog: batch jobs" />.
             </p>
             <p className="mt-3">
               Every other meter is within 3% of last month, so the invoice is correct as drafted. Their account owner
               may want to hear about it before it goes out.
             </p>
+            <Sources
+              className="mt-4"
+              sources={[
+                { title: "Acme Robotics usage, October", href: "https://meridian.example/usage/acme-robotics" },
+                { title: "Acme changelog: batch jobs", href: "https://meridian.example/changelog/acme-batch" },
+              ]}
+            />
           </Message>
+          <FileCard name="acme-usage-october.csv" size={48_213} href="#" />
+          <ApproveSend />
+          <StreamingReply />
           <form className="flex gap-2 border-t pt-4">
             <Input placeholder="Ask about this run" aria-label="Ask about this run" />
             <Button variant="secondary" type="button">

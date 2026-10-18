@@ -5,6 +5,7 @@ import { componentSources } from "./components.js";
 import { isDarkFirst } from "./css.js";
 import { RULES, buildGuardrails, type RuleId } from "./guardrails.js";
 import { WEIGHT_NAMES, header } from "./shared.js";
+import { surfacesSection } from "../agents/design-md.js";
 
 const TEXTURE_PRINCIPLES: Record<Texture, string[]> = {
   minimal: [
@@ -200,6 +201,7 @@ export function emitDesignMd(s: DesignSystem): string {
     `- ${c.voice.emoji === "never" ? "No emoji in product UI." : "Emoji sparingly, never in buttons or errors."}`,
     "- Errors say what happened and what to do next. Empty states say what will appear and how to start.",
     "",
+    ...surfacesSection(s),
     "## Components",
     "",
     "Use these before writing your own. They already follow every rule here. Install with",

@@ -81,6 +81,19 @@ Then import the fonts once in your root layout:
 ${[c.type.sans, c.type.mono, c.type.display].filter((f) => f?.package).map((f) => `import "${f!.package}";`).join("\n")}
 \`\`\`
 
+## For coding agents
+
+\`npx auto-design add\` points AGENTS.md and CLAUDE.md at DESIGN.md and registers an MCP server in the
+app's \`.mcp.json\`. Agents can then ask for the rules, tokens and components, and check code and text
+messages before they finish:
+
+\`\`\`sh
+npx auto-design mcp                                  # the MCP server (stdio), run by the agent
+npx auto-design message "Your report is ready"       # check a text against the voice rules
+npx auto-design card --title "92% on track"          # an image card for texts and link previews
+npx auto-design review http://localhost:3000/        # screenshots, measured checks and a design critique
+\`\`\`
+
 ## Change it
 
 1. Edit \`design.config.ts\`.

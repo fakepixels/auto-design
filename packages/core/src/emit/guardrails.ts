@@ -2,6 +2,7 @@ import { PRODUCT_MAX_STEP, SHADOW_STEPS, TYPE_STEPS } from "../scales.js";
 import { ROLE_NAMES, type DesignSystem } from "../system.js";
 import { LOCKED_NAMESPACES } from "./css.js";
 import { WEIGHT_NAMES } from "./shared.js";
+import { agentTheme, type AgentTheme } from "../agents/theme.js";
 
 export type Severity = "error" | "warn" | "off";
 
@@ -32,7 +33,10 @@ export type RuleId = keyof typeof RULES;
 export interface Guardrails {
   version: 1;
   system: string;
+  /** The product name: the sender name texts start with. */
+  product: string;
   texture: string;
+  surfaces: string[];
   colors: { roles: string[] };
   fonts: { families: string[]; cssFamilies: string[] };
   weights: Record<string, number>;
@@ -47,6 +51,8 @@ export interface Guardrails {
   ignore: string[];
   /** Tailwind theme namespaces the system owns. */
   lockedNamespaces: string[];
+  /** Colors, brand scale and fonts, for agent tools (MCP server, image cards) running in an app. */
+  theme: AgentTheme;
 }
 
 export function buildGuardrails(s: DesignSystem): Guardrails {
@@ -63,7 +69,9 @@ export function buildGuardrails(s: DesignSystem): Guardrails {
   return {
     version: 1,
     system: s.config.name,
+    product: s.config.displayName,
     texture: s.config.texture,
+    surfaces: [...s.config.surfaces],
     colors: { roles: [...ROLE_NAMES, "transparent", "current", "inherit"] },
     fonts: {
       families,
@@ -86,6 +94,7 @@ export function buildGuardrails(s: DesignSystem): Guardrails {
     rules,
     ignore: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/auto-design.css", "**/*.d.ts"],
     lockedNamespaces: [...LOCKED_NAMESPACES],
+    theme: agentTheme(s),
   };
 }
 

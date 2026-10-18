@@ -50,7 +50,8 @@ body.sp { min-height: 100vh; overflow: visible; }
 .cmd pre { margin: 0; padding: 12px 14px; border-radius: var(--sp-r-lg); background: var(--muted); border: 1px solid var(--border); font-size: var(--sp-t-sm); overflow-x: auto; }
 .swatches { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
 .swatches div { height: 56px; border-radius: var(--sp-r-md); position: relative; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent); }
-.swatches span { position: absolute; left: 6px; bottom: 4px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.swatches span { position: absolute; left: 6px; bottom: 4px; font-size: var(--sp-t-xs); line-height: 1; font-variant-numeric: tabular-nums; }
+.doc a:not(.list a) { color: var(--primary); text-underline-offset: 3px; }
 .scale { margin-top: 16px; display: grid; gap: 4px; }
 .scale div { display: grid; grid-template-columns: 72px 1fr; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
 .scale code { color: var(--muted-foreground); font-size: var(--sp-t-xs); }
@@ -88,8 +89,8 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
   <section>
     <h2>Color</h2>
     <p>${data.report.passed} of ${data.report.total} contrast checks pass in light and dark mode.</p>
-    <div class="swatches" id="brand"></div>
-    <div class="swatches" id="neutral"></div>
+    <div class="swatches" id="brand" data-auto-design-ignore></div>
+    <div class="swatches" id="neutral" data-auto-design-ignore></div>
   </section>
 
   <section>
@@ -137,8 +138,8 @@ ${js}
     });
     ["brand", "neutral"].forEach(function (name) {
       var row = document.getElementById(name);
-      row.innerHTML = data.palettes[name].map(function (p, i) {
-        return '<div style="background:' + p.css + '"><span style="color:' + (i < 5 ? "rgba(0,0,0,.6)" : "rgba(255,255,255,.8)") + '">' + p.step + "</span></div>";
+      row.innerHTML = data.palettes[name].map(function (p) {
+        return '<div style="background:' + p.css + '"><span style="color:' + labelOn(p.css) + '">' + p.step + "</span></div>";
       }).join("");
     });
     var steps = ["6xl", "5xl", "4xl", "3xl", "2xl", "xl", "lg", "base", "sm", "xs"];
@@ -151,8 +152,26 @@ ${js}
     }).join("");
     document.querySelectorAll(".toggle button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
   }
-  var mode = data.defaultMode;
+  // Swatch labels in black or white, whichever reads better on that step.
+  function labelOn(css) {
+    var probe = document.createElement("i");
+    probe.style.color = "color-mix(in srgb, " + css + " 100%, transparent 0%)";
+    document.body.appendChild(probe);
+    var m = /color\\(srgb ([\\d.e-]+) ([\\d.e-]+) ([\\d.e-]+)/.exec(getComputedStyle(probe).color);
+    probe.remove();
+    if (!m) return "#000";
+    var lin = function (v) { v = Math.max(0, Math.min(1, +v)); return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    var L = 0.2126 * lin(m[1]) + 0.7152 * lin(m[2]) + 0.0722 * lin(m[3]);
+    return (L + 0.05) / 0.05 >= 1.05 / (L + 0.05) ? "#000" : "#fff";
+  }
+  var root = document.documentElement;
+  var mode = root.classList.contains("dark") ? "dark" : root.classList.contains("light") ? "light" : data.defaultMode;
   try { mode = localStorage.getItem("auto-design-mode") || mode; } catch (e) {}
+  // Follow <html class="dark"> or "light" if something else sets it.
+  new MutationObserver(function () {
+    var next = root.classList.contains("dark") ? "dark" : root.classList.contains("light") ? "light" : null;
+    if (next && next !== mode) { mode = next; draw(mode); }
+  }).observe(root, { attributes: true, attributeFilter: ["class"] });
   document.querySelectorAll(".toggle button").forEach(function (b) {
     b.addEventListener("click", function () { mode = b.dataset.mode; try { localStorage.setItem("auto-design-mode", mode); } catch (e) {} draw(mode); });
   });

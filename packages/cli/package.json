@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/bin.ts --format esm --clean && cp src/dev/studio.html src/onboard/onboard.html dist/"
+    "build": "tsup src/bin.ts --format esm --clean --external playwright --external playwright-core && cp src/dev/studio.html src/onboard/onboard.html dist/"
   },
   "dependencies": {
     "@auto-design/check": "^0.1.0",

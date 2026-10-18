@@ -2,6 +2,7 @@ import { toCss } from "../color.js";
 import { SHADOW_STEPS, TYPE_STEPS, bezier, shadowCss } from "../scales.js";
 import { ROLE_NAMES, type DesignSystem, type Mode } from "../system.js";
 import { WEIGHT_NAMES, fontStack, header } from "./shared.js";
+import { mcpLayer } from "../agents/mcp-app.js";
 
 /**
  * Tailwind namespaces the system owns completely. Resetting them removes
@@ -275,5 +276,6 @@ export function emitCss(s: DesignSystem): string {
   const texture = textureLayer(s);
   if (texture) parts.push(texture);
   if (s.config.surfaces.includes("code")) parts.push(codeLayer(darkFirst ? ":root:not(.light)" : ":root.dark"));
+  if (s.config.surfaces.includes("mcp-apps")) parts.push(mcpLayer(s, darkFirst));
   return parts.join("\n\n") + "\n";
 }

@@ -125,7 +125,11 @@
       return (
         '<div class="sp-chat"><div class="sp-msg-user">' + e(c.question) + "</div>" +
         '<div class="sp-tool"><i></i><code>' + e(c.tool) + '</code><span class="args">' + e(c.toolArgs) + '</span><span class="st">Done</span></div>' +
-        '<div class="sp-msg-ai"><p>' + e(c.answer) + "</p>" + (o.size === "s" ? "" : "<p>" + e(c.followUp) + "</p>") + "</div>" +
+        '<div class="sp-msg-ai"><p>' + e(c.answer) + (o.size === "s" ? "" : '<span class="sp-cite">1</span>') + "</p>" + (o.size === "s" ? "" : "<p>" + e(c.followUp) + "</p>") + "</div>" +
+        (o.size === "l"
+          ? '<div class="sp-card sp-approval"><div class="t">Send this summary to the project owners<span>3 people, by email. They can reply in the thread.</span></div>' +
+            '<div class="a"><button class="sp-btn primary sm" tabindex="-1">Send</button><button class="sp-btn ghost sm" tabindex="-1">Don\u2019t send</button></div></div>'
+          : "") +
         (o.size === "s" ? "" : '<div class="sp-composer"><div class="sp-input">Ask a follow-up</div><button class="sp-btn secondary" tabindex="-1">Send</button></div>') +
         "</div>"
       );

@@ -1,6 +1,14 @@
 {
   "version": 1,
   "system": "quiet",
+  "product": "Quiet",
+  "texture": "minimal",
+  "surfaces": [
+    "web-app",
+    "marketing",
+    "code",
+    "chat"
+  ],
   "colors": {
     "roles": [
       "background",
@@ -153,7 +161,9 @@
     "no-gradient-text": "warn",
     "ui-case": "warn",
     "no-emoji": "warn",
-    "no-token-override": "error"
+    "no-token-override": "error",
+    "glass-on-content": "warn",
+    "display-size": "warn"
   },
   "ignore": [
     "**/node_modules/**",
@@ -177,5 +187,145 @@
     "--blur-*",
     "--ease-*",
     "--animate-*"
-  ]
+  ],
+  "theme": {
+    "product": "Quiet",
+    "texture": "minimal",
+    "radius": 6,
+    "defaultMode": "light",
+    "colors": {
+      "light": {
+        "background": "#ffffff",
+        "foreground": "#080a0d",
+        "card": "#ffffff",
+        "card-foreground": "#080a0d",
+        "popover": "#ffffff",
+        "popover-foreground": "#080a0d",
+        "primary": "#2760a8",
+        "primary-foreground": "#f8fafd",
+        "secondary": "#f2f4f7",
+        "secondary-foreground": "#15171b",
+        "muted": "#f2f4f7",
+        "muted-foreground": "#6a6f76",
+        "accent": "#f2f4f7",
+        "accent-foreground": "#15171b",
+        "destructive": "#d6111c",
+        "destructive-foreground": "#f8fafd",
+        "success": "#008542",
+        "success-foreground": "#f8fafd",
+        "warning": "#db9400",
+        "warning-foreground": "#080a0d",
+        "border": "#e2e5ea",
+        "input": "#d0d5db",
+        "ring": "#2760a8",
+        "overlay": "#000000",
+        "chart-1": "#2760a8",
+        "chart-2": "#ab94e7",
+        "chart-3": "#b26d39",
+        "chart-4": "#5ecbcc",
+        "chart-5": "#9ca1a8",
+        "sidebar": "#f8fafd",
+        "sidebar-foreground": "#080a0d",
+        "sidebar-primary": "#2760a8",
+        "sidebar-primary-foreground": "#f8fafd",
+        "sidebar-accent": "#f2f4f7",
+        "sidebar-accent-foreground": "#15171b",
+        "sidebar-border": "#e2e5ea",
+        "sidebar-ring": "#2760a8"
+      },
+      "dark": {
+        "background": "#080a0d",
+        "foreground": "#f8fafd",
+        "card": "#15171b",
+        "card-foreground": "#f8fafd",
+        "popover": "#15171b",
+        "popover-foreground": "#f8fafd",
+        "primary": "#6da7f3",
+        "primary-foreground": "#080a0d",
+        "secondary": "#23262b",
+        "secondary-foreground": "#f8fafd",
+        "muted": "#23262b",
+        "muted-foreground": "#9ca1a8",
+        "accent": "#23262b",
+        "accent-foreground": "#f8fafd",
+        "destructive": "#ff7266",
+        "destructive-foreground": "#080a0d",
+        "success": "#52be76",
+        "success-foreground": "#080a0d",
+        "warning": "#db9400",
+        "warning-foreground": "#080a0d",
+        "border": "#23262b",
+        "input": "#3c4046",
+        "ring": "#6da7f3",
+        "overlay": "#000000",
+        "chart-1": "#6da7f3",
+        "chart-2": "#b59ef1",
+        "chart-3": "#cc8552",
+        "chart-4": "#65d2d3",
+        "chart-5": "#6f747a",
+        "sidebar": "#15171b",
+        "sidebar-foreground": "#f8fafd",
+        "sidebar-primary": "#6da7f3",
+        "sidebar-primary-foreground": "#080a0d",
+        "sidebar-accent": "#23262b",
+        "sidebar-accent-foreground": "#f8fafd",
+        "sidebar-border": "#23262b",
+        "sidebar-ring": "#6da7f3"
+      }
+    },
+    "brand": {
+      "50": "#f2f7ff",
+      "100": "#dfedff",
+      "200": "#c1dbff",
+      "300": "#9bc5ff",
+      "400": "#6da7f3",
+      "500": "#4c8bde",
+      "600": "#3473c4",
+      "700": "#2760a8",
+      "800": "#1d4d89",
+      "900": "#183d6d",
+      "950": "#0c2648"
+    },
+    "text": {
+      "xs": 12,
+      "sm": 13,
+      "base": 14,
+      "lg": 17,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 30,
+      "4xl": 34,
+      "5xl": 42,
+      "6xl": 50
+    },
+    "fonts": {
+      "sans": {
+        "family": "Geist Variable",
+        "fallback": [
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "weights": [
+          400,
+          500,
+          600
+        ]
+      },
+      "mono": {
+        "family": "Geist Mono Variable",
+        "fallback": [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace"
+        ],
+        "weights": [
+          400,
+          500
+        ]
+      }
+    }
+  },
+  "registry": "../quiet-design"
 }

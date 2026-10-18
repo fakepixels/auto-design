@@ -269,6 +269,76 @@
           "type": "registry:lib"
         }
       ]
+    },
+    {
+      "name": "approval",
+      "type": "registry:ui",
+      "title": "Approval",
+      "description": "The agent asks before it acts: what will happen, and two short answers.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/approval.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "meta": {
+        "requires": [
+          "button"
+        ]
+      }
+    },
+    {
+      "name": "citation",
+      "type": "registry:ui",
+      "title": "Citation",
+      "description": "Inline source numbers and the source list under an answer.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/citation.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "streaming-text",
+      "type": "registry:ui",
+      "title": "Streaming text",
+      "description": "Model output as it arrives, with a caret and screen-reader-safe updates.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/streaming-text.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "file-card",
+      "type": "registry:ui",
+      "title": "File card",
+      "description": "Attachments and generated files, with type, name and size.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/file-card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "reasoning",
+      "type": "registry:ui",
+      "title": "Reasoning",
+      "description": "The agent's thinking, folded away with how long it took.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/reasoning.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

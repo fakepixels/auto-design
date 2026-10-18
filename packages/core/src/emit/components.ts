@@ -1,4 +1,5 @@
 import type { DesignSystem } from "../system.js";
+import { agentComponentSources } from "../agents/components.js";
 import { codeTheme } from "./code.js";
 
 /** The code theme as a TypeScript module, so apps need no JSON-import config. */
@@ -29,6 +30,10 @@ export interface ComponentSource {
   content: string;
   /** Supporting modules that go in the lib alias (e.g. the code theme). */
   lib?: { file: string; content: string }[];
+  /** "registry:lib" items have no component file, only lib modules. */
+  type?: "registry:ui" | "registry:lib";
+  /** Other items from this system the component imports (installed alongside by `auto-design add`). */
+  requires?: string[];
 }
 
 /** Texture-specific class fragments, so each texture reads differently in the same components. */
@@ -709,5 +714,6 @@ export { CodeBlock };
     { name: "toaster", title: "Toaster", description: "Toasts by Sonner, styled with system tokens.", dependencies: ["sonner"], file: "toaster.tsx", content: toaster },
     { name: "message", title: "Message", description: "Chat messages and tool-call rows for agent UI.", dependencies: [], file: "message.tsx", content: message },
     ...extra,
+    ...agentComponentSources(s),
   ];
 }

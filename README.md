@@ -8,9 +8,9 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phases 0, 1 and 2 done.** Onboarding, five presets, the compiler, the checker, the studio,
-> publishing and the docs site work end to end. Agent surfaces (an MCP server, MCP Apps, iMessage cards and
-> `auto-design review`) come next. See the [build plan](#roadmap).
+> Status: **Phases 0 to 3 done.** Onboarding, five presets, the compiler, the checker, the studio,
+> publishing, the docs site, and the agent surfaces (an MCP server, chat components, an MCP Apps adapter,
+> iMessage and SMS rules, image cards and `auto-design review`) work end to end. See the [build plan](#roadmap).
 
 ## Why guardrails, not guidelines
 
@@ -136,6 +136,73 @@ npx auto-design check --cwd ../my-app              # lint an app against the sys
 i dark: primary uses brand-400, a lighter step of the brand color, so it reads as text on dark surfaces.
 ```
 
+## For agents, and the surfaces they work on
+
+### An MCP server
+
+`npx auto-design add` registers the system's MCP server in the app's `.mcp.json` (and `.cursor/mcp.json`
+when the project uses Cursor), next to the DESIGN.md pointer in `AGENTS.md` and `CLAUDE.md`. Agents get the
+system as tools, in a system repo or in any app that installed it:
+
+| Tool | What it does |
+| --- | --- |
+| `get_rules` | DESIGN.md, or one section of it ("color", "chat", "imessage") |
+| `get_tokens` | Role colors in light and dark, and the type, spacing, radius, shadow and motion scales |
+| `list_components`, `get_component` | What's installable, what's installed, and the source |
+| `check_code` | The guardrail checker, on code in memory or files on disk |
+| `check_message` | Texting and voice rules for iMessage, SMS, RCS and chat, with a fixed version |
+| `render_card` | An image card in the system's style |
+
+Run it yourself with `npx auto-design mcp` (stdio).
+
+### Chat
+
+Systems that target in-app chat add `approval` (the agent asks before it acts), `citation` (inline source
+numbers and a source list), `streaming-text` (with a caret, and screen readers hear the finished text once),
+`file-card` and `reasoning`, next to `message` and `tool-call`. DESIGN.md gets the rules for using them.
+
+![Agent chat in the example app: reasoning, a tool call, a cited answer, a file and an approval](docs/agent-chat.png)
+
+### Inside ChatGPT and Claude
+
+For MCP Apps, `auto-design.css` carries a host layer and the `mcp-host` item adds `applyHostContext()`.
+Call it with the host context from `@modelcontextprotocol/ext-apps`. Inside a host, backgrounds, text,
+borders, corners and type follow the host's style variables, so the app reads as part of the conversation.
+The brand keeps primary actions, focus rings and charts. Outside a host nothing changes.
+
+![The same card standalone and inside a host, in light and dark mode](docs/mcp-host.png)
+
+### iMessage and SMS
+
+A text thread belongs to the phone, so the system holds the words to rules and carries the brand in images:
+
+```sh
+npx auto-design message --first "Hey!! Your **report** is READY https://bit.ly/x"
+npx auto-design card --title "3 projects need a decision this week" --metric "92%" --out card.png
+```
+
+`message` checks for markdown, typographic punctuation that halves an SMS segment, length, a missing sender
+name on the first text, a missing opt-out line on marketing SMS, emoji, shouting, more than one link, public
+link shorteners and unfilled template variables, then prints a fixed version. `card` draws 1200×800 cards,
+1200×630 link previews or 1080×1080 squares in the system's colors, type and texture (PNG through Playwright,
+or SVG).
+
+![Image cards in four presets](docs/cards.png)
+
+### Review
+
+```sh
+npx auto-design review http://localhost:3000/ /pricing
+```
+
+`review` opens each page in Chromium at 1280px and 390px, in light and dark mode, and checks what the browser
+drew: off-palette colors, text contrast, fonts and sizes off the scale, tap targets under 24px on phones,
+sideways scrolling, images without alt text and page errors. With a model key it adds a design critique of the
+screenshots against the system's own rules. It writes `review.md` and `review.json` with the screenshots.
+`--comment` posts the report on the pull request in GitHub Actions and updates it on later runs, and
+`npx auto-design review --init-ci` writes that workflow. Measured errors fail the run; the critique never does.
+Reviews need Playwright (`npm i -D playwright`).
+
 ## What a design system repo contains
 
 | Path | What it is |
@@ -182,8 +249,10 @@ installers ship a file rather than merging variables into your CSS.
 
 `button`, `card`, `input`, `textarea`, `label`, `badge`, `separator`, `skeleton`, `table`, `tabs`,
 `dialog`, `switch`, `avatar`, `toaster` (Sonner), `message` and `tool-call` for agent chat, and `code-block`
-(Shiki, server-rendered). They are restyled shadcn components built on `radix-ui`, adjusted to the
-system's density and motion. A test runs every one through the checker for every preset.
+(Shiki, server-rendered). Chat systems add `approval`, `citation`, `streaming-text`, `file-card` and
+`reasoning`; MCP Apps systems add `mcp-host`. They are restyled shadcn components built on `radix-ui`,
+adjusted to the system's density, motion and texture. Tests run every one through the checker and through
+Tailwind for every preset on every surface, so no component uses a class the theme doesn't have.
 
 ### Guardrails in the editor
 
@@ -208,6 +277,7 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 - Before cleanup, `auto-design check` found 30 errors in the default Next.js template: palette colors,
   hex values, Arial, and template variables overriding the system.
 - The specimen page uses only system components and classes: 0 errors, 0 warnings, and `next build` passes.
+- `auto-design review` on the running app: no measured problems at 1280px and 390px, in light and dark mode.
 
 ![The same page in dark mode](docs/specimen-dark.png)
 
@@ -218,8 +288,8 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 | [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, contrast enforcement, emitters |
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | [`@auto-design/presets`](packages/presets) | Quiet, Editorial, Glass, Terminal and Tactile |
-| [`@auto-design/ai`](packages/ai) | Model calls for onboarding (Claude, OpenAI, OpenRouter): suggestions, refinements and sample copy as validated config changes |
-| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `check`, `presets` |
+| [`@auto-design/ai`](packages/ai) | Model calls (Claude, OpenAI, OpenRouter): onboarding suggestions and refinements as validated config changes, and review critiques |
+| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `check`, `mcp`, `message`, `card`, `review`, `presets` |
 | [`@auto-design/eslint-plugin`](packages/eslint-plugin) | The checker as ESLint rules |
 | [`@auto-design/stylelint-plugin`](packages/stylelint-plugin) | The checker as a Stylelint plugin |
 
@@ -235,7 +305,7 @@ npm run typecheck
 | 0 (done) | Config schema, token set, compiler, checker, Quiet preset, Next.js gate |
 | 1 (done) | Studio with color picker, `auto-design add` for any Tailwind app, ESLint and Stylelint plugins, code theme, 16 components |
 | 2 (done) | Local onboarding app (`npx auto-design init` opens it): model key, taste questions, live previews, GitHub publish and hosting, docs site; Editorial, Glass, Terminal and Tactile presets |
-| 3 | Agent surfaces: MCP server (`get_rules`, `check`), MCP Apps adapter, iMessage image cards and voice rules, `auto-design review` |
+| 3 (done) | Agent surfaces: MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `auto-design review` |
 | 4 | Public launch, preset gallery, private registry template |
 
 ## Credits

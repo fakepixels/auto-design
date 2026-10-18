@@ -181,6 +181,11 @@
 .sp-tool code { font-size: var(--sp-t-xs); }
 .sp-tool .args { font-family: var(--sp-mono); font-size: var(--sp-t-xs); color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .sp-tool .st { margin-left: auto; font-size: var(--sp-t-xs); color: var(--muted-foreground); }
+.sp-cite { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; margin-left: 2px; border-radius: var(--sp-r-sm); background: var(--muted); color: var(--muted-foreground); font-size: var(--sp-t-xs); line-height: 1; vertical-align: super; font-variant-numeric: tabular-nums; }
+.sp-approval { padding: 0; font-size: var(--sp-t-sm); }
+.sp-approval .t { padding: 10px 14px; font-weight: var(--sp-w-medium); }
+.sp-approval .t span { display: block; margin-top: 2px; font-weight: var(--sp-w-body); color: var(--muted-foreground); }
+.sp-approval .a { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
 .sp-composer { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* ---------- Code ---------- */
@@ -316,7 +321,8 @@ body.sp { min-height: 100vh; overflow: visible; }
 .cmd pre { margin: 0; padding: 12px 14px; border-radius: var(--sp-r-lg); background: var(--muted); border: 1px solid var(--border); font-size: var(--sp-t-sm); overflow-x: auto; }
 .swatches { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
 .swatches div { height: 56px; border-radius: var(--sp-r-md); position: relative; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent); }
-.swatches span { position: absolute; left: 6px; bottom: 4px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.swatches span { position: absolute; left: 6px; bottom: 4px; font-size: var(--sp-t-xs); line-height: 1; font-variant-numeric: tabular-nums; }
+.doc a:not(.list a) { color: var(--primary); text-underline-offset: 3px; }
 .scale { margin-top: 16px; display: grid; gap: 4px; }
 .scale div { display: grid; grid-template-columns: 72px 1fr; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
 .scale code { color: var(--muted-foreground); font-size: var(--sp-t-xs); }
@@ -354,8 +360,8 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
   <section>
     <h2>Color</h2>
     <p>43 of 43 contrast checks pass in light and dark mode.</p>
-    <div class="swatches" id="brand"></div>
-    <div class="swatches" id="neutral"></div>
+    <div class="swatches" id="brand" data-auto-design-ignore></div>
+    <div class="swatches" id="neutral" data-auto-design-ignore></div>
   </section>
 
   <section>
@@ -367,7 +373,7 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
   <section>
     <h2>Components</h2>
     <p>Each one installs on its own and passes the system's guardrails.</p>
-    <div class="list"><a href="r/button.json"><b>Button</b><span>Buttons with one primary variant per view.</span></a><a href="r/card.json"><b>Card</b><span>Grouped content on the page.</span></a><a href="r/input.json"><b>Input</b><span>Text input sized to match buttons.</span></a><a href="r/badge.json"><b>Badge</b><span>Status and labels, always with text.</span></a><a href="r/toaster.json"><b>Toaster</b><span>Toasts by Sonner, styled with system tokens.</span></a><a href="r/message.json"><b>Message</b><span>Chat messages and tool-call rows for agent UI.</span></a><a href="r/label.json"><b>Label</b><span>Form labels.</span></a><a href="r/textarea.json"><b>Textarea</b><span>Multi-line text input.</span></a><a href="r/separator.json"><b>Separator</b><span>A hairline between groups.</span></a><a href="r/skeleton.json"><b>Skeleton</b><span>Loading placeholders.</span></a><a href="r/table.json"><b>Table</b><span>Data tables with tabular numbers.</span></a><a href="r/tabs.json"><b>Tabs</b><span>Switch between views of the same thing.</span></a><a href="r/dialog.json"><b>Dialog</b><span>Modal dialogs that enter from the system's enter scale.</span></a><a href="r/switch.json"><b>Switch</b><span>On and off settings.</span></a><a href="r/avatar.json"><b>Avatar</b><span>People and workspaces.</span></a><a href="r/code-block.json"><b>Code block</b><span>Syntax-highlighted code in the system's colors (Shiki, server-rendered).</span></a></div>
+    <div class="list"><a href="r/button.json"><b>Button</b><span>Buttons with one primary variant per view.</span></a><a href="r/card.json"><b>Card</b><span>Grouped content on the page.</span></a><a href="r/input.json"><b>Input</b><span>Text input sized to match buttons.</span></a><a href="r/badge.json"><b>Badge</b><span>Status and labels, always with text.</span></a><a href="r/toaster.json"><b>Toaster</b><span>Toasts by Sonner, styled with system tokens.</span></a><a href="r/message.json"><b>Message</b><span>Chat messages and tool-call rows for agent UI.</span></a><a href="r/label.json"><b>Label</b><span>Form labels.</span></a><a href="r/textarea.json"><b>Textarea</b><span>Multi-line text input.</span></a><a href="r/separator.json"><b>Separator</b><span>A hairline between groups.</span></a><a href="r/skeleton.json"><b>Skeleton</b><span>Loading placeholders.</span></a><a href="r/table.json"><b>Table</b><span>Data tables with tabular numbers.</span></a><a href="r/tabs.json"><b>Tabs</b><span>Switch between views of the same thing.</span></a><a href="r/dialog.json"><b>Dialog</b><span>Modal dialogs that enter from the system's enter scale.</span></a><a href="r/switch.json"><b>Switch</b><span>On and off settings.</span></a><a href="r/avatar.json"><b>Avatar</b><span>People and workspaces.</span></a><a href="r/code-block.json"><b>Code block</b><span>Syntax-highlighted code in the system's colors (Shiki, server-rendered).</span></a><a href="r/approval.json"><b>Approval</b><span>The agent asks before it acts: what will happen, and two short answers.</span></a><a href="r/citation.json"><b>Citation</b><span>Inline source numbers and the source list under an answer.</span></a><a href="r/streaming-text.json"><b>Streaming text</b><span>Model output as it arrives, with a caret and screen-reader-safe updates.</span></a><a href="r/file-card.json"><b>File card</b><span>Attachments and generated files, with type, name and size.</span></a><a href="r/reasoning.json"><b>Reasoning</b><span>The agent's thinking, folded away with how long it took.</span></a></div>
   </section>
 
   <footer>Generated by auto-design 0.1.0 from design.config.ts.</footer>
@@ -500,7 +506,11 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
       return (
         '<div class="sp-chat"><div class="sp-msg-user">' + e(c.question) + "</div>" +
         '<div class="sp-tool"><i></i><code>' + e(c.tool) + '</code><span class="args">' + e(c.toolArgs) + '</span><span class="st">Done</span></div>' +
-        '<div class="sp-msg-ai"><p>' + e(c.answer) + "</p>" + (o.size === "s" ? "" : "<p>" + e(c.followUp) + "</p>") + "</div>" +
+        '<div class="sp-msg-ai"><p>' + e(c.answer) + (o.size === "s" ? "" : '<span class="sp-cite">1</span>') + "</p>" + (o.size === "s" ? "" : "<p>" + e(c.followUp) + "</p>") + "</div>" +
+        (o.size === "l"
+          ? '<div class="sp-card sp-approval"><div class="t">Send this summary to the project owners<span>3 people, by email. They can reply in the thread.</span></div>' +
+            '<div class="a"><button class="sp-btn primary sm" tabindex="-1">Send</button><button class="sp-btn ghost sm" tabindex="-1">Don\u2019t send</button></div></div>'
+          : "") +
         (o.size === "s" ? "" : '<div class="sp-composer"><div class="sp-input">Ask a follow-up</div><button class="sp-btn secondary" tabindex="-1">Send</button></div>') +
         "</div>"
       );
@@ -670,8 +680,8 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
     });
     ["brand", "neutral"].forEach(function (name) {
       var row = document.getElementById(name);
-      row.innerHTML = data.palettes[name].map(function (p, i) {
-        return '<div style="background:' + p.css + '"><span style="color:' + (i < 5 ? "rgba(0,0,0,.6)" : "rgba(255,255,255,.8)") + '">' + p.step + "</span></div>";
+      row.innerHTML = data.palettes[name].map(function (p) {
+        return '<div style="background:' + p.css + '"><span style="color:' + labelOn(p.css) + '">' + p.step + "</span></div>";
       }).join("");
     });
     var steps = ["6xl", "5xl", "4xl", "3xl", "2xl", "xl", "lg", "base", "sm", "xs"];
@@ -684,8 +694,26 @@ footer { margin-top: 48px; color: var(--muted-foreground); font-size: var(--sp-t
     }).join("");
     document.querySelectorAll(".toggle button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
   }
-  var mode = data.defaultMode;
+  // Swatch labels in black or white, whichever reads better on that step.
+  function labelOn(css) {
+    var probe = document.createElement("i");
+    probe.style.color = "color-mix(in srgb, " + css + " 100%, transparent 0%)";
+    document.body.appendChild(probe);
+    var m = /color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)/.exec(getComputedStyle(probe).color);
+    probe.remove();
+    if (!m) return "#000";
+    var lin = function (v) { v = Math.max(0, Math.min(1, +v)); return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    var L = 0.2126 * lin(m[1]) + 0.7152 * lin(m[2]) + 0.0722 * lin(m[3]);
+    return (L + 0.05) / 0.05 >= 1.05 / (L + 0.05) ? "#000" : "#fff";
+  }
+  var root = document.documentElement;
+  var mode = root.classList.contains("dark") ? "dark" : root.classList.contains("light") ? "light" : data.defaultMode;
   try { mode = localStorage.getItem("auto-design-mode") || mode; } catch (e) {}
+  // Follow <html class="dark"> or "light" if something else sets it.
+  new MutationObserver(function () {
+    var next = root.classList.contains("dark") ? "dark" : root.classList.contains("light") ? "light" : null;
+    if (next && next !== mode) { mode = next; draw(mode); }
+  }).observe(root, { attributes: true, attributeFilter: ["class"] });
   document.querySelectorAll(".toggle button").forEach(function (b) {
     b.addEventListener("click", function () { mode = b.dataset.mode; try { localStorage.setItem("auto-design-mode", mode); } catch (e) {} draw(mode); });
   });

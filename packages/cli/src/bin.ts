@@ -62,9 +62,84 @@ cli
   .option("--cwd <dir>", "The app", { default: "." })
   .option("--components <names>", "Comma-separated components to copy in, or 'all'", { default: "" })
   .option("--no-install", "Print the dependency install command instead of running it")
-  .action(async (system: string, opts: { cwd: string; components: string; install: boolean }) => {
+  .option("--no-mcp", "Don't register the MCP server in .mcp.json")
+  .action(async (system: string, opts: { cwd: string; components: string; install: boolean; mcp: boolean }) => {
     const components = String(opts.components || "").split(",").map((s) => s.trim()).filter(Boolean);
-    await runAdd({ source: system, cwd: opts.cwd, components, install: opts.install });
+    await runAdd({ source: system, cwd: opts.cwd, components, install: opts.install, mcp: opts.mcp });
+  });
+
+cli
+  .command("mcp", "Run the MCP server: rules, tokens, components and checks as tools for coding agents (stdio)")
+  .option("--cwd <dir>", "Project root: a system repo or an app that installed one", { default: "." })
+  .action(async (opts: { cwd: string }) => {
+    const { runMcp } = await import("./mcp/server.js");
+    await runMcp({ cwd: opts.cwd });
+  });
+
+cli
+  .command("message [...text]", "Check an iMessage, SMS or chat message against the system's voice and texting rules")
+  .option("--cwd <dir>", "Project root", { default: "." })
+  .option("--channel <channel>", "sms, imessage, rcs or chat", { default: "sms" })
+  .option("--kind <kind>", "transactional, marketing or conversational", { default: "transactional" })
+  .option("--first", "The first message in a thread (must name the sender)")
+  .option("--json", "Machine-readable output")
+  .action(async (text: string[], opts: { cwd: string; channel: string; kind: string; first?: boolean; json?: boolean }) => {
+    const { runMessage } = await import("./agents.js");
+    const report = await runMessage({ text: text.join(" "), cwd: opts.cwd, channel: opts.channel, kind: opts.kind, first: !!opts.first, json: !!opts.json });
+    process.exitCode = report.ok ? 0 : 1;
+  });
+
+cli
+  .command("card", "Draw an image card in the system's style, for texts, link previews and posts")
+  .option("--cwd <dir>", "Project root", { default: "." })
+  .option("--title <text>", "The one thing the card says")
+  .option("--body <text>", "A sentence of context")
+  .option("--metric <text>", "A number to lead with, like 92%")
+  .option("--metric-label <text>", "What the number is")
+  .option("--label <text>", "A short label above the title")
+  .option("--footer <text>", "Bottom right, usually your domain")
+  .option("--size <size>", "card (1200×800), og (1200×630) or square (1080×1080)", { default: "card" })
+  .option("--mode <mode>", "light or dark")
+  .option("--out <file>", "Output .png, .jpg or .svg (PNG needs Playwright)")
+  .action(async (opts: { cwd: string; title?: string; body?: string; metric?: string; metricLabel?: string; label?: string; footer?: string; size: string; mode?: string; out?: string }) => {
+    if (!opts.title) throw new Error("Pass --title.");
+    const { runCard } = await import("./agents.js");
+    await runCard({ ...opts, title: opts.title });
+  });
+
+cli
+  .command("review [...targets]", "Open the app in a browser and review what it draws: measured checks, plus a design critique with a model key")
+  .option("--cwd <dir>", "The app (where auto-design.json is)", { default: "." })
+  .option("--base <url>", "Base URL for paths like /pricing", { default: "http://localhost:3000" })
+  .option("--widths <list>", "Viewport widths", { default: "1280,390" })
+  .option("--modes <list>", "light, dark or both", { default: "light,dark" })
+  .option("--out <dir>", "Where screenshots and the report go", { default: ".auto-design/review" })
+  .option("--no-model", "Skip the design critique")
+  .option("--comment", "Post the report on the pull request (GitHub Actions)")
+  .option("--fail-on <level>", "error, warn or never", { default: "error" })
+  .option("--json", "Machine-readable output")
+  .option("--init-ci", "Write a GitHub workflow that reviews every pull request")
+  .action(async (targets: string[], opts: { cwd: string; base: string; widths: string; modes: string; out: string; model: boolean; comment?: boolean; failOn: string; json?: boolean; initCi?: boolean }) => {
+    const review = await import("./review/review.js");
+    if (opts.initCi) {
+      const path = review.initReviewCi(opts.cwd);
+      console.log(`${pc.green("✓")} Wrote ${path}. Add playwright as a dev dependency and ANTHROPIC_API_KEY as a repository secret.`);
+      return;
+    }
+    const widths = String(opts.widths).split(",").map((w) => parseInt(w, 10)).filter((w) => w >= 240 && w <= 3840);
+    const modes = String(opts.modes).split(",").map((m) => m.trim()).filter((m): m is "light" | "dark" => m === "light" || m === "dark");
+    await review.runReview({
+      targets: targets.map(String),
+      cwd: opts.cwd,
+      base: opts.base,
+      widths: widths.length ? widths : [1280, 390],
+      modes: modes.length ? modes : ["light", "dark"],
+      out: opts.out,
+      model: opts.model,
+      json: !!opts.json,
+      comment: !!opts.comment,
+      failOn: (["error", "warn", "never"].includes(opts.failOn) ? opts.failOn : "error") as "error" | "warn" | "never",
+    });
   });
 
 cli.command("presets", "List starter presets").action(() => {

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "auto-design": {
+      "command": "npx",
+      "args": [
+        "auto-design",
+        "mcp"
+      ]
+    }
+  }
+}
