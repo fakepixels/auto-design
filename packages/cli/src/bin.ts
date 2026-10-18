@@ -15,10 +15,18 @@ process.stdout.on("error", (err: NodeJS.ErrnoException) => {
 const cli = cac("auto-design");
 
 cli
-  .command("init [dir]", "Create a design system repo from a preset")
-  .option("--preset <name>", "Starting preset", { default: "quiet" })
-  .action(async (dir: string | undefined, opts: { preset: string }) => {
-    await runInit({ dir: dir ?? `${opts.preset}-design`, preset: opts.preset });
+  .command("init [dir]", "Design a system in the browser, or create one from a preset with --preset")
+  .option("--preset <name>", "Skip the browser and start from a preset (quiet, editorial, glass, terminal, tactile)")
+  .option("--port <port>", "Port for the onboarding app", { default: 4400 })
+  .option("--no-open", "Don't open a browser")
+  .action(async (dir: string | undefined, opts: { preset?: string; port: number; open: boolean }) => {
+    if (opts.preset || !process.stdout.isTTY && !process.env.AUTO_DESIGN_FORCE_UI) {
+      const preset = opts.preset ?? "quiet";
+      await runInit({ dir: dir ?? `${preset}-design`, preset });
+      return;
+    }
+    const { runOnboard } = await import("./onboard/server.js");
+    await runOnboard({ dir, port: Number(opts.port), open: opts.open });
   });
 
 cli

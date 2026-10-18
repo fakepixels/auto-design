@@ -91,6 +91,11 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 - Radius: `rounded-sm`, `rounded-md`, `rounded-lg` (6px, the default for cards), `rounded-xl`, `rounded-full` for pills and avatars.
 - Elevation: `shadow-xs` to `shadow-lg`. Use `shadow-lg` only for floating layers.
 
+## Texture
+
+- Structure comes from alignment and spacing first, `border` second, `shadow-xs` last.
+- Cards have a hairline border and the lightest shadow; floating layers use `shadow-lg`.
+
 ## Motion
 
 Profile: **subtle**.
@@ -158,6 +163,8 @@ npx auto-design check --json     # machine-readable, for agents
 | `ui-case` | warn | Button and menu labels follow the system's case. |
 | `no-emoji` | warn | No emoji in product UI. |
 | `no-token-override` | error | App CSS may not redefine the system's variables or theme keys. |
+| `glass-on-content` | warn | Glass is for chrome (nav, dialogs, popovers), never tables, lists or body text. |
+| `display-size` | warn | The display font is for headlines at text-2xl and up. |
 
 If a rule must be broken, say so on the line before, with a reason. The check counts these:
 

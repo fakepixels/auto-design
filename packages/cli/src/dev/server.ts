@@ -18,7 +18,7 @@ import {
   type DesignSystem,
 } from "@auto-design/core";
 import pc from "picocolors";
-import { CONFIG_FILE, loadConfig, writeFiles } from "../commands.js";
+import { CONFIG_FILE, loadConfig, loadCopy, writeFiles } from "../commands.js";
 import { applyEdits, editConfigSource, type StudioEdits } from "./config-edit.js";
 import { studioPage } from "./studio.js";
 import { syncApps } from "./sync.js";
@@ -137,7 +137,7 @@ export async function runDev(opts: DevOptions) {
   };
 
   const rebuild = (s: DesignSystem) => {
-    writeFiles(root, emitAll(s));
+    writeFiles(root, emitAll(s, { copy: loadCopy(root) }));
     return syncApps(root, apps);
   };
 
@@ -172,6 +172,9 @@ export async function runDev(opts: DevOptions) {
 
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
+    // Only answer pages served from this machine: no DNS rebinding, no cross-site form posts.
+    if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host ?? "")) return send(res, 403, "Forbidden", "text/plain");
+    if (req.method === "POST" && req.headers["content-type"] !== "application/json") return send(res, 415, { error: "Send JSON." });
     try {
       if (req.method === "GET" && url.pathname === "/") {
         return send(res, 200, studioPage(), "text/html; charset=utf-8");

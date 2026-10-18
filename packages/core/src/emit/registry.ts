@@ -85,6 +85,14 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
 
   for (const item of items) files[`public/r/${item.name}.json`] = json(item);
 
+  // A hosted index of every item, so tools and agents can list what's installable.
+  files["public/r/registry.json"] = json({
+    $schema: REGISTRY_SCHEMA,
+    name: s.config.name,
+    homepage: "",
+    items: items.map((item) => ({ name: item.name, type: item.type, title: item.title, description: item.description })),
+  });
+
   // The source manifest: same items, file contents left on disk.
   files["registry.json"] = json({
     $schema: REGISTRY_SCHEMA,

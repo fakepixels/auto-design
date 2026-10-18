@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>auto-design</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317181a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/renderer.css">
+<style>
+  :root {
+    --mat: #e8e9eb;
+    --panel: #ffffff;
+    --ink: #17181a;
+    --ink-soft: #2b2d31;
+    --muted: #5e6168;
+    --faint: #8b8e95;
+    --line: #d7d9dd;
+    --line-soft: #e4e5e8;
+    --hover: #f3f4f5;
+    --focus: #2a6cf0;
+    --ok: #157f3c;
+    --err: #b42318;
+    --shadow: 0 1px 2px rgba(16, 17, 20, 0.06), 0 4px 16px -6px rgba(16, 17, 20, 0.12);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --mat: #121315;
+      --panel: #1b1c1f;
+      --ink: #eceef1;
+      --ink-soft: #d6d8dc;
+      --muted: #9a9da5;
+      --faint: #70737a;
+      --line: #2e3035;
+      --line-soft: #26282c;
+      --hover: #24262a;
+      --focus: #6b9bff;
+      --ok: #4cc27a;
+      --err: #ff7a6b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px -8px rgba(0, 0, 0, 0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--mat); color: var(--ink);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  a { color: inherit; }
+
+  /* ---------- Frame ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 20; height: 52px;
+    display: flex; align-items: center; gap: 14px; padding: 0 20px;
+    background: color-mix(in srgb, var(--mat) 86%, transparent);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .mark { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: -0.01em; }
+  .mark i { width: 18px; height: 18px; border-radius: 5px; background: var(--ink); display: grid; place-items: center; }
+  .mark i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mat); }
+  .bar .product { color: var(--muted); }
+  .bar .spacer { flex: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--muted); }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .pill.on { color: var(--ink); }
+  .pill.on i { background: var(--ok); }
+  .ghost-btn { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-size: 13px; }
+  .ghost-btn:hover { background: var(--hover); }
+
+  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: calc(100vh - 52px); }
+  .rail { padding: 22px 12px; border-right: 1px solid var(--line); }
+  .rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+  .rail button {
+    width: 100%; text-align: left; display: grid; grid-template-columns: 20px 1fr; column-gap: 8px; align-items: start;
+    padding: 7px 10px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--muted);
+  }
+  .rail button:hover { background: color-mix(in srgb, var(--panel) 60%, transparent); }
+  .rail button[aria-current="step"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+  .rail .n { font-size: 12px; line-height: 22px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .rail .done .n { color: var(--ok); }
+  .rail b { font-weight: 500; display: block; line-height: 22px; }
+  .rail small { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--faint); line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rail small .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+
+  .stage { min-width: 0; display: flex; flex-direction: column; }
+  .step { flex: 1; padding: 36px 40px 40px; max-width: 1320px; width: 100%; }
+  .step-head { margin-bottom: 26px; max-width: 74ch; }
+  .step-head h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
+  .step-head p { margin: 8px 0 0; color: var(--muted); font-size: 15.5px; }
+  .actions {
+    position: sticky; bottom: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
+    padding: 14px 40px; border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--mat) 90%, transparent);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  .actions .status { color: var(--muted); font-size: 13.5px; margin-right: auto; }
+  .actions.done { position: static; border-top: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .actions .status.err { color: var(--err); }
+  .btn { height: 38px; padding: 0 18px; border-radius: 9px; border: 1px solid transparent; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 120ms cubic-bezier(.23,1,.32,1), transform 120ms cubic-bezier(.23,1,.32,1); }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn.ink { background: var(--ink); color: var(--mat); }
+  .btn.ink:hover:not(:disabled) { background: var(--ink-soft); }
+  .btn.ink:disabled { opacity: .35; cursor: default; }
+  .btn.line { background: var(--panel); border-color: var(--line); }
+  .btn.line:hover { background: var(--hover); }
+  .btn.small { height: 32px; padding: 0 13px; font-size: 13.5px; border-radius: 8px; }
+  .link-btn { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 14px; }
+  .link-btn:hover { color: var(--ink); }
+
+  /* ---------- Forms ---------- */
+  .form { display: grid; gap: 18px; max-width: 560px; }
+  .field { display: grid; gap: 6px; }
+  .field > span { font-size: 13.5px; font-weight: 500; }
+  .field > small { color: var(--muted); font-size: 13px; }
+  .input { height: 40px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); width: 100%; }
+  .input:focus { border-color: var(--focus); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+  .input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
+  .error { color: var(--err); font-size: 13.5px; margin: 0; }
+  .okmsg { color: var(--ok); font-size: 13.5px; margin: 0; }
+  .note { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  .seg button { height: 30px; padding: 0 13px; border: 0; background: transparent; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13.5px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  /* ---------- Choice cards (providers, hosting, surfaces) ---------- */
+  .choices { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); max-width: 900px; }
+  .choice { position: relative; text-align: left; padding: 14px 16px 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; display: grid; gap: 3px; align-content: start; }
+  .choice:hover { border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); }
+  .choice[aria-pressed="true"], .choice[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .choice b { font-weight: 600; }
+  .choice span { color: var(--muted); font-size: 13.5px; }
+  .choice em { font-style: normal; font-size: 12.5px; color: var(--ok); }
+
+  /* ---------- Proofs: options drawn on the person's own system ---------- */
+  .proofs { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--proof-w, 360px)), 1fr)); }
+  .proof { all: unset; box-sizing: border-box; display: flex; flex-direction: column; cursor: pointer; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); outline-offset: 3px; transition: box-shadow 160ms cubic-bezier(.23,1,.32,1); }
+  .proof:focus-visible { outline: 2px solid var(--focus); }
+  .proof .view { height: var(--proof-h, 300px); border-radius: 14px 14px 0 0; overflow: hidden; pointer-events: none; position: relative; }
+  .proof .view > .sp { height: 100%; }
+  .proof .meta { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 12px 14px 14px; border-top: 1px solid var(--line-soft); }
+  .proof .meta b { font-weight: 600; }
+  .proof .meta span { grid-column: 1; color: var(--muted); font-size: 13.5px; }
+  .proof .tick { grid-row: 1 / span 2; grid-column: 2; align-self: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; }
+  .proof[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink), var(--shadow); }
+  .proof[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); }
+  .proof[aria-pressed="true"] .tick::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--mat); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
+  .proof .err { padding: 16px; color: var(--err); font-size: 13.5px; }
+  .proofs.loading .proof .view { background: linear-gradient(90deg, var(--line-soft), var(--hover), var(--line-soft)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .section-label { margin: 34px 0 12px; font-size: 15px; font-weight: 600; }
+  .section-label:first-child { margin-top: 0; }
+  .section-label + .note { margin: -6px 0 14px; }
+
+  /* ---------- Starting points ---------- */
+  .material { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; max-width: 980px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; }
+  .panel h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; cursor: pointer; }
+  .drop.over { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 6%, transparent); }
+  .thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; cursor: pointer; }
+  .chip i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .reasons { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 3px; }
+  .suggestion { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: start; margin-top: 14px; max-width: 980px; }
+  .suggestion .view { height: 280px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+
+  /* ---------- Feel ---------- */
+  .feel { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .dial { display: grid; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .dial:first-child { padding-top: 0; }
+  .dial .ends { display: flex; justify-content: space-between; font-size: 13.5px; }
+  .dial .ends span:first-child { color: var(--muted); }
+  .dial .ends span:last-child { color: var(--muted); }
+  .dial input { width: 100%; accent-color: var(--ink); }
+  .dial small { color: var(--faint); font-size: 12.5px; }
+  .big-view { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .big-view .sp { min-height: 100%; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pair .view { height: 380px; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+
+  /* ---------- Color ---------- */
+  .color { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: start; }
+  .picker { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .area-wrap { position: relative; width: 100%; aspect-ratio: 300 / 200; border-radius: 9px; overflow: hidden; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .area-wrap canvas, .hue-wrap canvas { display: block; width: 100%; height: 100%; }
+  .marker { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25); pointer-events: none; }
+  .axis { display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: -6px; }
+  .hue-wrap { position: relative; height: 14px; border-radius: 7px; touch-action: none; cursor: ew-resize; }
+  .hue-wrap canvas { border-radius: 7px; }
+  .knob { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 1px 4px rgba(0,0,0,.25); pointer-events: none; }
+  .code-row { display: flex; gap: 8px; align-items: center; }
+  .swatch { width: 40px; height: 40px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; flex: none; }
+  .icon-btn:hover { background: var(--hover); }
+  .scale { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
+  .scale div { height: 26px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .scale div.seed { box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--ink); }
+  .checks { font-size: 13.5px; display: grid; gap: 6px; }
+  .checks b { font-weight: 600; color: var(--ok); }
+  .checks ul { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 3px; }
+
+  /* ---------- Review ---------- */
+  .review { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+  .frames { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+  .frame { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .frame.wide { grid-column: 1 / -1; }
+
+  .frame-label { font-size: 12.5px; color: var(--muted); margin: 0 0 6px 2px; }
+  .refine { position: sticky; top: 72px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .refine h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .refine textarea { width: 100%; min-height: 72px; resize: vertical; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); }
+  .refine textarea:focus { border-color: var(--focus); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+  .history { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
+  .history div { font-size: 13px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line-soft); }
+  .history div b { color: var(--ink); font-weight: 500; display: block; }
+  .history div:first-child { border-top: 0; padding-top: 0; }
+
+  /* ---------- Publish ---------- */
+  .publish { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 32px; align-items: start; }
+  .steps-out { display: grid; gap: 10px; }
+  .steps-out > div { display: grid; grid-template-columns: 20px 1fr; gap: 10px; font-size: 14px; }
+  .steps-out i { width: 18px; height: 18px; border-radius: 50%; margin-top: 2px; background: var(--ok); position: relative; }
+  .steps-out i::after { content: ""; position: absolute; left: 5px; top: 5px; width: 7px; height: 4px; border: 2px solid var(--panel); border-top: 0; border-right: 0; transform: rotate(-45deg); }
+  .steps-out .bad i { background: var(--err); }
+  .steps-out .bad i::after { left: 8px; top: 4px; width: 0; height: 8px; border-width: 0 0 0 2px; transform: none; }
+  .steps-out small { display: block; color: var(--muted); font-size: 13px; }
+  pre.cmd { margin: 0; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 6%, var(--panel)); border: 1px solid var(--line); font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  .copy-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
+
+  @media (max-width: 1100px) {
+    .review, .publish, .color, .feel { grid-template-columns: 1fr; }
+    .refine { position: static; }
+  }
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail { border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; overflow-x: auto; }
+    .rail ol { flex-direction: row; }
+    .rail button { grid-template-columns: auto; padding: 6px 10px; }
+    .rail .n, .rail small { display: none; }
+    .rail b { white-space: nowrap; }
+    .step { padding: 24px 16px 28px; }
+    .actions { padding: 12px 16px; }
+    .pair { grid-template-columns: 1fr; }
+    .suggestion { grid-template-columns: 1fr; }
+    .bar .product { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="mark"><i aria-hidden="true"></i>auto-design</span>
+  <span class="product" id="bar-product"></span>
+  <span class="spacer"></span>
+  <button class="ghost-btn" id="undo" hidden>Undo</button>
+  <span class="pill" id="model-pill"><i></i><span>No model</span></span>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Steps"><ol id="rail"></ol></nav>
+  <div class="stage">
+    <main class="step" id="step" tabindex="-1"></main>
+    <footer class="actions">
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+      <button class="btn line" id="back">Back</button>
+      <button class="btn ink" id="next">Continue</button>
+    </footer>
+  </div>
+</div>
+
+<script src="/assets/renderer.js"></script>
+<script>
+(() => {
+  const S = window.AutoDesignSpecimen;
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const esc = S.escape;
+  const h = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+  const app = {
+    state: null,          // from /api/state, refreshed after every change
+    step: 0,
+    visited: new Set([0]),
+    feel: null,           // slider values on the Feel step
+    material: { images: [], colors: [], site: null, suggestion: null },
+    reviewMode: null,
+    published: null,
+    env: null,
+  };
+
+  /* ---------- Talking to the local server ---------- */
+  async function api(path, body) {
+    const res = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({ error: "The local server didn't answer. Is auto-design still running?" }));
+    if (!res.ok || data.error) throw new Error(data.error || "Something went wrong");
+    return data;
+  }
+  function status(msg, err) {
+    const el = $("#status");
+    el.textContent = msg || "";
+    el.className = "status" + (err ? " err" : "");
+  }
+  function update(view) {
+    Object.assign(app.state, view);
+    paintBar();
+    paintRail();
+    const st = STEPS[app.step];
+    if (!app.published) $("#next").textContent = st.nextLabel ? st.nextLabel() : "Continue";
+  }
+  async function choose(patch, label) {
+    try {
+      update(await api("/api/choose", { patch, label }));
+      status("");
+      return true;
+    } catch (e) {
+      status(e.message, true);
+      return false;
+    }
+  }
+
+  /* ---------- Specimens ---------- */
+  function draw(el, specimen, scenes, opts = {}) {
+    S.render(el, specimen, { mode: opts.mode || specimen.defaultMode, copy: app.state.copy, scenes, size: opts.size || "s" });
+    return el;
+  }
+
+  /** A grid of options for one field, each drawn on the current system. */
+  async function proofs(container, field, { scenes, current, label, size = "s", height, width, onPick, autoplay } = {}) {
+    container.classList.add("proofs", "loading");
+    if (height) container.style.setProperty("--proof-h", height + "px");
+    if (width) container.style.setProperty("--proof-w", width + "px");
+    container.innerHTML = Array.from({ length: 3 }, () => '<div class="proof"><div class="view"></div><div class="meta"><b>&nbsp;</b><span>&nbsp;</span></div></div>').join("");
+    let list;
+    try {
+      list = await api("/api/variants", { field });
+    } catch (e) {
+      container.classList.remove("loading");
+      container.innerHTML = `<p class="error">${esc(e.message)}</p>`;
+      return;
+    }
+    container.classList.remove("loading");
+    container.innerHTML = "";
+    const selected = current();
+    for (const v of list) {
+      const card = h(`<button class="proof" aria-pressed="${String(v.value) === String(selected)}"><div class="view"></div><div class="meta"><b>${esc(v.name)}</b><span>${esc(v.note)}</span><i class="tick" aria-hidden="true"></i></div></button>`);
+      if (v.specimen) draw($(".view", card).appendChild(document.createElement("div")), v.specimen, scenes, { size });
+      else $(".view", card).innerHTML = `<p class="err">${esc(v.error || "Can't build this option.")}</p>`;
+      card.addEventListener("click", async () => {
+        if (!v.specimen) return;
+        container.querySelectorAll(".proof").forEach((p) => p.setAttribute("aria-pressed", String(p === card)));
+        const ok = onPick ? await onPick(v) : await choose({ [field]: v.value }, `${label}: ${v.name}`);
+        if (ok === false) [...container.querySelectorAll(".proof")].forEach((p, i) => p.setAttribute("aria-pressed", String(String(list[i].value) === String(current()))));
+      });
+      container.appendChild(card);
+    }
+    if (autoplay) startAutoplay(container);
+  }
+
+  let timers = [];
+  function startAutoplay(container) {
+    const play = () => container.querySelectorAll(".proof .view > .sp").forEach((el, i) => setTimeout(() => S.play(el), i * 220));
+    play();
+    timers.push(setInterval(play, 3200));
+  }
+  function stopTimers() { timers.forEach(clearInterval); timers = []; }
+
+  /* ---------- Steps ---------- */
+  const PAIRING = (id) => (app.state.pairings.find((p) => p.id === id) || {}).name || id;
+  const STEPS = [
+    {
+      id: "product", title: "What are you building?", rail: "Product",
+      help: "Every screen after this shows your product, so each choice is judged on your own headline and data.",
+      value: () => app.state.product.name,
+      render(root) {
+        const p = app.state.product;
+        root.append(h(`<div class="form">
+          <label class="field"><span>Product name</span><input class="input" id="p-name" placeholder="Northwind" maxlength="60" value="${esc(p.name)}" autocomplete="off"></label>
+          <label class="field"><span>What it does, in a sentence</span><input class="input" id="p-desc" placeholder="Project planning for agencies that bill by the hour" maxlength="280" value="${esc(p.description)}" autocomplete="off"><small>Used for preview copy and, with a model, to suggest a direction.</small></label>
+          <label class="field"><span>Your site <span class="note">(optional)</span></span><input class="input" id="p-url" placeholder="northwind.com" value="${esc(p.url)}" autocomplete="off" inputmode="url"><small>Read for its colors and fonts on the next steps. Nothing is sent anywhere without a model.</small></label>
+        </div>`));
+        setTimeout(() => $("#p-name").focus(), 0);
+      },
+      async leave() {
+        const name = $("#p-name").value.trim();
+        if (!name) { status("Give the product a name to continue.", true); $("#p-name").focus(); return false; }
+        status(app.state.model ? "Writing preview copy for " + name + "…" : "");
+        update(await api("/api/product", { name, description: $("#p-desc").value.trim(), url: $("#p-url").value.trim() }));
+        status("");
+      },
+    },
+    {
+      id: "model", title: "Connect a model", rail: "Model",
+      help: "Optional. A model reads your site and logo, writes preview copy for your product and takes requests like “warmer” or “less corporate”. It only ever picks from the system’s options, and the compiler checks every value.",
+      value: () => (app.state.model ? app.state.model.label : app.visited.has(2) ? "Skipped" : ""),
+      render(root) {
+        const m = app.state.model;
+        let provider = m ? m.provider : (app.state.providers.find((p) => p.fromEnv) || app.state.providers[0]).id;
+        const wrap = h(`<div class="form" style="max-width:720px"><div class="choices" id="providers"></div><div id="key-area" class="form"></div></div>`);
+        root.append(wrap);
+        const paint = () => {
+          $("#providers").innerHTML = "";
+          for (const p of app.state.providers) {
+            const c = h(`<button class="choice" aria-pressed="${p.id === provider}"><b>${esc(p.name)}</b><span>${esc(p.models[0].label.replace(/ \(.*\)$/, ""))}</span>${p.recommended ? "<em>Recommended for design</em>" : ""}${p.fromEnv ? "<em>Key found in your environment</em>" : ""}</button>`);
+            c.addEventListener("click", () => { provider = p.id; paint(); });
+            $("#providers").append(c);
+          }
+          const info = app.state.providers.find((p) => p.id === provider);
+          const area = $("#key-area");
+          if (m && m.provider === provider) {
+            area.innerHTML = `<p class="okmsg">Connected to ${esc(m.label)}. Previews now use copy written for ${esc(app.state.product.name)}.</p><div class="row"><button class="btn line small" id="disconnect">Disconnect</button></div>`;
+            $("#disconnect").onclick = async () => { update(await api("/api/model/clear", {})); STEPS[1].render.call(null, clear(root)); };
+            return;
+          }
+          area.innerHTML = `
+            ${info.fromEnv ? `<p class="note">Found ${esc(info.envVar)} in your environment.</p><div class="row"><button class="btn ink small" id="use-env">Use it</button></div><p class="note">Or paste a different key:</p>` : ""}
+            <label class="field"><span>${esc(info.name)} API key</span>
+              <div class="row" style="flex-wrap:nowrap"><input class="input mono" id="key" type="password" placeholder="${esc(info.keyHint)}" autocomplete="off" spellcheck="false"><button class="btn line small" id="show" type="button" style="height:40px">Show</button></div>
+              <small>Stays on this computer. Requests go from here straight to ${esc(info.name)}.${info.keyUrl ? ` <a href="${esc(info.keyUrl)}" target="_blank" rel="noreferrer">Get a key</a>` : ""}</small></label>
+            <label class="field"><span>Model</span><select class="input" id="model">${info.models.map((x) => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join("")}</select></label>
+            <div class="row"><button class="btn ink small" id="connect">Connect</button><span id="key-msg" class="note"></span></div>`;
+          $("#show").onclick = () => { const k = $("#key"); k.type = k.type === "password" ? "text" : "password"; $("#show").textContent = k.type === "password" ? "Show" : "Hide"; };
+          const connect = async (useEnv) => {
+            const msg = $("#key-msg");
+            msg.className = "note"; msg.textContent = "Checking the key…";
+            try {
+              const r = await api("/api/model", { provider, apiKey: useEnv ? "" : $("#key").value, model: $("#model").value, useEnv });
+              if (!r.ok) { msg.className = "error"; msg.textContent = r.error; return; }
+              update(r);
+              STEPS[1].render(clear(root));
+            } catch (e) { msg.className = "error"; msg.textContent = e.message; }
+          };
+          $("#connect").onclick = () => connect(false);
+          $("#key").addEventListener("keydown", (e) => { if (e.key === "Enter") connect(false); });
+          if ($("#use-env")) $("#use-env").onclick = () => connect(true);
+        };
+        paint();
+      },
+      nextLabel: () => (app.state.model ? "Continue" : "Skip for now"),
+    },
+    {
+      id: "start", title: "Pick a starting point", rail: "Start",
+      help: "Choose the closest of five systems. Every screen after this can change any part of it.",
+      value: () => (app.state.presets.find((p) => p.id === app.state.preset) || {}).name,
+      async render(root) {
+        const grid = h(`<div></div>`);
+        root.append(grid);
+        root.append(h(`<p class="section-label">Or start from what you already have</p>`));
+        root.append(h(`<p class="note">${app.state.model ? "The model looks at your site and images together and suggests a system." : "Without a model, auto-design reads your site’s colors and fonts and finds the main color in a logo."}</p>`));
+        const mat = h(`<div class="material">
+          <div class="panel"><h3>Your site</h3><div class="row" style="flex-wrap:nowrap"><input class="input" id="site" placeholder="northwind.com" value="${esc(app.state.product.url)}"><button class="btn line small" id="read-site" style="height:40px">Read</button></div><div id="site-out" class="form" style="gap:10px"></div></div>
+          <div class="panel"><h3>Your logo or screens you like</h3><div class="drop" id="drop" tabindex="0" role="button">Drop images here, or choose files<input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple hidden></div><div class="thumbs" id="thumbs"></div><div class="chips" id="img-colors"></div></div>
+        </div>`);
+        root.append(mat);
+        root.append(h(`<div id="suggest-area"></div>`));
+        proofs(grid, "preset", {
+          scenes: ["hero@xs", "app"], height: 360, current: () => app.state.preset,
+          onPick: async (v) => { try { update(await api("/api/start", { preset: v.value })); return true; } catch (e) { status(e.message, true); return false; } },
+        });
+        wireMaterial(root);
+      },
+    },
+    {
+      id: "feel", title: "Set the feel", rail: "Feel",
+      help: "Three dials that move several choices at once. The screens after this let you set each part directly.",
+      value: () => (app.visited.has(4) ? "Set" : ""),
+      render(root) {
+        const c = app.state.choices;
+        app.feel = { energy: c.energy, warmth: c.warmth, novelty: c.novelty, touched: {} };
+        const dials = [
+          ["energy", "Calm", "Energetic", "Motion"],
+          ["warmth", "Precise", "Warm", "Grays and corners"],
+          ["novelty", "Classic", "Experimental", "Type"],
+        ];
+        const wrap = h(`<div class="feel"><div>${dials.map(([k, a, b, what]) => `
+          <label class="dial"><div class="ends"><span>${a}</span><span>${b}</span></div>
+          <input type="range" min="0" max="100" value="${Math.round(app.feel[k] * 100)}" data-k="${k}" aria-label="${a} to ${b}"><small>Moves: ${what}</small></label>`).join("")}</div>
+          <div class="pair"><div class="view" id="feel-a"></div><div class="view" id="feel-b"></div></div></div>`);
+        root.append(wrap);
+        const paint = (spec) => {
+          draw($("#feel-a"), spec, ["hero"], { size: "s" });
+          draw($("#feel-b"), spec, ["motion"], { size: "s" });
+          S.play($("#feel-b"));
+        };
+        paint(app.state.specimen);
+        let t;
+        wrap.querySelectorAll("input[type=range]").forEach((input) => input.addEventListener("input", () => {
+          app.feel[input.dataset.k] = Number(input.value) / 100;
+          app.feel.touched[input.dataset.k] = true;
+          clearTimeout(t);
+          t = setTimeout(async () => { try { paint(await api("/api/preview", { patch: feelPatch() })); status(""); } catch (e) { status(e.message, true); } }, 60);
+        }));
+      },
+      async leave() {
+        const patch = feelPatch();
+        if (Object.keys(patch).length) return choose(patch, "Set the feel");
+      },
+    },
+    {
+      id: "texture", title: "Choose a texture", rail: "Texture",
+      help: "How surfaces are built: borders, shadows and depth. Shown with a menu open over your content, where texture shows most.",
+      value: () => (app.state.textures[app.state.choices.texture] || {}).name,
+      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "texture", { scenes: ["surfaces"], height: 300, current: () => app.state.choices.texture, label: "Texture" }); },
+    },
+    {
+      id: "type", title: "Choose type", rail: "Type",
+      help: "Each pairing is set on your headline and your data. Every face is open source and installs from npm.",
+      value: () => PAIRING(app.state.choices.pairing),
+      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "pairing", { scenes: ["type"], height: 300, current: () => app.state.choices.pairing, label: "Type" }); },
+    },
+    {
+      id: "color", title: "Choose a brand color", rail: "Color",
+      help: "One color is enough. The system builds the scales, the grays and dark mode from it, and checks every pair for contrast as you go.",
+      value: () => app.state.specimen.seedHex,
+      dot: () => app.state.specimen.seedHex,
+      render(root) { renderColor(root); },
+      async leave() { if (app.colorDirty) return commitColor(); },
+    },
+    {
+      id: "shape", title: "Choose corners and density", rail: "Shape",
+      help: "How round things are, and how much fits on a screen.",
+      value: () => `${app.state.choices.radius}px, ${app.state.choices.density}`,
+      render(root) {
+        root.append(h(`<p class="section-label">Corners</p>`));
+        const a = h("<div></div>"); root.append(a);
+        proofs(a, "radius", { scenes: ["corners"], height: 236, width: 190, current: () => app.state.choices.radius, label: "Corners" });
+        root.append(h(`<p class="section-label">Density</p>`));
+        const b = h("<div></div>"); root.append(b);
+        proofs(b, "density", { scenes: ["app"], size: "m", height: 330, width: 460, current: () => app.state.choices.density, label: "Density" });
+      },
+    },
+    {
+      id: "motion", title: "Choose motion", rail: "Motion",
+      help: "Each one plays on a loop: a button press, a confirmation and a sheet. Motion answers what people do; nothing moves on its own.",
+      value: () => (app.state.motions[app.state.choices.motion] || {}).name,
+      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "motion", { scenes: ["motion"], height: 260, current: () => app.state.choices.motion, label: "Motion", autoplay: true }); },
+    },
+    {
+      id: "surfaces", title: "Where will it live?", rail: "Surfaces",
+      help: "Each surface adds its own components and rules. On surfaces you don’t control, like a text thread, the brand travels through images and words.",
+      value: () => `${app.state.surfaces.length} surface${app.state.surfaces.length === 1 ? "" : "s"}`,
+      render(root) {
+        const order = ["web-app", "marketing", "chat", "code", "mcp-apps", "messaging"];
+        const scene = { "web-app": "app", marketing: "hero", chat: "chat", code: "code", "mcp-apps": "mcp", messaging: "sms" };
+        const grid = h(`<div class="proofs" style="--proof-h:250px"></div>`);
+        root.append(grid);
+        for (const id of order) {
+          const info = app.state.surfacesInfo[id];
+          const card = h(`<button class="proof" role="checkbox" aria-pressed="${app.state.surfaces.includes(id)}"><div class="view"></div><div class="meta"><b>${esc(info.name)}</b><span>${esc(info.note)}</span><i class="tick" aria-hidden="true"></i></div></button>`);
+          draw($(".view", card).appendChild(document.createElement("div")), app.state.specimen, [scene[id]], { size: "s" });
+          card.addEventListener("click", async () => {
+            const on = card.getAttribute("aria-pressed") !== "true";
+            const next = on ? [...app.state.surfaces, id] : app.state.surfaces.filter((s) => s !== id);
+            try { update(await api("/api/surfaces", { surfaces: next })); card.setAttribute("aria-pressed", String(on)); status(""); }
+            catch (e) { status(e.message, true); }
+          });
+          grid.append(card);
+        }
+      },
+    },
+    {
+      id: "review", title: "Review everything", rail: "Review",
+      help: "Every surface at once, in light and dark. Ask for changes until it feels right.",
+      value: () => "",
+      render(root) { renderReview(root); },
+    },
+    {
+      id: "publish", title: "Create your design system", rail: "Publish",
+      help: "This writes the repo your team will own, puts it on GitHub and sets up hosting. Nothing has been written to disk yet.",
+      value: () => (app.published ? "Done" : ""),
+      render(root) { renderPublish(root); },
+      nextLabel: () => "Create design system",
+    },
+  ];
+
+  function feelPatch() {
+    const f = app.feel || {};
+    const p = {};
+    if (f.touched?.energy) { p.energy = f.energy; p.motion = f.energy < 0.34 ? "still" : f.energy < 0.67 ? "subtle" : "expressive"; }
+    if (f.touched?.warmth) { p.warmth = f.warmth; p.neutral = f.warmth < 0.34 ? "cool" : f.warmth < 0.67 ? "neutral" : "warm"; p.radius = Math.round(2 + f.warmth * 14); }
+    if (f.touched?.novelty) { p.novelty = f.novelty; p.pairing = ["plex", "geist", "manrope", "figtree", "bricolage"][Math.min(4, Math.floor(f.novelty * 5))]; }
+    return p;
+  }
+
+  /* ---------- Material: site and images ---------- */
+  function wireMaterial(root) {
+    const out = $("#site-out", root);
+    $("#read-site", root).onclick = async () => {
+      const url = $("#site", root).value.trim();
+      if (!url) return;
+      out.innerHTML = `<p class="note">Reading ${esc(url)}…</p>`;
+      try {
+        const r = await api("/api/site", { url });
+        const m = r.material;
+        app.material.site = r;
+        out.innerHTML = `
+          ${m.colors.length ? `<div class="chips">${m.colors.slice(0, 5).map((c, i) => `<button class="chip" data-hex="${esc(c.hex)}" aria-pressed="${i === 0}"><i style="background:${esc(c.hex)}"></i>${esc(c.hex)}</button>`).join("")}</div>` : `<p class="note">No brand color found on that page.</p>`}
+          <p class="note">${[m.fonts.length ? "Fonts: " + esc(m.fonts.slice(0, 3).join(", ")) : "", m.radius ? `Corners around ${m.radius}px` : "", m.dark ? "Dark first" : ""].filter(Boolean).join(". ") || "No fonts or corners found."}</p>
+          ${r.changes.length ? `<div class="row"><button class="btn ink small" id="apply-site">Use these</button><span class="note">${esc(r.changes.join("; "))}</span></div>` : ""}`;
+        out.querySelectorAll(".chip").forEach((chip) => chip.onclick = () => {
+          out.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x === chip)));
+          r.patch.brand = chip.dataset.hex;
+        });
+        if ($("#apply-site", out)) $("#apply-site", out).onclick = async () => { if (await choose(r.patch, "Used your site")) { status("Applied what your site shows."); rerender(); } };
+      } catch (e) { out.innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+    };
+    const drop = $("#drop", root), files = $("#files", root);
+    drop.onclick = () => files.click();
+    drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); files.click(); } };
+    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+    drop.ondragleave = () => drop.classList.remove("over");
+    drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); addImages([...e.dataTransfer.files]); };
+    files.onchange = () => addImages([...files.files]);
+    if (app.material.images.length) paintImages(root);
+  }
+
+  async function addImages(list) {
+    for (const f of list.filter((f) => /^image\//.test(f.type)).slice(0, 4 - app.material.images.length)) {
+      const img = await loadImage(f);
+      app.material.images.push({ src: img.src, ...shrink(img), colors: dominant(img) });
+    }
+    app.material.colors = [...new Set(app.material.images.flatMap((i) => i.colors))].slice(0, 6);
+    paintImages(document);
+  }
+  function paintImages(root) {
+    $("#thumbs", root).innerHTML = app.material.images.map((i) => `<img src="${i.src}" alt="">`).join("");
+    $("#img-colors", root).innerHTML = app.material.colors.map((c, i) => `<button class="chip" data-hex="${c}" aria-pressed="${i === 0}"><i style="background:${c}"></i>${c}</button>`).join("");
+    $("#img-colors", root).querySelectorAll(".chip").forEach((chip) => chip.onclick = () => {
+      app.material.colors = [chip.dataset.hex, ...app.material.colors.filter((c) => c !== chip.dataset.hex)];
+      paintImages(document);
+    });
+    suggestArea();
+  }
+  function suggestArea() {
+    const area = $("#suggest-area");
+    if (!area) return;
+    const any = app.material.images.length || app.material.site;
+    area.innerHTML = any ? `<div class="row" style="margin-top:16px"><button class="btn ink small" id="suggest">${app.state.model ? "Suggest a system from all of this" : "Suggest from my images and description"}</button><span class="note" id="suggest-msg"></span></div><div id="suggest-out"></div>` : "";
+    if (!any) return;
+    $("#suggest").onclick = async () => {
+      $("#suggest-msg").textContent = app.state.model ? "Looking at your material…" : "";
+      try {
+        const r = await api("/api/suggest", { images: app.material.images.map((i) => ({ mediaType: i.mediaType, data: i.data })), colors: app.material.colors });
+        $("#suggest-msg").textContent = "";
+        const out = $("#suggest-out");
+        out.innerHTML = `<div class="suggestion"><div class="panel"><h3>Suggested</h3><ul class="reasons">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${r.changes.length ? `<p class="note">${esc(r.changes.join("; "))}</p>` : ""}<div class="row"><button class="btn ink small" id="take">Use this</button></div></div><div class="view" id="sug-view"></div></div>`;
+        draw($("#sug-view"), r.preview, ["hero", "app"], { size: "s" });
+        $("#take").onclick = async () => { if (await choose(r.patch, r.byModel ? "Used the model's suggestion" : "Used your material")) { status("Applied the suggestion."); rerender(); } };
+      } catch (e) { $("#suggest-msg").className = "error"; $("#suggest-msg").textContent = e.message; }
+    };
+  }
+  function loadImage(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = r.result; }; r.onerror = rej; r.readAsDataURL(file); });
+  }
+  /** Downscale for the model: 1024px on the long edge, JPEG. */
+  function shrink(img) {
+    const k = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return { mediaType: "image/jpeg", data: c.toDataURL("image/jpeg", 0.86).split(",")[1] };
+  }
+  /** The main colors in an image, ignoring near-white, near-black and grays. */
+  function dominant(img) {
+    const c = document.createElement("canvas");
+    const k = Math.min(1, 96 / Math.max(img.naturalWidth, img.naturalHeight));
+    c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    const buckets = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      const [r, g, b, a] = [d[i], d[i + 1], d[i + 2], d[i + 3]];
+      if (a < 200) continue;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      if (max - min < 28 || max > 245 && min > 230 || max < 24) continue;
+      const key = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4);
+      const e = buckets.get(key) || { n: 0, r: 0, g: 0, b: 0 };
+      e.n++; e.r += r; e.g += g; e.b += b; buckets.set(key, e);
+    }
+    const hex = (v) => Math.round(v).toString(16).padStart(2, "0");
+    return [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, 3).map((e) => `#${hex(e.r / e.n)}${hex(e.g / e.n)}${hex(e.b / e.n)}`);
+  }
+
+  /* ---------- Color step ---------- */
+  const CMAX = 0.37;
+  function oklchToRgb(l, c, hh) {
+    const hr = (hh * Math.PI) / 180, a = c * Math.cos(hr), b = c * Math.sin(hr);
+    const L = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3, M = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3, Sx = (l - 0.0894841775 * a - 1.291485548 * b) ** 3;
+    return [4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * Sx, -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * Sx, -0.0041960863 * L - 0.7034186147 * M + 1.707614701 * Sx]
+      .map((x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.sign(x) * Math.abs(x) ** (1 / 2.4) - 0.055));
+  }
+  const inGamut = (rgb) => rgb.every((v) => v >= -0.0008 && v <= 1.0008);
+  function maxChroma(l, hh) { let lo = 0, hi = CMAX; for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (inGamut(oklchToRgb(l, mid, hh))) lo = mid; else hi = mid; } return lo; }
+  const spanCache = new Map();
+  function span(hh) { const k = Math.round(hh); if (!spanCache.has(k)) { let m = 0; for (let l = 0.02; l < 1; l += 0.02) m = Math.max(m, maxChroma(l, k)); spanCache.set(k, Math.min(CMAX, Math.max(0.04, m * 1.08))); } return spanCache.get(k); }
+  const fmtOk = (p) => `oklch(${p.l.toFixed(3)} ${p.c.toFixed(3)} ${p.h.toFixed(1)})`;
+  function parseOklch(css) { const m = /oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(css || ""); return m ? { l: +m[1], c: +m[2], h: +m[3] } : null; }
+
+  function renderColor(root) {
+    const sp = app.state.specimen;
+    const seed = sp.palettes.brand.find((p) => p.step === sp.seedStep);
+    app.pick = parseOklch(seed && seed.css) || { l: 0.5, c: 0.12, h: 250 };
+    app.colorPatch = {};
+    app.colorDirty = false;
+    root.append(h(`<div class="color">
+      <div class="picker">
+        <div class="area-wrap" id="area-wrap" tabindex="0" role="slider" aria-label="Lightness and color strength"><canvas id="area"></canvas><div class="marker" id="marker"></div></div>
+        <div class="axis"><span>Grayer</span><span>More color</span></div>
+        <div class="hue-wrap" id="hue-wrap" tabindex="0" role="slider" aria-label="Hue" aria-valuemin="0" aria-valuemax="360"><canvas id="hue"></canvas><div class="knob" id="knob"></div></div>
+        <label class="field"><span>Color code</span><div class="code-row"><i class="swatch" id="sw"></i><input class="input mono" id="code" spellcheck="false" autocomplete="off" value="${esc(app.state.choices.brand)}"><button class="icon-btn" id="eyedrop" title="Pick a color from your screen" aria-label="Pick a color from your screen" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg></button></div><small>Hex, rgb(), hsl() or oklch(). Press Enter to apply.</small></label>
+        <p class="error" id="code-err" hidden></p>
+        <div class="field"><span>Grays</span><div class="seg" id="neutral">${["cool", "neutral", "warm"].map((v) => `<button data-v="${v}" aria-pressed="${app.state.choices.neutral === v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join("")}</div></div>
+        <div class="field"><span>Loads in</span><div class="seg" id="mode">${["light", "dark"].map((v) => `<button data-v="${v}" aria-pressed="${app.state.choices.defaultMode === v}">${v === "light" ? "Light mode" : "Dark mode"}</button>`).join("")}</div></div>
+        <div class="field"><span>Brand scale</span><div class="scale" id="scale"></div></div>
+        <div class="checks" id="checks"></div>
+      </div>
+      <div class="pair"><div class="view" id="c-light"></div><div class="view" id="c-dark"></div></div>
+    </div>`));
+    const area = $("#area"), hue = $("#hue");
+    const size = (cv) => { const r = cv.getBoundingClientRect(); const d = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(r.width * d)); cv.height = Math.max(1, Math.round(r.height * d)); };
+    const drawArea = () => {
+      const ctx = area.getContext("2d"), W = area.width, H = area.height, img = ctx.createImageData(W, H), hh = app.pick.h, cm = span(hh);
+      for (let y = 0; y < H; y++) { const l = 1 - y / (H - 1), edge = maxChroma(l, hh);
+        for (let x = 0; x < W; x++) { const c = (x / (W - 1)) * cm, i = (y * W + x) * 4;
+          if (c <= edge) { const rgb = oklchToRgb(l, c, hh); img.data[i] = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255); img.data[i + 1] = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255); img.data[i + 2] = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255); }
+          else { const v = (x + y) % 10 < 1 ? 222 : 238; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; }
+          img.data[i + 3] = 255; } }
+      ctx.putImageData(img, 0, 0);
+    };
+    const drawHue = () => {
+      const ctx = hue.getContext("2d"), W = hue.width, H = hue.height, img = ctx.createImageData(W, H);
+      for (let x = 0; x < W; x++) { const hh = (x / (W - 1)) * 360, rgb = oklchToRgb(0.72, Math.min(0.16, maxChroma(0.72, hh)), hh).map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255));
+        for (let y = 0; y < H; y++) { const i = (y * W + x) * 4; img.data[i] = rgb[0]; img.data[i + 1] = rgb[1]; img.data[i + 2] = rgb[2]; img.data[i + 3] = 255; } }
+      ctx.putImageData(img, 0, 0);
+    };
+    const place = () => { const p = app.pick; const m = $("#marker"); m.style.left = `${Math.min(1, p.c / span(p.h)) * 100}%`; m.style.top = `${(1 - p.l) * 100}%`; m.style.background = fmtOk(p); $("#knob").style.left = `${(p.h / 360) * 100}%`; };
+    size(area); size(hue); drawArea(); drawHue(); place();
+    paintColor(app.state.specimen);
+
+    let inflight = false, again = false;
+    const preview = async () => {
+      if (inflight) { again = true; return; }
+      inflight = true;
+      try { const sp = await api("/api/preview", { patch: app.colorPatch }); paintColor(sp); $("#code-err").hidden = true; status("Not saved yet: continue or pick another step to keep it."); }
+      catch (e) { $("#code-err").hidden = false; $("#code-err").textContent = e.message; }
+      finally { inflight = false; if (again) { again = false; preview(); } }
+    };
+    const setBrand = (v) => { app.colorPatch.brand = v; app.colorDirty = true; preview(); };
+    const drag = (el, fn) => el.addEventListener("pointerdown", (e) => {
+      el.setPointerCapture(e.pointerId); fn(e);
+      const mv = (ev) => fn(ev), up = () => { el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); };
+      el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up);
+    });
+    drag($("#area-wrap"), (e) => { const r = $("#area-wrap").getBoundingClientRect(); const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)); const l = 1 - y; app.pick = { ...app.pick, l, c: Math.min(x * span(app.pick.h), maxChroma(l, app.pick.h)) }; place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
+    drag($("#hue-wrap"), (e) => { const r = $("#hue-wrap").getBoundingClientRect(); const hh = Math.min(360, Math.max(0, ((e.clientX - r.left) / r.width) * 360)); app.pick = { ...app.pick, h: hh, c: Math.min(app.pick.c, maxChroma(app.pick.l, hh)) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
+    $("#area-wrap").addEventListener("keydown", (e) => {
+      const st = e.shiftKey ? 0.05 : 0.01, p = { ...app.pick };
+      if (e.key === "ArrowUp") p.l = Math.min(1, p.l + st); else if (e.key === "ArrowDown") p.l = Math.max(0, p.l - st);
+      else if (e.key === "ArrowRight") p.c = Math.min(maxChroma(p.l, p.h), p.c + st * 0.3); else if (e.key === "ArrowLeft") p.c = Math.max(0, p.c - st * 0.3); else return;
+      e.preventDefault(); app.pick = p; place(); $("#code").value = fmtOk(p); setBrand(fmtOk(p));
+    });
+    $("#hue-wrap").addEventListener("keydown", (e) => {
+      const st = e.shiftKey ? 10 : 2; if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; e.preventDefault();
+      const hh = (app.pick.h + (e.key === "ArrowRight" ? st : -st) + 360) % 360; app.pick = { ...app.pick, h: hh, c: Math.min(app.pick.c, maxChroma(app.pick.l, hh)) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick));
+    });
+    $("#code").addEventListener("keydown", (e) => { if (e.key === "Enter") { setBrand($("#code").value.trim()); } });
+    $("#code").addEventListener("change", () => setBrand($("#code").value.trim()));
+    if ("EyeDropper" in window) { $("#eyedrop").hidden = false; $("#eyedrop").onclick = async () => { try { const r = await new window.EyeDropper().open(); $("#code").value = r.sRGBHex; setBrand(r.sRGBHex); } catch {} }; }
+    $("#neutral").querySelectorAll("button").forEach((b) => b.onclick = () => { $("#neutral").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); app.colorPatch.neutral = b.dataset.v; app.colorDirty = true; preview(); });
+    $("#mode").querySelectorAll("button").forEach((b) => b.onclick = () => { $("#mode").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); app.colorPatch.defaultMode = b.dataset.v; app.colorDirty = true; preview(); });
+    app.syncPicker = (sp) => { const s = sp.palettes.brand.find((p) => p.step === sp.seedStep); const p = parseOklch(s && s.css); if (p) { app.pick = { ...p, h: p.c < 0.002 ? app.pick.h : p.h }; drawArea(); place(); } };
+  }
+  function paintColor(sp) {
+    draw($("#c-light"), sp, ["app"], { mode: "light", size: "s" });
+    draw($("#c-dark"), sp, ["app"], { mode: "dark", size: "s" });
+    $("#sw").style.background = sp.palettes.brand.find((p) => p.step === sp.seedStep).css;
+    $("#scale").innerHTML = sp.palettes.brand.map((p) => `<div class="${p.step === sp.seedStep ? "seed" : ""}" style="background:${p.css}" title="${p.step}"></div>`).join("");
+    const r = sp.report;
+    const words = { "muted-foreground": "Helper text", "primary-foreground": "Text on the brand color", foreground: "Body text", destructive: "Error color", success: "Success fill", warning: "Warning fill", ring: "Focus ring", "sidebar-ring": "Sidebar focus ring", "sidebar-primary-foreground": "Sidebar text on the brand color", secondary: "Secondary fill", accent: "Hover fill" };
+    $("#checks").innerHTML = `<span><b>${r.passed} of ${r.total}</b> contrast checks pass${r.fixes.length ? `, after ${r.fixes.length} adjustment${r.fixes.length === 1 ? "" : "s"}` : ""}.</span><ul>${r.fixes.map((f) => `<li>${esc(words[f.role] || f.role)} in ${f.mode} mode raised from ${f.before}:1 to ${f.after}:1</li>`).join("")}${r.notes.map((n) => `<li>${esc(humanize(n))}</li>`).join("")}</ul>`;
+  }
+  /** Compiler notes name roles; say the same thing in plain words. */
+  function humanize(n) {
+    return n
+      .replace(/^(light|dark): /, (_, m) => m[0].toUpperCase() + m.slice(1) + " mode: ")
+      .replace(/sidebar-primary-foreground uses (light|dark) text to read on sidebar-primary\./, "the sidebar uses $1 text on the brand color too.")
+      .replace(/primary-foreground uses (light|dark) text to read on primary\./, "buttons use $1 text on the brand color, so labels stay readable.")
+      .replace(/primary uses brand-(\d+), a (lighter|darker) step of the brand color, so it reads as text on (light|dark) surfaces\./, "the brand color shifts to a $2 shade ($1) so links and highlights stay readable.")
+      .replace(/Keep text-primary off bg-muted\./, "Avoid brand-colored text on gray panels.")
+      .replace(/links and highlighted text use text-foreground with an underline\./, "links use body text with an underline instead.");
+  }
+  async function commitColor() {
+    const ok = await choose(app.colorPatch, "Color");
+    if (ok) { app.colorDirty = false; app.colorPatch = {}; status(""); }
+    return ok;
+  }
+
+  /* ---------- Review ---------- */
+  const QUICK = ["Warmer", "Cooler", "Rounder", "Sharper", "Denser", "Roomier", "Calmer motion", "Livelier motion", "Less corporate", "More character"];
+  function renderReview(root) {
+    const mode = app.reviewMode || app.state.specimen.defaultMode;
+    const wrap = h(`<div class="review"><div><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="seg" id="r-mode"><button data-v="light">Light</button><button data-v="dark">Dark</button></div><span class="note" id="r-checks"></span></div><div class="frames" id="frames"></div></div>
+      <aside class="refine"><h3>Ask for changes</h3>
+        <div class="chips" id="quick">${QUICK.map((q) => `<button class="chip" style="padding-left:10px">${esc(q)}</button>`).join("")}</div>
+        <div class="field"><textarea id="ask" placeholder="${app.state.model ? "“Less corporate, more like a magazine.” “Denser, like Linear.”" : "Connect a model on step 2 to describe changes in your own words."}" ${app.state.model ? "" : "disabled"}></textarea></div>
+        <div class="row"><button class="btn ink small" id="ask-go" ${app.state.model ? "" : "disabled"}>Apply</button><span class="note" id="ask-msg"></span></div>
+        <div class="history" id="hist"></div></aside></div>`);
+    root.append(wrap);
+    const frames = $("#frames", wrap);
+    const paint = () => {
+      const sp = app.state.specimen;
+      const m = app.reviewMode || sp.defaultMode;
+      $("#r-mode", wrap).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === m)));
+      $("#r-checks", wrap).textContent = `${sp.report.passed} of ${sp.report.total} contrast checks pass`;
+      const list = [["hero", "Marketing page", "wide"], ["app", "Web app", "wide"]];
+      const sf = app.state.surfaces;
+      if (sf.includes("chat")) list.push(["chat", "In-app chat"]);
+      if (sf.includes("code")) list.push(["code", "Code blocks"]);
+      if (sf.includes("messaging")) list.push(["sms", "Text messages"]);
+      if (sf.includes("mcp-apps")) list.push(["mcp", "Inside a chat app"]);
+      list.push(["dialog", "Dialog"], ["controls", "Controls"]);
+      frames.innerHTML = "";
+      for (const [scene, label, wide] of list) {
+        const box = h(`<div class="${wide ? "frame-wrap wide" : "frame-wrap"}" style="${wide ? "grid-column:1/-1" : ""}"><p class="frame-label">${esc(label)}</p><div class="frame"><div style="${scene === "dialog" ? "height:340px" : ""}"></div></div></div>`);
+        frames.append(box);
+        draw($(".frame > div", box), sp, [scene], { mode: m, size: wide ? "l" : "m" });
+      }
+      $("#hist", wrap).innerHTML = app.state.history.slice().reverse().slice(0, 12).map((x) => `<div><b>${esc(x.label)}</b>${esc(x.changes.join("; ") || "No change")}</div>`).join("");
+    };
+    paint();
+    app.repaintReview = paint;
+    $("#r-mode", wrap).querySelectorAll("button").forEach((b) => b.onclick = () => { app.reviewMode = b.dataset.v; paint(); });
+    const ask = async (request, quick) => {
+      const msg = $("#ask-msg", wrap);
+      msg.className = "note"; msg.textContent = quick ? "" : "Thinking…";
+      try {
+        const r = await api("/api/refine", { request, quick });
+        update(r);
+        msg.textContent = r.summary || (r.changes.length ? r.changes.join("; ") : "Nothing to change for that.");
+        paint();
+      } catch (e) { msg.className = "error"; msg.textContent = e.message; }
+    };
+    $("#quick", wrap).querySelectorAll(".chip").forEach((c) => c.onclick = () => ask(c.textContent, true));
+    $("#ask-go", wrap).onclick = () => { const v = $("#ask", wrap).value.trim(); if (v) ask(v, false); };
+    $("#ask", wrap).addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) $("#ask-go", wrap).click(); });
+  }
+
+  /* ---------- Publish ---------- */
+  async function renderPublish(root) {
+    const s = app.state;
+    if (app.published) return renderDone(root);
+    const wrap = h(`<div class="publish"><div class="form" id="pub-form">
+      <label class="field"><span>Name</span><input class="input" id="pub-name" value="${esc(s.displayName)}"><small>Shown on the docs site and in DESIGN.md.</small></label>
+      <label class="field"><span>Folder</span><input class="input mono" id="pub-dir" value="${esc(s.defaultDir || "./" + s.name + "-design")}"><small>Created next to where you ran the command: ${esc(s.cwd)}</small></label>
+      <div class="field"><span>GitHub</span><div id="gh-area"><p class="note">Checking for git and the GitHub CLI…</p></div></div>
+      <div class="field"><span>Hosting for the docs site and registry</span><div class="choices" id="hosting"></div></div>
+      ${s.model ? `<label class="row note"><input type="checkbox" id="save-key"> Save the model key in this folder’s .env.local (ignored by git) for <code>auto-design review</code></label>` : ""}
+    </div><div id="pub-side"></div></div>`);
+    root.append(wrap);
+    const hosts = [
+      ["pages", "GitHub Pages", "Public and free. Rebuilds on every push."],
+      ["vercel", "Vercel", "Public, or private with Vercel’s protection."],
+      ["railway", "Railway", "Private: a small server that checks a token."],
+      ["render", "Render", "Private: the same token server, set up from a blueprint."],
+      ["intranet", "Our intranet", "A static folder to put behind your sign-on."],
+      ["later", "Decide later", "Just the repo for now."],
+    ];
+    app.hosting = app.hosting || "pages";
+    const paintHosts = () => {
+      $("#hosting").innerHTML = "";
+      for (const [id, name, note] of hosts) {
+        const c = h(`<button class="choice" aria-pressed="${id === app.hosting}"><b>${esc(name)}</b><span>${esc(note)}</span></button>`);
+        c.onclick = () => { app.hosting = id; paintHosts(); };
+        $("#hosting").append(c);
+      }
+    };
+    paintHosts();
+    try { app.env = app.env || (await api("/api/publish/env")); } catch { app.env = { git: false, gh: {}, vercel: {} }; }
+    const env = app.env;
+    const gh = $("#gh-area");
+    if (!env.git) gh.innerHTML = `<p class="error">git isn’t installed, so the folder will be written but not committed or pushed.</p>`;
+    else if (env.gh.user) {
+      app.github = app.github || "gh";
+      gh.innerHTML = `<label class="row"><input type="checkbox" id="use-gh" ${app.github === "gh" ? "checked" : ""}> Create <b>${esc(env.gh.user)}/<span id="repo-preview">${esc(s.name)}-design</span></b> with the GitHub CLI</label>
+        <div class="seg" id="vis" style="margin-top:8px"><button data-v="public" aria-pressed="true">Public</button><button data-v="private" aria-pressed="false">Private</button></div>`;
+    } else {
+      app.github = app.github || "token";
+      gh.innerHTML = `<p class="note">${env.gh.installed ? "The GitHub CLI isn’t signed in." : "The GitHub CLI isn’t installed."} Run <code>gh auth login</code> and reload, or paste a token with permission to create repositories.</p>
+        <input class="input mono" id="gh-token" type="password" placeholder="github_pat_…" autocomplete="off" style="margin-top:8px">
+        <div class="seg" id="vis" style="margin-top:8px"><button data-v="public" aria-pressed="true">Public</button><button data-v="private" aria-pressed="false">Private</button></div>
+        <label class="row note" style="margin-top:8px"><input type="checkbox" id="skip-gh"> Skip GitHub; just write and commit the folder</label>`;
+    }
+    app.visibility = "public";
+    gh.querySelectorAll("#vis button").forEach((b) => b.onclick = () => { app.visibility = b.dataset.v; gh.querySelectorAll("#vis button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+    $("#pub-dir").addEventListener("input", () => { const rp = $("#repo-preview"); if (rp) rp.textContent = ($("#pub-dir").value.split(/[\\/]/).filter(Boolean).pop() || s.name + "-design"); });
+  }
+
+  async function doPublish() {
+    const s = app.state;
+    const useGh = $("#use-gh") ? $("#use-gh").checked : false;
+    const token = $("#gh-token") ? $("#gh-token").value.trim() : "";
+    const skip = $("#skip-gh") ? $("#skip-gh").checked : false;
+    const github = useGh ? "gh" : token && !skip ? "token" : "none";
+    const dir = $("#pub-dir").value.trim();
+    status("Creating the design system…");
+    $("#next").disabled = true;
+    try {
+      const r = await api("/api/publish", {
+        dir, displayName: $("#pub-name").value.trim() || s.displayName, visibility: app.visibility, github, token,
+        repoName: dir.split(/[\\/]/).filter(Boolean).pop(), hosting: app.hosting, saveKey: $("#save-key") ? $("#save-key").checked : false,
+      });
+      app.published = r;
+      status("");
+      paintRail();
+      rerender();
+      $("#next").hidden = true;
+      $("#back").hidden = true;
+      $(".actions").classList.add("done");
+    } catch (e) { status(e.message, true); }
+    finally { $("#next").disabled = false; }
+  }
+
+  function renderDone(root) {
+    const r = app.published, s = app.state;
+    const head = $(".step-head");
+    if (head) head.innerHTML = `<h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} Install it in an app, tell your agents about it, and keep refining in the studio.</p>`;
+    const src = r.registryUrl || r.dir;
+    const agent = `Before writing or changing UI, read DESIGN.md. It is the ${s.displayName} design system.\nAfter every change run \`npx auto-design check\` and fix what it reports.`;
+    root.append(h(`<div class="publish"><div class="form" style="max-width:640px">
+      <div class="steps-out">${r.steps.map((st) => `<div class="${st.ok ? "" : "bad"}"><i aria-hidden="true"></i><div><b>${esc(st.step)}</b><small>${esc(st.detail)}${st.url ? ` <a href="${esc(st.url)}" target="_blank" rel="noreferrer">${esc(st.url.replace(/^https:\/\//, ""))}</a>` : ""}</small></div></div>`).join("")}</div>
+      <p class="section-label">Install it in an app</p>
+      <div class="copy-row"><pre class="cmd">npx auto-design add ${esc(src)} --components all</pre><button class="btn line small" data-copy="npx auto-design add ${esc(src)} --components all">Copy</button></div>
+      <p class="note">Then check the app against the system with <code>npx auto-design check</code>.</p>
+      <p class="section-label">Tell your agents</p>
+      <p class="note">Add this to AGENTS.md or CLAUDE.md in each app. <code>add</code> does it for you.</p>
+      <div class="copy-row"><pre class="cmd">${esc(agent)}</pre><button class="btn line small" data-copy="${esc(agent)}">Copy</button></div>
+      <p class="section-label">Keep refining</p>
+      <div class="row"><button class="btn ink small" id="open-studio">Open the studio</button>${r.repoUrl ? `<a class="btn line small" style="display:inline-flex;align-items:center;text-decoration:none" href="${esc(r.repoUrl)}" target="_blank" rel="noreferrer">View on GitHub</a>` : ""}</div>
+      <p class="note">Or run <code>npx auto-design dev --cwd ${esc(r.relDir)}</code> any time.</p>
+    </div><div class="big-view" id="done-view"></div></div>`));
+    draw($("#done-view"), s.specimen, ["hero"], { size: "m" });
+    root.querySelectorAll("[data-copy]").forEach((b) => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1400); } catch {} });
+    $("#open-studio").onclick = async () => { try { const x = await api("/api/studio", {}); location.href = x.url; } catch (e) { status(e.message, true); } };
+  }
+
+  /* ---------- Frame ---------- */
+  function clear(el) { el.innerHTML = ""; return el; }
+  function paintBar() {
+    const s = app.state;
+    $("#bar-product").textContent = s.product.name ? `${s.product.name} design system` : "";
+    const pill = $("#model-pill");
+    pill.classList.toggle("on", !!s.model);
+    $("span", pill).textContent = s.model ? s.model.label : "No model";
+    $("#undo").hidden = !s.history.length;
+  }
+  function paintRail() {
+    const ol = $("#rail");
+    ol.innerHTML = "";
+    STEPS.forEach((st, i) => {
+      const value = app.visited.has(i) && i !== app.step ? st.value() : "";
+      const done = app.visited.has(i) && i < app.step;
+      const dot = st.dot && value ? `<i class="dot" style="background:${esc(st.dot())}"></i>` : "";
+      const li = h(`<li><button class="${done ? "done" : ""}" ${i === app.step ? 'aria-current="step"' : ""}><span class="n">${i + 1}</span><span><b>${esc(st.rail)}</b>${value ? `<small>${dot}${esc(value)}</small>` : ""}</span></button></li>`);
+      $("button", li).onclick = () => go(i);
+      ol.append(li);
+    });
+  }
+  async function go(i) {
+    if (i === app.step) return;
+    const cur = STEPS[app.step];
+    if (cur.leave && i > app.step) {
+      try { const ok = await cur.leave(); if (ok === false) return; } catch (e) { status(e.message, true); return; }
+    } else if (cur.id === "color" && app.colorDirty) {
+      await commitColor();
+    }
+    if (cur.id === "feel" && i < app.step && app.feel && Object.keys(feelPatch()).length) await choose(feelPatch(), "Set the feel");
+    app.step = Math.max(0, Math.min(STEPS.length - 1, i));
+    app.visited.add(app.step);
+    rerender();
+    window.scrollTo({ top: 0 });
+    $("#step").focus({ preventScroll: true });
+  }
+  function rerender() {
+    stopTimers();
+    const st = STEPS[app.step];
+    const root = clear($("#step"));
+    root.append(h(`<div class="step-head"><h1>${esc(st.title)}</h1><p>${esc(st.help)}</p></div>`));
+    const body = document.createElement("div");
+    root.append(body);
+    st.render(body);
+    $("#back").hidden = app.step === 0 || !!app.published;
+    $("#next").hidden = !!(app.published && st.id === "publish");
+    $(".actions").classList.toggle("done", !!(app.published && st.id === "publish"));
+    $("#next").textContent = st.nextLabel ? st.nextLabel() : "Continue";
+    status("");
+    paintBar();
+    paintRail();
+  }
+
+  $("#next").onclick = () => (STEPS[app.step].id === "publish" ? doPublish() : go(app.step + 1));
+  $("#back").onclick = () => go(app.step - 1);
+  $("#undo").onclick = async () => {
+    try {
+      const r = await api("/api/undo", {});
+      update(r);
+      status(r.undone ? `Undid “${r.undone}”.` : "");
+      if (STEPS[app.step].id === "review" && app.repaintReview) app.repaintReview();
+      else rerender();
+    } catch (e) { status(e.message, true); }
+  };
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "z" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && app.state.history.length) { e.preventDefault(); $("#undo").click(); }
+  });
+
+  (async () => {
+    try {
+      app.state = await api("/api/state");
+      for (const href of app.state.fonts) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.append(l); }
+      rerender();
+    } catch (e) {
+      $("#step").innerHTML = `<p class="error">${esc(e.message)}</p>`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>

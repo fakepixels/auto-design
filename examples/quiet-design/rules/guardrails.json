@@ -1,6 +1,7 @@
 {
   "version": 1,
   "system": "quiet",
+  "texture": "minimal",
   "colors": {
     "roles": [
       "background",
@@ -153,7 +154,9 @@
     "no-gradient-text": "warn",
     "ui-case": "warn",
     "no-emoji": "warn",
-    "no-token-override": "error"
+    "no-token-override": "error",
+    "glass-on-content": "warn",
+    "display-size": "warn"
   },
   "ignore": [
     "**/node_modules/**",

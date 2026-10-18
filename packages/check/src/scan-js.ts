@@ -85,7 +85,7 @@ export function scanJs(source: string, filename: string, g: GuardrailsLike): { f
     for (const x of Array.isArray(f) ? f : [f]) findings.push({ ...x, ...pos });
   };
 
-  const checkClassString = (value: string, offset: number) => {
+  const checkClassString = (value: string, offset: number, element?: string) => {
     let i = 0;
     const classes = splitClasses(value);
     for (const cls of classes) {
@@ -94,7 +94,7 @@ export function scanJs(source: string, filename: string, g: GuardrailsLike): { f
       const f = analyzeClass(cls, g);
       if (f.length) add(f, offset + idx);
     }
-    const combined = analyzeClassList(classes);
+    const combined = analyzeClassList(classes, element);
     if (combined.length) add(combined, offset);
   };
 
@@ -130,14 +130,14 @@ export function scanJs(source: string, filename: string, g: GuardrailsLike): { f
       case "StringLiteral": {
         const value = node.value as string;
         const offset = (node.start ?? 0) + 1;
-        if (ctx.cls) checkClassString(value, offset);
+        if (ctx.cls) checkClassString(value, offset, ctx.element);
         else checkPlainString(value, offset, ctx);
         return;
       }
       case "TemplateLiteral": {
         for (const q of node.quasis as Node[]) {
           const value = ((q.value as { cooked?: string; raw: string }).cooked ?? (q.value as { raw: string }).raw) as string;
-          if (ctx.cls) checkClassString(value, q.start ?? 0);
+          if (ctx.cls) checkClassString(value, q.start ?? 0, ctx.element);
           else checkPlainString(value, q.start ?? 0, ctx);
         }
         for (const e of node.expressions as Node[]) walk(e, ctx);

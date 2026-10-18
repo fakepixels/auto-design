@@ -128,18 +128,18 @@ export const KEYFRAMES = `@keyframes ad-enter {
   }
 }`;
 
-export const BASE_LAYER = `@layer base {
+export const baseLayer = (darkFirst: boolean) => `@layer base {
   *,
   ::before,
   ::after {
     border-color: var(--color-border);
   }
   html {
-    color-scheme: light;
+    color-scheme: ${darkFirst ? "dark" : "light"};
     -webkit-text-size-adjust: 100%;
   }
-  html.dark {
-    color-scheme: dark;
+  html.${darkFirst ? "light" : "dark"} {
+    color-scheme: ${darkFirst ? "light" : "dark"};
   }
   body {
     background-color: var(--color-background);
@@ -170,14 +170,14 @@ export const BASE_LAYER = `@layer base {
 }`;
 
 /** Shiki dual-theme output: spans carry --shiki-light and --shiki-dark; this picks one. */
-export const CODE_LAYER = `@layer components {
+export const codeLayer = (dark: string) => `@layer components {
   .shiki,
   .shiki span {
     color: var(--shiki-light);
     font-style: var(--shiki-light-font-style);
   }
-  :root.dark .shiki,
-  :root.dark .shiki span {
+  ${dark} .shiki,
+  ${dark} .shiki span {
     color: var(--shiki-dark);
     font-style: var(--shiki-dark-font-style);
   }
@@ -193,19 +193,71 @@ export const REDUCED_MOTION = `@media (prefers-reduced-motion: reduce) {
   }
 }`;
 
+/** True when the system loads in dark mode and light is the opt-in class. */
+export function isDarkFirst(s: DesignSystem): boolean {
+  return s.config.color.modes === "both" && s.config.color.defaultMode === "dark";
+}
+
+/**
+ * Texture utilities. Glass gets a frosted surface built in layers: a solid
+ * fallback first, frosting only where backdrop-filter is supported, and a
+ * tinted backdrop so the frosting has something to show. Values inside
+ * -webkit-backdrop-filter are literal because Safari doesn't resolve custom
+ * properties there.
+ */
+export function textureLayer(s: DesignSystem): string {
+  if (s.config.texture !== "glass") return "";
+  return `/* Glass is chrome, never content: nav bars, sheets, dialogs and popovers only. */
+@utility glass {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--shadow-md);
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+}
+
+@utility bg-backdrop {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(55% 45% at 12% 8%, color-mix(in oklab, var(--primary) 26%, transparent), transparent 70%),
+    radial-gradient(45% 45% at 88% 22%, color-mix(in oklab, var(--chart-2) 24%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 50% 100%, color-mix(in oklab, var(--chart-4) 20%, transparent), transparent 70%);
+  background-attachment: fixed;
+}`;
+}
+
+function glassVars(s: DesignSystem): Record<string, string> {
+  if (s.config.texture !== "glass") return {};
+  return {
+    "--glass": "color-mix(in oklab, var(--popover) 62%, transparent)",
+    "--glass-border": "color-mix(in oklab, var(--foreground) 10%, transparent)",
+    "--glass-highlight": "color-mix(in oklab, white 45%, transparent)",
+  };
+}
+
 /** The one CSS file an app imports after Tailwind. */
 export function emitCss(s: DesignSystem): string {
   const modes = s.config.color.modes;
-  const rootMode: Mode = modes === "dark" ? "dark" : "light";
+  const darkFirst = isDarkFirst(s);
+  const rootMode: Mode = modes === "dark" || darkFirst ? "dark" : "light";
 
   const colorMap: Record<string, string> = {};
   for (const role of ROLE_NAMES) colorMap[`--color-${role}`] = `var(--${role})`;
   colorMap["--color-transparent"] = "transparent";
   colorMap["--color-current"] = "currentColor";
 
+  // In a dark-first system, dark: utilities apply unless <html class="light">.
+  const variant = darkFirst
+    ? "@custom-variant dark (&:where(:root:not(.light), :root:not(.light) *));"
+    : "@custom-variant dark (&:where(.dark, .dark *));";
+
   const parts = [
     header(s, "css"),
-    "@custom-variant dark (&:where(.dark, .dark *));",
+    variant,
     `@theme {\n  /* Locked: Tailwind's defaults for these namespaces are removed. */\n${LOCKED_NAMESPACES.map((n) => `  ${n}: initial;`).join("\n")}\n\n${Object.entries(
       themeTokens(s),
     )
@@ -214,10 +266,14 @@ export function emitCss(s: DesignSystem): string {
     block("@theme inline", colorMap),
     // Doubled selectors outrank a plain :root or .dark left in an app's own CSS,
     // so the system's values win regardless of import order.
-    block(":root:root", { ...staticRootTokens(s), ...rootTokens(s, rootMode) }),
+    block(":root:root", { ...staticRootTokens(s), ...glassVars(s), ...rootTokens(s, rootMode) }),
   ];
-  if (modes === "both") parts.push(block(":root.dark", rootTokens(s, "dark")));
-  parts.push(KEYFRAMES, REDUCED_MOTION, BASE_LAYER);
-  if (s.config.surfaces.includes("code")) parts.push(CODE_LAYER);
+  if (modes === "both") {
+    parts.push(darkFirst ? block(":root.light", rootTokens(s, "light")) : block(":root.dark", rootTokens(s, "dark")));
+  }
+  parts.push(KEYFRAMES, REDUCED_MOTION, baseLayer(darkFirst));
+  const texture = textureLayer(s);
+  if (texture) parts.push(texture);
+  if (s.config.surfaces.includes("code")) parts.push(codeLayer(darkFirst ? ":root:not(.light)" : ":root.dark"));
   return parts.join("\n\n") + "\n";
 }

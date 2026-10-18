@@ -8,10 +8,9 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phases 0 and 1 done.** The compiler, the checker, the CLI, the studio and the
-> Quiet preset work end to end. The full onboarding flow, the other four presets, and the agent surfaces
-> (MCP Apps, iMessage) come next.
-> See the [build plan](#roadmap).
+> Status: **Phases 0, 1 and 2 done.** Onboarding, five presets, the compiler, the checker, the studio,
+> publishing and the docs site work end to end. Agent surfaces (an MCP server, MCP Apps, iMessage cards and
+> `auto-design review`) come next. See the [build plan](#roadmap).
 
 ## Why guardrails, not guidelines
 
@@ -22,19 +21,86 @@ an agent under pressure ignores it. auto-design makes the system the only thing 
    `font-bold` (if bold isn't one of your weights) and `shadow-2xl` stop existing.
 2. **Fails the build.** `auto-design check` lints TSX, JSX and CSS deterministically, with no model or
    API key: raw colors, palette classes, arbitrary values, off-scale spacing, type, radius, shadows,
-   durations and easings, `scale(0)` entrances, and app CSS that redefines system tokens.
+   durations and easings, `scale(0)` entrances, and app CSS that redefines system tokens. Texture rules
+   come with the preset: glass only on chrome, never on tables or body text; display fonts only at
+   headline sizes.
 3. **Visible exceptions.** `// auto-design-allow <rule>: <reason>` suppresses a rule on the next line,
    and every exception is listed in the output.
 
 Contrast is enforced when the system is built: every text and fill pair must reach WCAG AA in light and
 dark mode. The compiler fixes what it can and says what it changed.
 
-## Try it
+## Make a design system
 
-You need Node 20 or newer.
+You need Node 20 or newer. From a clone of this repo:
 
 ```sh
 npm install
+npx auto-design init      # opens the onboarding app at http://localhost:4400
+```
+
+![Onboarding: every option is drawn on your own product before you pick it](docs/onboarding.png)
+
+Onboarding asks twelve short questions and draws every answer on your product's own headline, table and
+messages, so you choose by looking rather than by reading token names:
+
+1. **Product.** Its name and one line about it. The previews use them instead of lorem ipsum.
+2. **Model (optional).** A Claude, OpenAI or OpenRouter key. Claude is recommended. The key stays on your
+   machine and the browser never sees it. Without one, every step still works; you lose suggestions and
+   "describe a change".
+3. **Start.** One of five presets, or your current site and a few screenshots for the model to read.
+4. **Feel, texture, type, color, shape, motion.** Each shows its options side by side. Color has a visual
+   picker and accepts hex, `rgb()`, `hsl()` or `oklch()`; contrast is checked in light and dark mode as you go.
+5. **Surfaces.** Web app, marketing site, code blocks, in-app chat, ChatGPT and Claude apps, iMessage and SMS.
+6. **Review and publish.** Writes the repo, commits it, creates the GitHub repo and sets up hosting.
+
+With a model connected you can also type a change ("warmer, less corporate, rounder buttons") at any step.
+The model never writes CSS: it proposes a change to the config, the compiler checks it, and you see what
+changed before keeping it. Every change can be undone.
+
+Keys are read from `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or `OPENROUTER_API_KEY` when set.
+
+### Presets
+
+| Preset | Feel |
+| --- | --- |
+| Quiet | Calm, dense and precise. Geist, hairline borders, 6px corners. For dashboards and tools people use all day. |
+| Editorial | Typography carries the design: Instrument Serif headlines, no borders or shadows, color used sparingly. |
+| Glass | Frosted navigation and dialogs over solid content, Figtree, rounder corners, springier motion. |
+| Terminal | Dark first, dense and exact. IBM Plex Sans with JetBrains Mono labels, 2px corners. |
+| Tactile | Soft raised surfaces and buttons that press down. Bricolage Grotesque headlines, 16px corners. |
+
+Skip the browser with `npx auto-design init my-design --preset glass`.
+
+### Publishing
+
+The last step writes the system to a new folder, commits it, and optionally:
+
+- **Creates the GitHub repo**, public or private, with the GitHub CLI if you're signed in (`gh auth login`)
+  or with a token you paste. Every push rebuilds the system in CI and fails if the committed files drift.
+- **Hosts the docs site and registry** in `public/`:
+
+| Host | What you get |
+| --- | --- |
+| GitHub Pages | A Pages workflow, turned on for you |
+| Vercel | `vercel.json`; deploys if the Vercel CLI is signed in, otherwise an import link |
+| Railway or Render | `server.mjs`, a dependency-free server that requires `REGISTRY_TOKEN` on every request |
+| Your intranet | `public/` is plain static files; put it behind your existing sign-on |
+
+Private registries work with both installers: `AUTO_DESIGN_TOKEN=... npx auto-design add https://host/r/`.
+
+![The generated docs site, drawn in the system it documents](docs/site.png)
+
+Each system ships a docs site at `public/index.html`: install commands, the product on every surface you
+chose, color scales, the type scale and the component list, in light and dark mode. It is built from the
+same tokens, so it doubles as the reference for what on-system looks like.
+
+## Refine it
+
+After publishing, the studio keeps a system and the apps that use it in step. `design.config.ts` stays the
+only hand-edited file. To try it on the bundled example:
+
+```sh
 npm run dev        # opens the studio for examples/quiet-design and keeps examples/next-quiet in sync
 ```
 
@@ -46,7 +112,7 @@ cd examples/next-quiet && npm install && npm run dev   # http://localhost:3000
 
 ![The studio: pick a brand color visually or by code, and see light and dark mode update live](docs/studio.png)
 
-The studio is the no-code way in:
+In the studio:
 
 - **Pick a brand color.** Drag in the picker, which only offers colors screens can show, or type any code: hex, `rgb()`, `hsl()` or `oklch()`. Chromium browsers also get an eyedropper.
 - **Choose gray temperature and corner radius.**
@@ -56,14 +122,15 @@ The studio is the no-code way in:
 From the command line:
 
 ```sh
-npx auto-design init my-design --preset quiet      # create a design system repo
+npx auto-design init my-design                     # design a system in the browser
+npx auto-design init my-design --preset quiet      # or start from a preset, no browser
 npx auto-design dev --cwd my-design --app ../my-app # studio + live sync into an app
 npx auto-design build --cwd my-design              # rebuild after editing design.config.ts
 npx auto-design check --cwd ../my-app              # lint an app against the system
 ```
 
 ```text
-✓ Quiet: wrote 26 files to my-design
+✓ Quiet: wrote 53 files to my-design
 ✓ 43/43 contrast checks pass (WCAG AA)
 ~ light: muted-foreground on muted was 4.29:1, adjusted to 4.58:1
 i dark: primary uses brand-400, a lighter step of the brand color, so it reads as text on dark surfaces.
@@ -78,7 +145,10 @@ i dark: primary uses brand-400, a lighter step of the brand color, so it reads a
 | `tokens/*.tokens.json` | W3C design tokens (format 2025.10): primitives, plus a file per mode |
 | `DESIGN.md` | Instructions for coding agents: roles, scales, motion, voice, how to check |
 | `rules/guardrails.json` | What `auto-design check` enforces |
-| `public/r/*.json` | A shadcn registry, ready to host anywhere static |
+| `public/index.html` | The docs site, drawn in the system |
+| `public/r/*.json` | A shadcn registry with a `registry.json` index, ready to host anywhere static |
+| `public/DESIGN.md`, `public/llms.txt` | The agent instructions, served next to the registry |
+| `specimen.copy.json` | The sample words the docs site and previews use: your headline, your table rows |
 | `registry/ui/*.tsx` | 16 component sources (listed below) |
 | `code/*.json` | Syntax-highlighting themes for code blocks, generated from the brand |
 | `build-report.json` | Every contrast check and every value the compiler adjusted |
@@ -147,13 +217,14 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 | --- | --- |
 | [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, contrast enforcement, emitters |
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
-| [`@auto-design/presets`](packages/presets) | Starter systems. Quiet ships now |
-| [`auto-design`](packages/cli) | The CLI: `init`, `dev` (the studio), `add`, `build`, `check`, `presets` |
+| [`@auto-design/presets`](packages/presets) | Quiet, Editorial, Glass, Terminal and Tactile |
+| [`@auto-design/ai`](packages/ai) | Model calls for onboarding (Claude, OpenAI, OpenRouter): suggestions, refinements and sample copy as validated config changes |
+| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `check`, `presets` |
 | [`@auto-design/eslint-plugin`](packages/eslint-plugin) | The checker as ESLint rules |
 | [`@auto-design/stylelint-plugin`](packages/stylelint-plugin) | The checker as a Stylelint plugin |
 
 ```sh
-npm test          # includes a sweep of 2,052 brand colors and a check of every generated component
+npm test          # includes 2,790 brand colors across every texture and a check of every generated component
 npm run typecheck
 ```
 
@@ -163,15 +234,16 @@ npm run typecheck
 | --- | --- |
 | 0 (done) | Config schema, token set, compiler, checker, Quiet preset, Next.js gate |
 | 1 (done) | Studio with color picker, `auto-design add` for any Tailwind app, ESLint and Stylelint plugins, code theme, 16 components |
-| 2 | Local onboarding app (`npx auto-design init` opens it): model key, taste questions, live specimen, GitHub and Vercel publish; Editorial, Glass, Terminal and Tactile presets |
+| 2 (done) | Local onboarding app (`npx auto-design init` opens it): model key, taste questions, live previews, GitHub publish and hosting, docs site; Editorial, Glass, Terminal and Tactile presets |
 | 3 | Agent surfaces: MCP server (`get_rules`, `check`), MCP Apps adapter, iMessage image cards and voice rules, `auto-design review` |
 | 4 | Public launch, preset gallery, private registry template |
 
 ## Credits
 
 Built on [shadcn/ui](https://ui.shadcn.com) and its registry, [Tailwind CSS](https://tailwindcss.com),
-[Sonner](https://sonner.emilkowal.ski) by Emil Kowalski for toasts, and [Geist](https://vercel.com/font)
-under the SIL Open Font License. Token files follow the [W3C Design Tokens format](https://www.designtokens.org/tr/2025.10/).
+[Sonner](https://sonner.emilkowal.ski) by Emil Kowalski for toasts, and typefaces under the SIL Open Font
+License: [Geist](https://vercel.com/font), Instrument Sans and Serif, IBM Plex Sans, JetBrains Mono, Figtree,
+DM Sans, Bricolage Grotesque, Red Hat Mono, Manrope and Fira Code, served by [Fontsource](https://fontsource.org). Token files follow the [W3C Design Tokens format](https://www.designtokens.org/tr/2025.10/).
 
 ## License
 

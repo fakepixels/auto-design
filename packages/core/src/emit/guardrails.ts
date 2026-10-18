@@ -23,6 +23,8 @@ export const RULES = {
   "ui-case": { severity: "warn", summary: "Button and menu labels follow the system's case." },
   "no-emoji": { severity: "warn", summary: "No emoji in product UI." },
   "no-token-override": { severity: "error", summary: "App CSS may not redefine the system's variables or theme keys." },
+  "glass-on-content": { severity: "warn", summary: "Glass is for chrome (nav, dialogs, popovers), never tables, lists or body text." },
+  "display-size": { severity: "warn", summary: "The display font is for headlines at text-2xl and up." },
 } as const satisfies Record<string, { severity: Severity; summary: string }>;
 
 export type RuleId = keyof typeof RULES;
@@ -30,6 +32,7 @@ export type RuleId = keyof typeof RULES;
 export interface Guardrails {
   version: 1;
   system: string;
+  texture: string;
   colors: { roles: string[] };
   fonts: { families: string[]; cssFamilies: string[] };
   weights: Record<string, number>;
@@ -60,6 +63,7 @@ export function buildGuardrails(s: DesignSystem): Guardrails {
   return {
     version: 1,
     system: s.config.name,
+    texture: s.config.texture,
     colors: { roles: [...ROLE_NAMES, "transparent", "current", "inherit"] },
     fonts: {
       families,

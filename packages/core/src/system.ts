@@ -183,34 +183,48 @@ function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], 
 }
 
 /**
- * The brand color stays exact in light mode. In dark mode a deep brand color
- * sinks into the page and can't be read as text (links, code, selected
- * states), so it steps lighter along its own scale until it reads as text on
- * the hardest dark surface, muted (4.5:1).
+ * The brand color stays exact in the mode the system loads in. In the other
+ * mode it steps along its own scale until it reads as text on that mode's
+ * hardest surface: lighter on dark pages (muted, 4.5:1 on neutral-800), darker
+ * on light pages (4.5:1 on neutral-100). A deep blue stays visible in dark
+ * mode; a phosphor green in a dark-first system still works in light mode.
  */
-function primaryFor(mode: Mode, brand: Scale, seedStep: Step, n: Scale, report: BuildReport, page: Oklch): Oklch {
+function primaryFor(
+  mode: Mode,
+  brand: Scale,
+  seedStep: Step,
+  n: Scale,
+  report: BuildReport,
+  page: Oklch,
+  defaultMode: Mode,
+): Oklch {
   const seed = brand[seedStep];
-  if (mode === "light") {
+  const steps = Object.keys(brand).map(Number) as Step[];
+
+  if (mode === defaultMode) {
     const onPage = contrast(seed, page);
-    const onPanel = contrast(seed, n[100]);
+    const panel = mode === "light" ? n[100] : n[800];
+    const onPanel = contrast(seed, panel);
     if (onPage < TEXT_MIN) {
       report.notes.push(
-        `light: the brand color is ${floor2(onPage)}:1 on the page, too light for text. Use it for fills; links and highlighted text use text-foreground with an underline.`,
+        `${mode}: the brand color is ${floor2(onPage)}:1 on the page, too ${mode === "light" ? "light" : "dark"} for text. Use it for fills; links and highlighted text use text-foreground with an underline.`,
       );
     } else if (onPanel < TEXT_MIN) {
       report.notes.push(
-        `light: the brand color reads as text on the page (${floor2(onPage)}:1) but not on gray panels such as code blocks (${floor2(onPanel)}:1). Keep text-primary off bg-muted.`,
+        `${mode}: the brand color reads as text on the page (${floor2(onPage)}:1) but not on gray panels such as code blocks (${floor2(onPanel)}:1). Keep text-primary off bg-muted.`,
       );
     }
     return seed;
   }
-  const hardest = n[800];
+
+  const hardest = mode === "dark" ? n[800] : n[100];
   if (contrast(seed, hardest) >= TEXT_MIN) return seed;
-  const steps = Object.keys(brand).map(Number) as Step[];
-  const lighter = steps.filter((s) => s < seedStep).sort((a, b) => b - a);
-  for (const step of lighter) {
+  const toward = mode === "dark" ? steps.filter((s) => s < seedStep).sort((a, b) => b - a) : steps.filter((s) => s > seedStep).sort((a, b) => a - b);
+  for (const step of toward) {
     if (contrast(brand[step], hardest) >= TEXT_MIN) {
-      report.notes.push(`dark: primary uses brand-${step}, a lighter step of the brand color, so it reads as text on dark surfaces.`);
+      report.notes.push(
+        `${mode}: primary uses brand-${step}, a ${mode === "dark" ? "lighter" : "darker"} step of the brand color, so it reads as text on ${mode} surfaces.`,
+      );
       return brand[step];
     }
   }
@@ -322,14 +336,21 @@ function enforce(mode: Mode, roles: Roles, n: Scale, report: BuildReport) {
   }
 
   // 4. Notes on things that are allowed but deserve a sentence in DESIGN.md.
-  if (contrast(roles.primary, roles.background) < UI_MIN) {
+  const alreadyNoted = report.notes.some((n) => n.startsWith(`${mode}: the brand color is`));
+  if (!alreadyNoted && contrast(roles.primary, roles.background) < UI_MIN) {
     report.notes.push(
       `${mode}: the brand color is ${contrast(roles.primary, roles.background).toFixed(1)}:1 against the page, so primary buttons rely on their label and shape. Do not use text-primary for body copy.`,
     );
   }
 }
 
-function collectChecks(mode: Mode, roles: Roles, report: BuildReport) {
+/**
+ * `adapted` is true for the mode where the compiler chose the primary color
+ * (the one the system doesn't load in). There, primary is guaranteed to read
+ * as text; in the default mode the brand stays exact and DESIGN.md says
+ * where it can't be used as text.
+ */
+function collectChecks(mode: Mode, roles: Roles, report: BuildReport, adapted: boolean) {
   for (const [text, surfaces] of TEXT_PAIRS) {
     for (const surface of surfaces) {
       const ratio = contrast(roles[text], roles[surface]);
@@ -340,7 +361,7 @@ function collectChecks(mode: Mode, roles: Roles, report: BuildReport) {
     const ratio = contrast(roles[label], roles[fill]);
     report.checks.push({ mode, fg: label, bg: fill, ratio: +ratio.toFixed(2), min: TEXT_MIN, pass: ratio >= TEXT_MIN });
   }
-  if (mode === "dark") {
+  if (adapted) {
     for (const surface of ["background", "card", "muted"] as const) {
       const ratio = contrast(roles.primary, roles[surface]);
       report.checks.push({ mode, fg: "primary", bg: surface, ratio: +ratio.toFixed(2), min: TEXT_MIN, pass: ratio >= TEXT_MIN });
@@ -365,11 +386,13 @@ export function buildSystem(input: DesignConfig): DesignSystem {
 
   const report: BuildReport = { fixes: [], checks: [], notes: [] };
   const roles = {} as Record<Mode, Roles>;
+  const defaultMode: Mode = config.color.modes === "dark" ? "dark" : config.color.modes === "light" ? "light" : config.color.defaultMode;
   for (const mode of ["light", "dark"] as const) {
-    const page = config.texture === "minimal" || config.texture === "technical" ? WHITE : palettes.neutral[50];
-    roles[mode] = rolesFor(mode, config, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report, page));
+    const lightPage = config.texture === "minimal" || config.texture === "technical" ? WHITE : palettes.neutral[50];
+    const page = mode === "light" ? lightPage : palettes.neutral[950];
+    roles[mode] = rolesFor(mode, config, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report, page, defaultMode));
     enforce(mode, roles[mode], palettes.neutral, report);
-    collectChecks(mode, roles[mode], report);
+    collectChecks(mode, roles[mode], report, mode !== defaultMode);
   }
 
   const failed = report.checks.filter((c) => !c.pass);

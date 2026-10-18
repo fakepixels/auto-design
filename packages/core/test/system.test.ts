@@ -63,6 +63,27 @@ describe("buildSystem", () => {
     expect(failures).toEqual([]);
   });
 
+  it("builds dark-first systems for every brand color and every texture", () => {
+    const failures: string[] = [];
+    for (const texture of ["minimal", "editorial", "glass", "tactile", "technical"] as const) {
+      for (let l = 0.1; l <= 0.96; l += 0.1) {
+        for (let h = 0; h < 360; h += 45) {
+          for (const c of [0, 0.08, 0.18]) {
+            const brand = `oklch(${l.toFixed(2)} ${c} ${h})`;
+            const config: DesignConfig = { ...withBrand(brand), texture, color: { ...withBrand(brand).color, modes: "both", defaultMode: "dark" } };
+            try {
+              const s = buildSystem(config);
+              if (s.report.checks.some((x) => !x.pass)) failures.push(`${texture} ${brand}`);
+            } catch {
+              failures.push(`${texture} ${brand}`);
+            }
+          }
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
   it("shifts a mid-tone brand just enough to carry a label", () => {
     const s = buildSystem(withBrand("oklch(0.58 0.106 17.6)"));
     expect(contrast(s.roles.light.primary, s.roles.light["primary-foreground"])).toBeGreaterThanOrEqual(4.5);

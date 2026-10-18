@@ -150,7 +150,7 @@ function packageManager(app: string): { name: string; add: string[] } {
 async function loadItem(source: string, name: string): Promise<RegistryItem> {
   if (/^https?:\/\//.test(source)) {
     const base = source.endsWith(".json") ? source.replace(/[^/]+\.json$/, "") : source.replace(/\/?$/, "/");
-    const res = await fetch(`${base}${name}.json`);
+    const res = await fetch(`${base}${name}.json`, { headers: authHeaders() });
     if (!res.ok) throw new Error(`Couldn't fetch ${base}${name}.json (${res.status})`);
     return (await res.json()) as RegistryItem;
   }
@@ -160,8 +160,24 @@ async function loadItem(source: string, name: string): Promise<RegistryItem> {
   return JSON.parse(readFileSync(path, "utf8")) as RegistryItem;
 }
 
+/** Private registries (the token-protected server auto-design can deploy) read a bearer token from the environment. */
+function authHeaders(): Record<string, string> {
+  const token = process.env.AUTO_DESIGN_TOKEN ?? process.env.REGISTRY_TOKEN;
+  return token ? { authorization: `Bearer ${token}` } : {};
+}
+
 async function listComponents(source: string): Promise<string[]> {
-  if (/^https?:\/\//.test(source)) return [];
+  if (/^https?:\/\//.test(source)) {
+    const base = source.endsWith(".json") ? source.replace(/[^/]+\.json$/, "") : source.replace(/\/?$/, "/");
+    try {
+      const res = await fetch(`${base}registry.json`, { headers: authHeaders() });
+      if (!res.ok) return [];
+      const index = (await res.json()) as { items?: { name: string; type: string }[] };
+      return (index.items ?? []).filter((i) => i.type === "registry:ui").map((i) => i.name);
+    } catch {
+      return [];
+    }
+  }
   const dir = join(resolve(source), "public/r");
   return existsSync(dir)
     ? readdirSync(dir)

@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/bin.ts --format esm --clean && cp src/dev/studio.html dist/"
+    "build": "tsup src/bin.ts --format esm --clean && cp src/dev/studio.html src/onboard/onboard.html dist/"
   },
   "dependencies": {
     "@auto-design/check": "^0.1.0",
@@ -20,7 +20,8 @@
     "@auto-design/presets": "^0.1.0",
     "cac": "^6.7.14",
     "jiti": "^2.4.2",
-    "picocolors": "^1.1.1"
+    "picocolors": "^1.1.1",
+    "@auto-design/ai": "^0.1.0"
   },
   "main": "./src/index.ts",
   "exports": {

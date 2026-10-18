@@ -31,10 +31,85 @@ export interface ComponentSource {
   lib?: { file: string; content: string }[];
 }
 
+/** Texture-specific class fragments, so each texture reads differently in the same components. */
+export interface Skin {
+  /** Surface of cards: content, always solid. */
+  card: string;
+  /** Surface of floating layers: dialogs, popovers, toasts. */
+  overlay: string;
+  /** Extra classes on solid buttons. */
+  raised: string;
+  /** Press feedback on buttons. */
+  press: string;
+  /** Table header cells. */
+  tableHead: string;
+  /** Form labels. */
+  label: string;
+  /** The active tab. */
+  activeTab: string;
+}
+
+export function skinFor(s: DesignSystem): Skin {
+  const scalePress = s.motion.enterScale < 1 ? " active:scale-98" : "";
+  switch (s.config.texture) {
+    case "editorial":
+      return {
+        card: "bg-card",
+        overlay: "border bg-popover shadow-lg",
+        raised: "",
+        press: scalePress,
+        tableHead: "font-medium text-muted-foreground",
+        label: "text-sm font-medium",
+        activeTab: "data-[state=active]:bg-background data-[state=active]:text-foreground",
+      };
+    case "glass":
+      return {
+        card: "border bg-card shadow-sm",
+        overlay: "glass",
+        raised: " shadow-sm",
+        press: scalePress,
+        tableHead: "font-medium text-muted-foreground",
+        label: "text-sm font-medium",
+        activeTab: "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      };
+    case "tactile":
+      return {
+        card: "border border-transparent bg-card shadow-md dark:border-border",
+        overlay: "border bg-popover shadow-lg",
+        raised: " shadow-sm",
+        press: " active:translate-y-px active:shadow-xs",
+        tableHead: "font-medium text-muted-foreground",
+        label: "text-sm font-medium",
+        activeTab: "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      };
+    case "technical":
+      return {
+        card: "border bg-card",
+        overlay: "border bg-popover shadow-lg",
+        raised: "",
+        press: "",
+        tableHead: "font-mono text-xs font-normal uppercase tracking-wide text-muted-foreground",
+        label: "font-mono text-xs font-normal uppercase tracking-wide",
+        activeTab: "data-[state=active]:bg-background data-[state=active]:text-foreground",
+      };
+    default:
+      return {
+        card: "border bg-card shadow-xs",
+        overlay: "border bg-popover shadow-lg",
+        raised: " shadow-xs",
+        press: scalePress,
+        tableHead: "font-medium text-muted-foreground",
+        label: "text-sm font-medium",
+        activeTab: "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs",
+      };
+  }
+}
+
 export function componentSources(s: DesignSystem): ComponentSource[] {
   const h = s.controls;
   const d = s.motion.durations;
-  const press = s.motion.enterScale < 1 ? " active:scale-98" : "";
+  const k = skinFor(s);
+  const press = k.press;
   const padX = s.config.density === "compact" ? 3 : 4;
 
   const button = `import * as React from "react";
@@ -48,11 +123,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground${k.raised} hover:bg-primary/90",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        outline: "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+        outline: "border border-input bg-background${k.raised} hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        destructive: "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90",
+        destructive: "bg-destructive text-destructive-foreground${k.raised} hover:bg-destructive/90",
         link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
@@ -88,7 +163,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
-      className={cn("flex flex-col gap-${s.config.density === "compact" ? 4 : 6} rounded-lg border bg-card py-${s.config.density === "compact" ? 4 : 6} text-card-foreground shadow-xs", className)}
+      className={cn("flex flex-col gap-${s.config.density === "compact" ? 4 : 6} rounded-lg ${k.card} py-${s.config.density === "compact" ? 4 : 6} text-card-foreground", className)}
       {...props}
     />
   );
@@ -179,7 +254,7 @@ function Toaster(props: ToasterProps) {
       className="toaster group"
       style={
         {
-          "--normal-bg": "var(--popover)",
+          "--normal-bg": "${s.config.texture === "glass" ? "var(--glass)" : "var(--popover)"}",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
@@ -187,7 +262,7 @@ function Toaster(props: ToasterProps) {
       }
       toastOptions={{
         classNames: {
-          toast: "font-sans text-sm shadow-lg",
+          toast: "font-sans text-sm ${s.config.texture === "glass" ? "glass" : "shadow-lg"}",
           description: "text-muted-foreground",
         },
       }}
@@ -283,7 +358,7 @@ function Label({ className, ...props }: React.ComponentProps<typeof LabelPrimiti
   return (
     <LabelPrimitive.Root
       data-slot="label"
-      className={cn("flex select-none items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className)}
+      className={cn("flex select-none items-center gap-2 ${k.label} leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className)}
       {...props}
     />
   );
@@ -392,7 +467,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
-      className={cn("h-${h.md} whitespace-nowrap px-2 text-left align-middle font-medium text-muted-foreground", className)}
+      className={cn("h-${h.md} whitespace-nowrap px-2 text-left align-middle ${k.tableHead}", className)}
       {...props}
     />
   );
@@ -435,7 +510,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex h-full flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors duration-${d.fast} ease-out disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs",
+        "inline-flex h-full flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors duration-${d.fast} ease-out disabled:pointer-events-none disabled:opacity-50 ${k.activeTab}",
         className,
       )}
       {...props}
@@ -486,7 +561,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-popover p-6 text-popover-foreground shadow-lg sm:max-w-lg ${enter}",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg ${k.overlay} p-6 text-popover-foreground sm:max-w-lg ${enter}",
           className,
         )}
         {...props}

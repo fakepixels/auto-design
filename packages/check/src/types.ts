@@ -16,12 +16,16 @@ export type RuleId =
   | "no-gradient-text"
   | "ui-case"
   | "no-emoji"
-  | "no-token-override";
+  | "no-token-override"
+  | "glass-on-content"
+  | "display-size";
 
 /** The subset of rules/guardrails.json the checker reads. */
 export interface Guardrails {
   version: 1;
   system: string;
+  /** The system's texture (minimal, editorial, glass, tactile, technical). Optional for older files. */
+  texture?: string;
   colors: { roles: string[] };
   fonts: { families: string[]; cssFamilies: string[] };
   weights: Record<string, number>;
@@ -75,7 +79,7 @@ export function prepare(g: Guardrails): GuardrailsLike {
   for (const role of g.colors.roles) vars.add(`--${role}`), vars.add(`--color-${role}`);
   for (const s of g.text.steps) vars.add(`--text-${s}`);
   for (const f of g.fonts.families) vars.add(`--font-${f}`);
-  for (const n of ["--radius", "--duration-fast", "--duration-base", "--duration-slow", "--enter-scale", "--enter-distance", "--ease-out", "--ease-in-out"]) {
+  for (const n of ["--glass", "--glass-border", "--glass-highlight", "--radius", "--duration-fast", "--duration-base", "--duration-slow", "--enter-scale", "--enter-distance", "--ease-out", "--ease-in-out"]) {
     vars.add(n);
   }
   return { ...g, systemVars: vars };

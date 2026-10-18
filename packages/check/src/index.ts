@@ -36,6 +36,8 @@ const DEFAULT_SEVERITY: Record<RuleId, Exclude<Severity, "off">> = {
   "ui-case": "warn",
   "no-emoji": "warn",
   "no-token-override": "error",
+  "glass-on-content": "warn",
+  "display-size": "warn",
 };
 
 const ALLOW_RE = /auto-design-allow\s+([\w-]+(?:\s*,\s*[\w-]+)*)\s*(?::\s*(.*?))?\s*(?:\*\/)?$/;

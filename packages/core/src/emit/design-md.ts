@@ -2,6 +2,7 @@ import { PRODUCT_MAX_STEP, TYPE_STEPS } from "../scales.js";
 import type { Texture } from "../schema.js";
 import type { DesignSystem } from "../system.js";
 import { componentSources } from "./components.js";
+import { isDarkFirst } from "./css.js";
 import { RULES, buildGuardrails, type RuleId } from "./guardrails.js";
 import { WEIGHT_NAMES, header } from "./shared.js";
 
@@ -13,7 +14,7 @@ const TEXTURE_PRINCIPLES: Record<Texture, string[]> = {
   ],
   editorial: [
     "Typography carries the design. Generous line length limits, real hierarchy, few boxes.",
-    "Paper-toned background with white raised surfaces; almost no shadow.",
+    "A tinted page with white surfaces and no borders; almost no shadow.",
     "Restraint in color: the accent appears in links, focus and one primary action.",
   ],
   glass: [
@@ -48,6 +49,46 @@ const ROLE_USE: [string, string][] = [
   ["chart-1 … chart-5", "Data series, in order. chart-1 is the brand."],
   ["sidebar-*", "App navigation sidebars."],
 ];
+
+/** Concrete instructions for the texture, so agents reproduce it instead of guessing. */
+function textureSection(s: DesignSystem): string[] {
+  const t = s.config.texture;
+  const lines = ["## Texture", ""];
+  if (t === "glass") {
+    lines.push(
+      "- `glass` is the frosted surface. Use it on chrome only: nav bars, sheets, dialogs, popovers, toasts. It falls back to a solid surface where frosting isn't supported.",
+      "- Put `bg-backdrop` on the app shell so glass has something to frost. Content inside sits on solid `bg-card`.",
+      "- Never put `glass` on tables, data cards, lists or body text, and keep to three glass layers in a view. The check flags glass on content.",
+    );
+  } else if (t === "technical") {
+    lines.push(
+      "- Labels, table headers and metadata: `font-mono text-xs uppercase tracking-wide text-muted-foreground`.",
+      "- IDs, keys, hashes, versions, paths and commands are always `font-mono`.",
+      "- Separate with `border` and spacing. No shadows except on floating layers.",
+    );
+  } else if (t === "editorial") {
+    lines.push(
+      s.type.fonts.display
+        ? "- Page titles and marketing headlines use `font-display font-normal`; everything else is `font-sans`."
+        : "- Hierarchy comes from size and weight, not boxes.",
+      "- Keep text columns to `max-w-prose`. Prefer a `border-t` and space over a card.",
+      "- Cards are white on the tinted page, with no border and no shadow. Only dialogs and popovers cast a shadow.",
+    );
+  } else if (t === "tactile") {
+    lines.push(
+      "- Solid buttons are raised (`shadow-sm`) and press down (`active:translate-y-px`); the Button component already does this.",
+      "- Cards are raised with a soft shadow and no border in light mode; the Card component does this. Group with space before adding a border.",
+      s.type.fonts.display ? "- Headlines use `font-display`; they carry the personality." : "- Headlines carry the personality through size and weight.",
+    );
+  } else {
+    lines.push(
+      "- Structure comes from alignment and spacing first, `border` second, `shadow-xs` last.",
+      "- Cards have a hairline border and the lightest shadow; floating layers use `shadow-lg`.",
+    );
+  }
+  lines.push("");
+  return lines;
+}
 
 export function emitDesignMd(s: DesignSystem): string {
   const g = buildGuardrails(s);
@@ -84,6 +125,9 @@ export function emitDesignMd(s: DesignSystem): string {
     "- Status is a tinted fill with a colored dot and `text-foreground` (`<Badge variant=\"warning\">`). Solid status fills are for banners and buttons only.",
     "- `text-primary` is for links, selected states and highlighted code, never body copy.",
   );
+  if (isDarkFirst(s)) {
+    push('- This system loads in dark mode. Light mode is opt-in with `<html class="light">`, and `dark:` utilities apply by default.');
+  }
   for (const note of s.report.notes) push(`- ${note}`);
 
   push("", "Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings):", "");
@@ -99,7 +143,10 @@ export function emitDesignMd(s: DesignSystem): string {
     `- \`font-sans\` (${s.type.fonts.sans.family}) for all UI text.`,
     `- \`font-mono\` (${s.type.fonts.mono.family}) for code, IDs, keys, numbers people copy.`,
   );
-  if (s.type.fonts.display) push(`- \`font-display\` (${s.type.fonts.display.family}) for marketing headlines only.`);
+  if (s.type.fonts.display) {
+    const dw = s.type.fonts.display.weights.map((w) => `\`font-${WEIGHT_NAMES[w]}\``).join(" or ");
+    push(`- \`font-display\` (${s.type.fonts.display.family}) for headlines at \`text-2xl\` and up, with ${dw}. Never for body text, labels or buttons.`);
+  }
   push(
     `- Weights that exist: ${s.type.weights.map((w) => `\`font-${WEIGHT_NAMES[w]}\` (${w})`).join(", ")}. No others compile.`,
     `- Product UI stops at \`text-${PRODUCT_MAX_STEP}\`. Larger steps are for marketing pages.`,
@@ -134,6 +181,7 @@ export function emitDesignMd(s: DesignSystem): string {
     `- Radius: \`rounded-sm\`, \`rounded-md\`, \`rounded-lg\` (${c.shape.radius}px, the default for cards), \`rounded-xl\`, \`rounded-full\` for pills and avatars.`,
     `- Elevation: \`shadow-xs\` to \`shadow-lg\`. ${c.texture === "technical" || c.texture === "editorial" ? "Only floating layers (popovers, dialogs) use a shadow here." : "Use `shadow-lg` only for floating layers."}`,
     "",
+    ...textureSection(s),
     "## Motion",
     "",
     `Profile: **${s.motion.name}**.`,

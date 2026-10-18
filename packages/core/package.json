@@ -20,7 +20,7 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean"
+    "build": "tsup src/index.ts --format esm --dts --clean && cp src/site/renderer.css src/site/renderer.js dist/"
   },
   "dependencies": {
     "culori": "^4.0.2",

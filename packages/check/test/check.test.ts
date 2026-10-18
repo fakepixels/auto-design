@@ -145,3 +145,22 @@ describe("generated components", () => {
     }
   });
 });
+
+describe("texture rules", () => {
+  const glass = buildGuardrails(buildSystem(presets.glass!));
+  const editorial = buildGuardrails(buildSystem(presets.editorial!));
+
+  it("warns when glass sits on content", () => {
+    const src = `const A = () => <><nav className="glass" /><table className="glass" /><Card className="glass p-4" /></>;`;
+    const v = checkSource(src, "x.tsx", glass).violations;
+    expect(v.map((x) => [x.rule, x.severity])).toEqual([
+      ["glass-on-content", "warn"],
+      ["glass-on-content", "warn"],
+    ]);
+  });
+
+  it("warns when the display font is used small", () => {
+    const src = `const A = () => <><h1 className="font-display text-5xl" /><p className="font-display text-sm" /></>;`;
+    expect(checkSource(src, "x.tsx", editorial).violations.map((x) => x.rule)).toEqual(["display-size"]);
+  });
+});

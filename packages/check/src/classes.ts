@@ -155,13 +155,28 @@ export function analyzeClass(cls: string, g: GuardrailsLike): Finding[] {
   return out;
 }
 
-/** Findings that depend on several classes in the same string. */
-export function analyzeClassList(classes: string[]): Finding[] {
+/** Elements that hold content. Glass on these hurts legibility. */
+const CONTENT_ELEMENTS = new Set([
+  "table", "thead", "tbody", "tr", "td", "th", "p", "li", "ul", "ol", "article", "blockquote", "pre", "code",
+  "Table", "TableHeader", "TableBody", "TableRow", "TableCell", "TableHead", "Card", "CardContent", "CodeBlock",
+]);
+const SMALL_TEXT = new Set(["text-xs", "text-sm", "text-base", "text-lg", "text-xl"]);
+
+/** Findings that depend on several classes in the same string (and, in JSX, the element they sit on). */
+export function analyzeClassList(classes: string[], element?: string): Finding[] {
   const utils = new Set(classes.map(utilityOf));
+  const out: Finding[] = [];
   if (utils.has("bg-clip-text") && utils.has("text-transparent")) {
-    return [{ rule: "no-gradient-text", message: "Gradient-filled text. Use a solid role color; emphasis comes from size and weight." }];
+    out.push({ rule: "no-gradient-text", message: "Gradient-filled text. Use a solid role color; emphasis comes from size and weight." });
   }
-  return [];
+  if (utils.has("glass") && element && CONTENT_ELEMENTS.has(element)) {
+    out.push({ rule: "glass-on-content", message: `glass on <${element}>. Glass is for chrome (nav, dialogs, popovers); put content on a solid bg-card.` });
+  }
+  if (utils.has("font-display")) {
+    const small = [...utils].find((u) => SMALL_TEXT.has(u));
+    if (small) out.push({ rule: "display-size", message: `font-display with ${small}. The display font is for headlines at text-2xl and up; use font-sans here.` });
+  }
+  return out;
 }
 
 export function splitClasses(value: string): string[] {
