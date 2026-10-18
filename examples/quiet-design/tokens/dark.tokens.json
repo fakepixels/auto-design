@@ -1,0 +1,186 @@
+{
+  "$description": "Quiet: semantic color roles, dark mode.",
+  "role": {
+    "background": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "card": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "card-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "popover": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "popover-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "primary": {
+      "$type": "color",
+      "$value": "{color.brand.400}"
+    },
+    "primary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "secondary": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "secondary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "muted-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.400}"
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "accent-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "destructive": {
+      "$type": "color",
+      "$value": "{color.danger.400}"
+    },
+    "destructive-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "success": {
+      "$type": "color",
+      "$value": "{color.success.400}"
+    },
+    "success-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "warning": {
+      "$type": "color",
+      "$value": "{color.warning.400}"
+    },
+    "warning-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "input": {
+      "$type": "color",
+      "$value": "{color.neutral.700}"
+    },
+    "ring": {
+      "$type": "color",
+      "$value": "{color.brand.400}"
+    },
+    "overlay": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0,
+          0,
+          0
+        ],
+        "hex": "#000000",
+        "alpha": 0.6
+      }
+    },
+    "chart-1": {
+      "$type": "color",
+      "$value": "{color.brand.400}"
+    },
+    "chart-2": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.75,
+          0.12,
+          296
+        ],
+        "hex": "#b59ef1"
+      }
+    },
+    "chart-3": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.68,
+          0.11,
+          56
+        ],
+        "hex": "#cc8552"
+      }
+    },
+    "chart-4": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.8,
+          0.1,
+          196
+        ],
+        "hex": "#65d2d3"
+      }
+    },
+    "chart-5": {
+      "$type": "color",
+      "$value": "{color.neutral.500}"
+    },
+    "sidebar": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "sidebar-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "sidebar-primary": {
+      "$type": "color",
+      "$value": "{color.brand.400}"
+    },
+    "sidebar-primary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "sidebar-accent": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "sidebar-accent-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "sidebar-border": {
+      "$type": "color",
+      "$value": "{color.neutral.800}"
+    },
+    "sidebar-ring": {
+      "$type": "color",
+      "$value": "{color.brand.400}"
+    }
+  }
+}

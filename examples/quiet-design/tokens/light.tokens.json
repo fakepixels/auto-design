@@ -1,0 +1,226 @@
+{
+  "$description": "Quiet: semantic color roles, light mode.",
+  "role": {
+    "background": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          1,
+          0,
+          0
+        ],
+        "hex": "#ffffff"
+      }
+    },
+    "foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "card": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          1,
+          0,
+          0
+        ],
+        "hex": "#ffffff"
+      }
+    },
+    "card-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "popover": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          1,
+          0,
+          0
+        ],
+        "hex": "#ffffff"
+      }
+    },
+    "popover-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "primary": {
+      "$type": "color",
+      "$value": "{color.brand.700}"
+    },
+    "primary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "secondary": {
+      "$type": "color",
+      "$value": "{color.neutral.100}"
+    },
+    "secondary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "{color.neutral.100}"
+    },
+    "muted-foreground": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.541,
+          0.012,
+          256
+        ],
+        "hex": "#6a6f76"
+      }
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "{color.neutral.100}"
+    },
+    "accent-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "destructive": {
+      "$type": "color",
+      "$value": "{color.danger.600}"
+    },
+    "destructive-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "success": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.54,
+          0.1421,
+          152
+        ],
+        "hex": "#008542"
+      }
+    },
+    "success-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "warning": {
+      "$type": "color",
+      "$value": "{color.warning.400}"
+    },
+    "warning-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.neutral.200}"
+    },
+    "input": {
+      "$type": "color",
+      "$value": "{color.neutral.300}"
+    },
+    "ring": {
+      "$type": "color",
+      "$value": "{color.brand.700}"
+    },
+    "overlay": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0,
+          0,
+          0
+        ],
+        "hex": "#000000",
+        "alpha": 0.4
+      }
+    },
+    "chart-1": {
+      "$type": "color",
+      "$value": "{color.brand.700}"
+    },
+    "chart-2": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.72,
+          0.12,
+          296
+        ],
+        "hex": "#ab94e7"
+      }
+    },
+    "chart-3": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.6,
+          0.11,
+          56
+        ],
+        "hex": "#b26d39"
+      }
+    },
+    "chart-4": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.78,
+          0.1,
+          196
+        ],
+        "hex": "#5ecbcc"
+      }
+    },
+    "chart-5": {
+      "$type": "color",
+      "$value": "{color.neutral.400}"
+    },
+    "sidebar": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "sidebar-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.950}"
+    },
+    "sidebar-primary": {
+      "$type": "color",
+      "$value": "{color.brand.700}"
+    },
+    "sidebar-primary-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.50}"
+    },
+    "sidebar-accent": {
+      "$type": "color",
+      "$value": "{color.neutral.100}"
+    },
+    "sidebar-accent-foreground": {
+      "$type": "color",
+      "$value": "{color.neutral.900}"
+    },
+    "sidebar-border": {
+      "$type": "color",
+      "$value": "{color.neutral.200}"
+    },
+    "sidebar-ring": {
+      "$type": "color",
+      "$value": "{color.brand.700}"
+    }
+  }
+}

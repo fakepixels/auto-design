@@ -1,0 +1,139 @@
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { glob } from "tinyglobby";
+import { scanCss } from "./scan-css.js";
+import { scanJs, type CommentInfo, type Located } from "./scan-js.js";
+import {
+  prepare,
+  type Allowance,
+  type CheckResult,
+  type Guardrails,
+  type GuardrailsLike,
+  type RuleId,
+  type Severity,
+  type Violation,
+} from "./types.js";
+
+export * from "./types.js";
+export { analyzeClass, utilityOf } from "./classes.js";
+export { isTitleCase } from "./scan-js.js";
+
+/** Default severities, used when guardrails.json predates a rule. */
+const DEFAULT_SEVERITY: Record<RuleId, Exclude<Severity, "off">> = {
+  "no-raw-color": "error",
+  "no-palette-color": "error",
+  "no-arbitrary-value": "error",
+  "type-scale": "error",
+  "font-weight": "error",
+  "font-family": "error",
+  "spacing-scale": "error",
+  "radius-scale": "error",
+  "shadow-scale": "error",
+  "motion-duration": "error",
+  "motion-easing": "error",
+  "no-scale-zero": "error",
+  "no-gradient-text": "warn",
+  "ui-case": "warn",
+  "no-emoji": "warn",
+  "no-token-override": "error",
+};
+
+const ALLOW_RE = /auto-design-allow\s+([\w-]+(?:\s*,\s*[\w-]+)*)\s*(?::\s*(.*?))?\s*(?:\*\/)?$/;
+
+export const GUARDRAIL_FILES = ["auto-design.json", "rules/guardrails.json"];
+
+/** Find the guardrails file for a project: auto-design.json in a consuming app, rules/guardrails.json in a system repo. */
+export function findGuardrails(from: string): string | null {
+  let dir = resolve(from);
+  for (;;) {
+    for (const f of GUARDRAIL_FILES) {
+      const p = join(dir, f);
+      if (existsSync(p)) return p;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
+}
+
+export function loadGuardrails(path: string): Guardrails {
+  return JSON.parse(readFileSync(path, "utf8")) as Guardrails;
+}
+
+function parseAllowances(comments: CommentInfo[]) {
+  const byLine = new Map<number, { rules: string[]; reason: string; line: number }>();
+  for (const c of comments) {
+    const m = ALLOW_RE.exec(c.text.trim());
+    if (!m) continue;
+    const entry = { rules: m[1]!.split(/\s*,\s*/), reason: (m[2] ?? "").trim(), line: c.line };
+    byLine.set(c.endLine, entry);
+    byLine.set(c.endLine + 1, entry);
+  }
+  return byLine;
+}
+
+/** Check one file's source. Exposed for editors and agent tools that hold code in memory. */
+export function checkSource(source: string, filename: string, guardrails: Guardrails | GuardrailsLike) {
+  const g = "systemVars" in guardrails ? guardrails : prepare(guardrails);
+  const scan = /\.css$/.test(filename) ? scanCss : scanJs;
+  const { findings, comments } = scan(source, filename, g);
+  const allow = parseAllowances(comments);
+  const violations: Violation[] = [];
+  const allowances = new Map<number, Allowance>();
+
+  for (const f of findings as Located[]) {
+    const configured = g.rules[f.rule];
+    const severity = configured === undefined ? DEFAULT_SEVERITY[f.rule] : configured;
+    if (severity === "off") continue;
+    const a = allow.get(f.line);
+    if (a && (a.rules.includes(f.rule) || a.rules.includes("all"))) {
+      allowances.set(a.line, { file: filename, line: a.line, rules: a.rules, reason: a.reason });
+      continue;
+    }
+    violations.push({ ...f, severity, file: filename });
+  }
+  return { violations, allowances: [...allowances.values()] };
+}
+
+export interface CheckOptions {
+  cwd?: string;
+  /** Glob patterns relative to cwd. */
+  patterns?: string[];
+  guardrails?: Guardrails;
+  /** Extra ignore globs on top of the guardrails' own. */
+  ignore?: string[];
+}
+
+export const DEFAULT_PATTERNS = ["**/*.{tsx,jsx,ts,js,mjs,css}"];
+
+export async function check(options: CheckOptions = {}): Promise<CheckResult> {
+  const cwd = resolve(options.cwd ?? process.cwd());
+  let guardrails = options.guardrails;
+  if (!guardrails) {
+    const path = findGuardrails(cwd);
+    if (!path) throw new Error(`No guardrails found. Expected one of ${GUARDRAIL_FILES.join(", ")} in ${cwd} or a parent folder.`);
+    guardrails = loadGuardrails(path);
+  }
+  const g = prepare(guardrails);
+  const files = await glob(options.patterns ?? DEFAULT_PATTERNS, {
+    cwd,
+    ignore: [...g.ignore, ...(options.ignore ?? []), "**/next-env.d.ts", "**/*.config.{js,mjs,ts}"],
+    absolute: true,
+  });
+
+  const violations: Violation[] = [];
+  const allowances: Allowance[] = [];
+  for (const file of files.sort()) {
+    const rel = relative(cwd, file);
+    const result = checkSource(readFileSync(file, "utf8"), rel, g);
+    violations.push(...result.violations);
+    allowances.push(...result.allowances);
+  }
+  return {
+    violations,
+    allowances,
+    files: files.length,
+    errors: violations.filter((v) => v.severity === "error").length,
+    warnings: violations.filter((v) => v.severity === "warn").length,
+  };
+}

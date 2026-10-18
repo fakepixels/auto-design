@@ -1,0 +1,126 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "quiet",
+  "homepage": "",
+  "items": [
+    {
+      "name": "base",
+      "type": "registry:base",
+      "title": "Quiet base",
+      "description": "Quiet: tokens, locked Tailwind theme, DESIGN.md for agents and the guardrail config.",
+      "dependencies": [
+        "@fontsource-variable/geist",
+        "@fontsource-variable/geist-mono",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "files": [
+        {
+          "path": "css/auto-design.css",
+          "type": "registry:file",
+          "target": "app/auto-design.css"
+        },
+        {
+          "path": "DESIGN.md",
+          "type": "registry:file",
+          "target": "DESIGN.md"
+        },
+        {
+          "path": "rules/guardrails.json",
+          "type": "registry:file",
+          "target": "auto-design.json"
+        }
+      ],
+      "css": {
+        "@import \"./auto-design.css\"": {}
+      },
+      "docs": "Import the fonts once in your root layout: import \"@fontsource-variable/geist\"; import \"@fontsource-variable/geist-mono\";\nRemove any :root/.dark color variables and @theme keys left in your CSS from a template; `npx auto-design check` lists them.\nIf your Tailwind entry is not app/globals.css, move app/auto-design.css next to it."
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Buttons with one primary variant per view.",
+      "dependencies": [
+        "@radix-ui/react-slot",
+        "class-variance-authority"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Grouped content on the page.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Text input sized to match buttons.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Status and labels, always with text.",
+      "dependencies": [
+        "class-variance-authority"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "toaster",
+      "type": "registry:ui",
+      "title": "Toaster",
+      "description": "Toasts by Sonner, styled with system tokens.",
+      "dependencies": [
+        "sonner"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/toaster.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "message",
+      "type": "registry:ui",
+      "title": "Message",
+      "description": "Chat messages and tool-call rows for agent UI.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/message.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}

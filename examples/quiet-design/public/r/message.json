@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "message",
+  "type": "registry:ui",
+  "title": "Message",
+  "description": "Chat messages and tool-call rows for agent UI.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/message.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\n/**\n * A chat message. User turns sit on a quiet fill at the right; assistant\n * turns are plain text on the page, so long answers read like a document.\n */\nfunction Message({\n  from,\n  className,\n  children,\n  ...props\n}: React.ComponentProps<\"div\"> & { from: \"user\" | \"assistant\" }) {\n  return (\n    <div\n      data-slot=\"message\"\n      data-from={from}\n      className={cn(\"group flex w-full\", from === \"user\" ? \"justify-end\" : \"justify-start\", className)}\n      {...props}\n    >\n      <div\n        className={cn(\n          \"max-w-prose text-base\",\n          from === \"user\" ? \"rounded-xl bg-secondary px-4 py-2 text-secondary-foreground\" : \"text-foreground\",\n        )}\n      >\n        {children}\n      </div>\n    </div>\n  );\n}\n\n/** A tool call the agent made, collapsed to one line with its status. */\nfunction ToolCall({\n  name,\n  status,\n  children,\n  className,\n  ...props\n}: React.ComponentProps<\"details\"> & { name: string; status: \"running\" | \"done\" | \"failed\" }) {\n  return (\n    <details\n      data-slot=\"tool-call\"\n      className={cn(\"group rounded-lg border bg-card text-sm text-card-foreground\", className)}\n      {...props}\n    >\n      <summary className=\"flex cursor-pointer list-none items-center gap-2 px-3 py-2\">\n        <span\n          aria-hidden\n          className={cn(\n            \"size-2 rounded-full\",\n            status === \"running\" && \"animate-pulse bg-muted-foreground\",\n            status === \"done\" && \"bg-success\",\n            status === \"failed\" && \"bg-destructive\",\n          )}\n        />\n        <span className=\"font-mono text-xs\">{name}</span>\n        <span className=\"ml-auto text-xs text-muted-foreground\">\n          {status === \"running\" ? \"Running\" : status === \"done\" ? \"Done\" : \"Failed\"}\n        </span>\n      </summary>\n      <div className=\"border-t px-3 py-2 font-mono text-xs text-muted-foreground\">{children}</div>\n    </details>\n  );\n}\n\nexport { Message, ToolCall };\n"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "quiet-design",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "auto-design build",
+    "check": "auto-design check"
+  },
+  "devDependencies": {
+    "auto-design": "^0.1.0"
+  }
+}

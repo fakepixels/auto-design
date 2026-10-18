@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "system": "quiet",
+  "colors": {
+    "roles": [
+      "background",
+      "foreground",
+      "card",
+      "card-foreground",
+      "popover",
+      "popover-foreground",
+      "primary",
+      "primary-foreground",
+      "secondary",
+      "secondary-foreground",
+      "muted",
+      "muted-foreground",
+      "accent",
+      "accent-foreground",
+      "destructive",
+      "destructive-foreground",
+      "success",
+      "success-foreground",
+      "warning",
+      "warning-foreground",
+      "border",
+      "input",
+      "ring",
+      "overlay",
+      "chart-1",
+      "chart-2",
+      "chart-3",
+      "chart-4",
+      "chart-5",
+      "sidebar",
+      "sidebar-foreground",
+      "sidebar-primary",
+      "sidebar-primary-foreground",
+      "sidebar-accent",
+      "sidebar-accent-foreground",
+      "sidebar-border",
+      "sidebar-ring",
+      "transparent",
+      "current",
+      "inherit"
+    ]
+  },
+  "fonts": {
+    "families": [
+      "sans",
+      "mono"
+    ],
+    "cssFamilies": [
+      "Geist Variable",
+      "Geist Mono Variable"
+    ]
+  },
+  "weights": {
+    "normal": 400,
+    "medium": 500,
+    "semibold": 600
+  },
+  "text": {
+    "steps": [
+      "xs",
+      "sm",
+      "base",
+      "lg",
+      "xl",
+      "2xl",
+      "3xl",
+      "4xl",
+      "5xl",
+      "6xl"
+    ],
+    "productMax": "3xl"
+  },
+  "spacing": {
+    "steps": [
+      0,
+      0.5,
+      1,
+      1.5,
+      2,
+      2.5,
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64
+    ]
+  },
+  "radius": {
+    "steps": [
+      "none",
+      "sm",
+      "md",
+      "lg",
+      "xl",
+      "full"
+    ]
+  },
+  "shadow": {
+    "steps": [
+      "none",
+      "xs",
+      "sm",
+      "md",
+      "lg"
+    ]
+  },
+  "motion": {
+    "durations": [
+      0,
+      120,
+      180,
+      260
+    ],
+    "easings": [
+      "linear",
+      "out",
+      "in-out"
+    ],
+    "maxDuration": 300,
+    "enterScale": 0.97
+  },
+  "voice": {
+    "uiCase": "sentence",
+    "emoji": "never"
+  },
+  "rules": {
+    "no-raw-color": "error",
+    "no-palette-color": "error",
+    "no-arbitrary-value": "error",
+    "type-scale": "error",
+    "font-weight": "error",
+    "font-family": "error",
+    "spacing-scale": "error",
+    "radius-scale": "error",
+    "shadow-scale": "error",
+    "motion-duration": "error",
+    "motion-easing": "error",
+    "no-scale-zero": "error",
+    "no-gradient-text": "warn",
+    "ui-case": "warn",
+    "no-emoji": "warn",
+    "no-token-override": "error"
+  },
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/auto-design.css",
+    "**/*.d.ts"
+  ],
+  "lockedNamespaces": [
+    "--color-*",
+    "--font-*",
+    "--text-*",
+    "--font-weight-*",
+    "--tracking-*",
+    "--leading-*",
+    "--radius-*",
+    "--shadow-*",
+    "--inset-shadow-*",
+    "--drop-shadow-*",
+    "--text-shadow-*",
+    "--blur-*",
+    "--ease-*",
+    "--animate-*"
+  ]
+}
