@@ -68,6 +68,7 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
 
   for (const c of componentSources(s)) {
     files[`registry/ui/${c.file}`] = c.content;
+    for (const l of c.lib ?? []) files[`registry/lib/${l.file}`] = l.content;
     items.push({
       $schema: ITEM_SCHEMA,
       name: c.name,
@@ -75,7 +76,10 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
       title: c.title,
       description: c.description,
       dependencies: c.dependencies,
-      files: [{ path: `registry/ui/${c.file}`, type: "registry:ui", content: c.content }],
+      files: [
+        { path: `registry/ui/${c.file}`, type: "registry:ui", content: c.content },
+        ...(c.lib ?? []).map((l) => ({ path: `registry/lib/${l.file}`, type: "registry:lib", content: l.content })),
+      ],
     });
   }
 

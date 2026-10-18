@@ -1,4 +1,11 @@
 import { Badge } from "@/components/ui/badge";
+import { CodeBlock } from "@/components/ui/code-block";
+
+/** Highlighted code depends only on its inputs, so it is cached and prerendered. */
+async function Code(props: React.ComponentProps<typeof CodeBlock>) {
+  "use cache";
+  return <CodeBlock {...props} />;
+}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Message, ToolCall } from "@/components/ui/message";
@@ -175,17 +182,32 @@ export default function Specimen() {
         </div>
       </Surface>
 
-      <Surface name="Code" note="Geist Mono on the muted role. Same tokens as everything else.">
-        <pre className="max-w-2xl overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-relaxed">
-          <code>
-            <span className="text-muted-foreground"># Report usage as it happens; Meridian rolls it into the invoice</span>
-            {"\n"}curl https://api.meridian.example/v1/usage \{"\n"}
-            {"  "}-H <span className="text-primary">&quot;Authorization: Bearer $MERIDIAN_KEY&quot;</span> \{"\n"}
-            {"  "}-d customer=<span className="text-primary">acme-robotics</span> \{"\n"}
-            {"  "}-d meter=<span className="text-primary">image_inference</span> \{"\n"}
-            {"  "}-d quantity=<span className="text-primary">1200</span>
-          </code>
-        </pre>
+      <Surface name="Code" note="Syntax colors generated from the brand. Every token reads at 4.5:1 or better, in both modes.">
+        <Code
+          className="max-w-2xl"
+          lang="bash"
+          code={`# Report usage as it happens; Meridian rolls it into the invoice
+curl https://api.meridian.example/v1/usage \\
+  -H "Authorization: Bearer $MERIDIAN_KEY" \\
+  -d customer=acme-robotics \\
+  -d meter=image_inference \\
+  -d quantity=1200`}
+        />
+        <div className="mt-4 max-w-2xl">
+          <Code
+            lang="tsx"
+            code={`import { Meridian } from "@meridian/sdk";
+
+const meridian = new Meridian({ apiKey: process.env.MERIDIAN_KEY });
+
+// Usage is metered per customer and rolled up nightly.
+await meridian.usage.report({
+  customer: "acme-robotics",
+  meter: "image_inference",
+  quantity: 1200,
+});`}
+          />
+        </div>
       </Surface>
     </main>
   );

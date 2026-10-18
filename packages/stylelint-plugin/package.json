@@ -1,0 +1,21 @@
+{
+  "name": "@auto-design/stylelint-plugin",
+  "version": "0.1.0",
+  "description": "auto-design guardrails for CSS as a Stylelint plugin.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "dependencies": {
+    "@auto-design/check": "^0.1.0"
+  },
+  "peerDependencies": {
+    "stylelint": ">=16"
+  }
+}

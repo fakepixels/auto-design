@@ -134,3 +134,14 @@ describe("dark mode primary", () => {
     }
   });
 });
+
+describe("code theme", () => {
+  it("keeps every syntax color readable on the code background, for any brand", async () => {
+    const { codeContrast } = await import("../src/index.js");
+    for (const brand of ["#facc15", "#0b1f4d", "#e11d48", "#0f766e", "#888888", "oklch(0.58 0.106 17.6)"]) {
+      const c = codeContrast(buildSystem(withBrand(brand)));
+      expect(c.light, brand).toBeGreaterThanOrEqual(4.5);
+      expect(c.dark, brand).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});

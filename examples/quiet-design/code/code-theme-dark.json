@@ -1,0 +1,106 @@
+{
+  "name": "quiet-dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#23262b",
+    "editor.foreground": "#f8fafd"
+  },
+  "tokenColors": [
+    {
+      "scope": [
+        "comment",
+        "punctuation.definition.comment"
+      ],
+      "settings": {
+        "foreground": "#9ca1a8",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": [
+        "keyword",
+        "storage",
+        "storage.type",
+        "storage.modifier",
+        "keyword.control",
+        "keyword.operator.new",
+        "keyword.operator.expression",
+        "entity.name.tag",
+        "support.class.component"
+      ],
+      "settings": {
+        "foreground": "#6da7f3"
+      }
+    },
+    {
+      "scope": [
+        "string",
+        "string.quoted",
+        "string.template",
+        "punctuation.definition.string",
+        "markup.inline.raw"
+      ],
+      "settings": {
+        "foreground": "#83d494"
+      }
+    },
+    {
+      "scope": [
+        "constant.numeric",
+        "constant.language",
+        "constant.character",
+        "support.constant",
+        "variable.other.constant"
+      ],
+      "settings": {
+        "foreground": "#fba962"
+      }
+    },
+    {
+      "scope": [
+        "entity.name.type",
+        "entity.name.class",
+        "support.type",
+        "support.class",
+        "entity.other.inherited-class"
+      ],
+      "settings": {
+        "foreground": "#cfabf6"
+      }
+    },
+    {
+      "scope": [
+        "entity.name.function",
+        "support.function",
+        "meta.function-call"
+      ],
+      "settings": {
+        "foreground": "#f8fafd"
+      }
+    },
+    {
+      "scope": [
+        "variable.parameter",
+        "variable.other.property",
+        "meta.object-literal.key",
+        "entity.other.attribute-name",
+        "support.type.property-name"
+      ],
+      "settings": {
+        "foreground": "#f8fafd"
+      }
+    },
+    {
+      "scope": [
+        "punctuation",
+        "meta.brace",
+        "keyword.operator",
+        "punctuation.separator",
+        "punctuation.terminator"
+      ],
+      "settings": {
+        "foreground": "#9ca1a8"
+      }
+    }
+  ]
+}

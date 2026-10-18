@@ -1,6 +1,7 @@
 import { PRODUCT_MAX_STEP, TYPE_STEPS } from "../scales.js";
 import type { Texture } from "../schema.js";
 import type { DesignSystem } from "../system.js";
+import { componentSources } from "./components.js";
 import { RULES, buildGuardrails, type RuleId } from "./guardrails.js";
 import { WEIGHT_NAMES, header } from "./shared.js";
 
@@ -150,6 +151,15 @@ export function emitDesignMd(s: DesignSystem): string {
     `- ${c.voice.uiCase === "sentence" ? "Sentence case" : "Title Case"} for buttons, menu items, tabs and headings.`,
     `- ${c.voice.emoji === "never" ? "No emoji in product UI." : "Emoji sparingly, never in buttons or errors."}`,
     "- Errors say what happened and what to do next. Empty states say what will appear and how to start.",
+    "",
+    "## Components",
+    "",
+    "Use these before writing your own. They already follow every rule here. Install with",
+    "`npx auto-design add <system> --components <name>` or `npx shadcn add <host>/r/<name>.json`.",
+    "",
+    "| Component | Use it for |",
+    "| --- | --- |",
+    ...componentSources(s).map((c) => `| \`${c.name}\` | ${c.description} |`),
     "",
     "## Checking your work",
     "",

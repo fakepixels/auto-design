@@ -8,7 +8,7 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phase 0 done, Phase 1 in progress.** The compiler, the checker, the CLI, the studio and the
+> Status: **Phases 0 and 1 done.** The compiler, the checker, the CLI, the studio and the
 > Quiet preset work end to end. The full onboarding flow, the other four presets, and the agent surfaces
 > (MCP Apps, iMessage) come next.
 > See the [build plan](#roadmap).
@@ -79,21 +79,56 @@ i dark: primary uses brand-400, a lighter step of the brand color, so it reads a
 | `DESIGN.md` | Instructions for coding agents: roles, scales, motion, voice, how to check |
 | `rules/guardrails.json` | What `auto-design check` enforces |
 | `public/r/*.json` | A shadcn registry, ready to host anywhere static |
-| `registry/ui/*.tsx` | Component sources: button, card, input, badge, toaster, chat message |
+| `registry/ui/*.tsx` | 16 component sources (listed below) |
+| `code/*.json` | Syntax-highlighting themes for code blocks, generated from the brand |
 | `build-report.json` | Every contrast check and every value the compiler adjusted |
 
-An app installs it with the shadcn CLI:
+## Use it in an app
+
+Any app with Tailwind v4 (Next.js, Vite, React Router, TanStack Start, Astro) can install a system from
+its folder or from wherever its `public/r/` is hosted:
 
 ```sh
-npx shadcn@latest add https://your-host/r/base.json      # theme, DESIGN.md, guardrails
-npx shadcn@latest add https://your-host/r/button.json    # components, one at a time
-npx auto-design check
+npx auto-design add ../my-design --components all
+npx auto-design add https://design.acme.com/r/ --components button,card,dialog
 ```
 
-The base item writes `app/auto-design.css`, imports it straight after Tailwind, and drops `DESIGN.md`
-and `auto-design.json` at the project root. The theme reset only works in its own file, imported before
-any other theme definitions, which is why the base installs a file rather than merging variables into
-your CSS.
+`add` finds the CSS file that imports Tailwind and writes `auto-design.css` next to it, importing it
+straight after Tailwind. It also writes `DESIGN.md` and the guardrails, points `AGENTS.md` and
+`CLAUDE.md` at `DESIGN.md`, adds the font imports to your root file, copies components, and installs
+their dependencies with your package manager.
+
+The shadcn CLI works too:
+
+```sh
+npx shadcn@latest add https://your-host/r/base.json
+npx shadcn@latest add https://your-host/r/button.json
+```
+
+The theme reset only works in its own file, imported before any other theme definitions. So both
+installers ship a file rather than merging variables into your CSS.
+
+### Components
+
+`button`, `card`, `input`, `textarea`, `label`, `badge`, `separator`, `skeleton`, `table`, `tabs`,
+`dialog`, `switch`, `avatar`, `toaster` (Sonner), `message` and `tool-call` for agent chat, and `code-block`
+(Shiki, server-rendered). They are restyled shadcn components built on `radix-ui`, adjusted to the
+system's density and motion. A test runs every one through the checker for every preset.
+
+### Guardrails in the editor
+
+```js
+// eslint.config.js
+import autoDesign from "@auto-design/eslint-plugin";
+export default [autoDesign.configs.recommended];
+```
+
+```json
+// .stylelintrc.json
+{ "plugins": ["@auto-design/stylelint-plugin"], "rules": { "auto-design/guardrails": true } }
+```
+
+Both run the same checker as `npx auto-design check` and honor the same `auto-design-allow` comments.
 
 ## The Phase 0 test
 
@@ -113,7 +148,9 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 | [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, contrast enforcement, emitters |
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | [`@auto-design/presets`](packages/presets) | Starter systems. Quiet ships now |
-| [`auto-design`](packages/cli) | The CLI: `init`, `dev` (the studio), `build`, `check`, `presets` |
+| [`auto-design`](packages/cli) | The CLI: `init`, `dev` (the studio), `add`, `build`, `check`, `presets` |
+| [`@auto-design/eslint-plugin`](packages/eslint-plugin) | The checker as ESLint rules |
+| [`@auto-design/stylelint-plugin`](packages/stylelint-plugin) | The checker as a Stylelint plugin |
 
 ```sh
 npm test          # includes a sweep of 2,052 brand colors and a check of every generated component
@@ -125,7 +162,7 @@ npm run typecheck
 | Phase | Ships |
 | --- | --- |
 | 0 (done) | Config schema, token set, compiler, checker, Quiet preset, Next.js gate |
-| 1 | ESLint and Stylelint plugins, `auto-design add` for non-Next apps, Shiki theme, more components |
+| 1 (done) | Studio with color picker, `auto-design add` for any Tailwind app, ESLint and Stylelint plugins, code theme, 16 components |
 | 2 | Local onboarding app (`npx auto-design init` opens it): model key, taste questions, live specimen, GitHub and Vercel publish; Editorial, Glass, Terminal and Tactile presets |
 | 3 | Agent surfaces: MCP server (`get_rules`, `check`), MCP Apps adapter, iMessage image cards and voice rules, `auto-design review` |
 | 4 | Public launch, preset gallery, private registry template |

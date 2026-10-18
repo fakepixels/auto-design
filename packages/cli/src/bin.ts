@@ -4,6 +4,7 @@ import pc from "picocolors";
 import { presets } from "@auto-design/presets";
 import { formatError, readVersion, runBuild, runCheck, runInit } from "./commands.js";
 import { runDev } from "./dev/server.js";
+import { runAdd } from "./add.js";
 
 // Piping into `head` closes stdout early; that's not an error worth a stack trace.
 process.stdout.on("error", (err: NodeJS.ErrnoException) => {
@@ -46,6 +47,16 @@ cli
   .action(async (opts: { cwd: string; app?: string | string[]; port: number; open: boolean }) => {
     const apps = opts.app === undefined ? [] : Array.isArray(opts.app) ? opts.app : [opts.app];
     await runDev({ cwd: opts.cwd, apps, port: Number(opts.port), open: opts.open });
+  });
+
+cli
+  .command("add <system>", "Install a design system into an app (a system folder, or a hosted /r/ URL)")
+  .option("--cwd <dir>", "The app", { default: "." })
+  .option("--components <names>", "Comma-separated components to copy in, or 'all'", { default: "" })
+  .option("--no-install", "Print the dependency install command instead of running it")
+  .action(async (system: string, opts: { cwd: string; components: string; install: boolean }) => {
+    const components = String(opts.components || "").split(",").map((s) => s.trim()).filter(Boolean);
+    await runAdd({ source: system, cwd: opts.cwd, components, install: opts.install });
   });
 
 cli.command("presets", "List starter presets").action(() => {

@@ -60,6 +60,8 @@ export function themeTokens(s: DesignSystem): Record<string, string> {
   t["--ease-in-out"] = bezier(s.motion.easing.inOut);
   t["--animate-enter"] = "ad-enter var(--duration-base) var(--ease-out) both";
   t["--animate-exit"] = "ad-exit var(--duration-fast) var(--ease-in-out) both";
+  t["--animate-fade-in"] = "ad-fade-in var(--duration-base) var(--ease-out) both";
+  t["--animate-fade-out"] = "ad-fade-out var(--duration-fast) var(--ease-in-out) both";
   t["--animate-pulse"] = "ad-pulse 2s var(--ease-in-out) infinite";
   t["--animate-spin"] = "ad-spin 1s linear infinite";
   return t;
@@ -99,6 +101,18 @@ export const KEYFRAMES = `@keyframes ad-enter {
   to {
     opacity: 0;
     transform: scale(var(--enter-scale));
+  }
+}
+
+@keyframes ad-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ad-fade-out {
+  to {
+    opacity: 0;
   }
 }
 
@@ -155,6 +169,23 @@ export const BASE_LAYER = `@layer base {
   }
 }`;
 
+/** Shiki dual-theme output: spans carry --shiki-light and --shiki-dark; this picks one. */
+export const CODE_LAYER = `@layer components {
+  .shiki,
+  .shiki span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+  }
+  :root.dark .shiki,
+  :root.dark .shiki span {
+    color: var(--shiki-dark);
+    font-style: var(--shiki-dark-font-style);
+  }
+  .shiki {
+    background-color: transparent;
+  }
+}`;
+
 export const REDUCED_MOTION = `@media (prefers-reduced-motion: reduce) {
   :root {
     --enter-scale: 1;
@@ -187,5 +218,6 @@ export function emitCss(s: DesignSystem): string {
   ];
   if (modes === "both") parts.push(block(":root.dark", rootTokens(s, "dark")));
   parts.push(KEYFRAMES, REDUCED_MOTION, BASE_LAYER);
+  if (s.config.surfaces.includes("code")) parts.push(CODE_LAYER);
   return parts.join("\n\n") + "\n";
 }
