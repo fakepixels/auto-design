@@ -13,6 +13,7 @@ import {
 } from "@auto-design/core";
 import { listComponents, loadItem } from "../add.js";
 import { CONFIG_FILE, loadConfig } from "../commands.js";
+import { attachCustom, loadCustom } from "../custom.js";
 
 /**
  * What the agent tools know about the design system in the current folder.
@@ -61,9 +62,12 @@ export async function loadContext(cwd: string): Promise<Context> {
 
   if (useSystem) {
     const configPath = join(systemRoot, CONFIG_FILE);
-    const key = `system:${configPath}:${statSync(configPath).mtimeMs}`;
+    const componentsDir = join(systemRoot, "components");
+    const stamp = existsSync(componentsDir) ? readdirSync(componentsDir).map((f) => `${f}@${statSync(join(componentsDir, f)).mtimeMs}`).join(",") : "";
+    const key = `system:${configPath}:${statSync(configPath).mtimeMs}:${stamp}`;
     if (cache?.key === key) return cache.ctx;
-    const s = buildSystem(await loadConfig(systemRoot));
+    // The repo's own components are part of the system agents see.
+    const s = attachCustom(buildSystem(await loadConfig(systemRoot)), loadCustom(systemRoot));
     const sources = componentSources(s);
     const ctx: Context = {
       kind: "system",

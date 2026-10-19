@@ -9,8 +9,10 @@ import {
   PAIRINGS,
   buildGuardrails,
   buildSystem,
+  componentExamples,
   componentSources,
   contrast,
+  defaultCopy,
   emitCss,
   emitDesignMd,
   findFont,
@@ -72,13 +74,23 @@ describe("presets", () => {
         }
       });
 
+      it("writes site examples that pass its own guardrails, for every component", () => {
+        const all = buildSystem({ ...preset, surfaces: [...SURFACES] });
+        const g = buildGuardrails(all);
+        const examples = componentExamples(all, defaultCopy("Northwind", "Project planning for agencies"));
+        const covered = new Set(examples.map((e) => e.component));
+        for (const c of componentSources(all)) if (c.type !== "registry:lib") expect(covered.has(c.name), c.name).toBe(true);
+        for (const e of examples) expect(checkSource(e.code, `${e.name}.tsx`, g).violations, e.name).toEqual([]);
+      });
+
       it("uses only classes that exist in its own theme", async () => {
         const all = buildSystem({ ...preset, surfaces: [...SURFACES] });
         const classes = new Set<string>();
-        for (const c of componentSources(all)) {
+        const examples = componentExamples(all, defaultCopy("Northwind", "Project planning for agencies"));
+        for (const c of [...componentSources(all), ...examples.map((e) => ({ content: e.code }))]) {
           for (const m of c.content.matchAll(/className=\{?(?:cn\()?"([^"]+)"|cn\(\s*"([^"]+)"|: "([^"]+)"|\? "([^"]+)"|&& "([^"]+)"/g)) {
             for (const cls of (m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5])!.split(/\s+/)) {
-              if (!cls || cls.includes("${") || /^var\(/.test(cls)) continue;
+              if (!cls || cls.includes("${") || cls.includes("://") || /^var\(/.test(cls)) continue;
               if (/[-:/[]/.test(cls) || SINGLE_WORD.has(cls)) classes.add(cls);
             }
           }

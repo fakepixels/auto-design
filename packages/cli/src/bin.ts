@@ -30,11 +30,21 @@ cli
   });
 
 cli
-  .command("build", "Compile design.config.ts into tokens, CSS, registry, rules and DESIGN.md")
+  .command("build", "Compile design.config.ts into tokens, CSS, registry, rules, DESIGN.md and the design site")
   .option("--cwd <dir>", "Design system repo", { default: "." })
   .option("--config <file>", "Config file", { default: "design.config.ts" })
-  .action(async (opts: { cwd: string; config: string }) => {
-    await runBuild({ cwd: opts.cwd, config: opts.config });
+  .option("--no-site", "Skip the design site in public/")
+  .action(async (opts: { cwd: string; config: string; site: boolean }) => {
+    await runBuild({ cwd: opts.cwd, config: opts.config, site: opts.site });
+  });
+
+cli
+  .command("serve", "Preview the design site and registry from public/ on this machine")
+  .option("--cwd <dir>", "Design system repo", { default: "." })
+  .option("--port <port>", "Port", { default: 4300 })
+  .action(async (opts: { cwd: string; port: number }) => {
+    const { runServe } = await import("./serve.js");
+    await runServe({ cwd: opts.cwd, port: Number(opts.port) });
   });
 
 cli

@@ -34,6 +34,10 @@ export interface ComponentSource {
   type?: "registry:ui" | "registry:lib";
   /** Other items from this system the component imports (installed alongside by `auto-design add`). */
   requires?: string[];
+  /** Hand-written in the system repo's components/ folder; the build reads it and never overwrites it. */
+  custom?: boolean;
+  /** Where the source lives in the system repo, for custom components (e.g. "components/pricing-table.tsx"). */
+  path?: string;
 }
 
 /** Texture-specific class fragments, so each texture reads differently in the same components. */
@@ -110,7 +114,21 @@ export function skinFor(s: DesignSystem): Skin {
   }
 }
 
+/**
+ * Every component in the system: the generated ones, with the repo's own
+ * components/ folder layered on top. A custom file with a generated name
+ * replaces that component.
+ */
 export function componentSources(s: DesignSystem): ComponentSource[] {
+  const generated = generatedComponentSources(s);
+  const extra = s.extraComponents ?? [];
+  if (!extra.length) return generated;
+  const custom = new Map(extra.map((c) => [c.name, c]));
+  return [...generated.map((c) => custom.get(c.name) ?? c), ...extra.filter((c) => !generated.some((g) => g.name === c.name))];
+}
+
+/** The components auto-design writes, for this system's density, texture, motion and surfaces. */
+export function generatedComponentSources(s: DesignSystem): ComponentSource[] {
   const h = s.controls;
   const d = s.motion.durations;
   const k = skinFor(s);
@@ -268,7 +286,8 @@ function Toaster(props: ToasterProps) {
       toastOptions={{
         classNames: {
           toast: "font-sans text-sm ${s.config.texture === "glass" ? "glass" : "shadow-lg"}",
-          description: "text-muted-foreground",
+          // Sonner colors descriptions for its own light theme; the system's role has to win in both modes.
+          description: "text-muted-foreground!",
         },
       }}
       {...props}

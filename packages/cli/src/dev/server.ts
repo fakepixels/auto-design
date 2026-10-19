@@ -18,7 +18,9 @@ import {
   type DesignSystem,
 } from "@auto-design/core";
 import pc from "picocolors";
-import { CONFIG_FILE, loadConfig, loadCopy, writeFiles } from "../commands.js";
+import { CONFIG_FILE, loadConfig, loadCopy, siteCopy, writeFiles, writeSite } from "../commands.js";
+import { attachCustom, loadCustom } from "../custom.js";
+import { serveStatic } from "../serve.js";
 import { applyEdits, editConfigSource, type StudioEdits } from "./config-edit.js";
 import { studioPage } from "./studio.js";
 import { syncApps } from "./sync.js";
@@ -127,8 +129,10 @@ export async function runDev(opts: DevOptions) {
   const apps = opts.apps.map((a) => resolve(a));
   const fontBases = [root, here, process.cwd()];
 
+  // The repo's own components/ ride along on every rebuild.
+  const build = (c: DesignConfig) => attachCustom(buildSystem(c), loadCustom(root));
   let config: DesignConfig = await loadConfig(root);
-  let system: DesignSystem = buildSystem(config);
+  let system: DesignSystem = build(config);
   let lastWrite = "";
   const clients = new Set<ServerResponse>();
 
@@ -136,8 +140,23 @@ export async function runDev(opts: DevOptions) {
     for (const c of clients) c.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   };
 
+  // The design site takes a couple of seconds, so it rebuilds after the fast files, once edits settle.
+  let siteTimer: NodeJS.Timeout | undefined;
+  let siteRun: Promise<void> = Promise.resolve();
+  const scheduleSite = (s: DesignSystem) => {
+    clearTimeout(siteTimer);
+    siteTimer = setTimeout(() => {
+      siteRun = siteRun.then(async () => {
+        const site = await writeSite(root, s, { copy: loadCopy(root) });
+        if (site.error) console.log(`${pc.yellow("~")} The design site couldn't be rebuilt: ${site.error}`);
+        broadcast("site", { pages: site.pages });
+      });
+    }, 400);
+  };
+
   const rebuild = (s: DesignSystem) => {
     writeFiles(root, emitAll(s, { copy: loadCopy(root) }));
+    scheduleSite(s);
     return syncApps(root, apps);
   };
 
@@ -158,7 +177,7 @@ export async function runDev(opts: DevOptions) {
       lastWrite = hash;
       try {
         config = await loadConfig(root);
-        system = buildSystem(config);
+        system = build(config);
         const synced = rebuild(system);
         console.log(`${pc.green("✓")} Rebuilt from ${CONFIG_FILE}`);
         logSync(synced);
@@ -180,7 +199,7 @@ export async function runDev(opts: DevOptions) {
         return send(res, 200, studioPage(), "text/html; charset=utf-8");
       }
       if (req.method === "GET" && url.pathname === "/api/state") {
-        return send(res, 200, { ...previewPayload(system), apps: apps.map((a) => relative(process.cwd(), a) || ".") });
+        return send(res, 200, { ...previewPayload(system), copy: siteCopy(system, loadCopy(root)), apps: apps.map((a) => relative(process.cwd(), a) || ".") });
       }
       if (req.method === "POST" && url.pathname === "/api/preview") {
         const edits = parseEdits(await readJson(req));
@@ -194,7 +213,7 @@ export async function runDev(opts: DevOptions) {
         const edits = parseEdits(await readJson(req));
         let next: DesignSystem;
         try {
-          next = buildSystem(applyEdits(config, edits));
+          next = build(applyEdits(config, edits));
         } catch (err) {
           return send(res, 422, { error: errorMessage(err) });
         }
@@ -215,6 +234,7 @@ export async function runDev(opts: DevOptions) {
         req.on("close", () => clients.delete(res));
         return;
       }
+      if (req.method === "GET" && serveStatic(join(root, "public"), "/site/", req, res)) return;
       if (req.method === "GET" && url.pathname.startsWith("/pkg/")) {
         const parts = url.pathname.slice(5).split("/").map(decodeURIComponent);
         const nameLen = parts[0]?.startsWith("@") ? 2 : 1;
@@ -249,7 +269,7 @@ export async function runDev(opts: DevOptions) {
 
   const url = `http://localhost:${port}`;
   console.log(`\n  ${pc.bold("auto-design studio")}  ${pc.cyan(url)}`);
-  console.log(`  ${pc.dim(`Editing ${relative(process.cwd(), configPath)}`)}`);
+  console.log(`  ${pc.dim(`Editing ${relative(process.cwd(), configPath)}. The design site is at ${url}/site/`)}`);
   if (apps.length) console.log(`  ${pc.dim(`Keeping in sync: ${apps.map((a) => relative(process.cwd(), a)).join(", ")}`)}`);
   console.log(`  ${pc.dim("Edits to design.config.ts by hand are picked up too. Ctrl+C to stop.")}\n`);
   if (opts.open) openBrowser(url);

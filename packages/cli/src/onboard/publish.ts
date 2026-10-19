@@ -3,7 +3,7 @@ import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { buildSystem, emitAll, type DesignConfig, type SpecimenCopy } from "@auto-design/core";
 import { PROVIDERS, type ModelConfig } from "@auto-design/ai";
-import { COPY_FILE, CONFIG_FILE, WORKFLOW, configSource, systemPackageJson, systemReadme, writeFiles } from "../commands.js";
+import { COPY_FILE, CONFIG_FILE, WORKFLOW, configSource, systemPackageJson, systemReadme, writeFiles, writeSite } from "../commands.js";
 
 /**
  * Publishing: write the system repo, commit it, put it on GitHub and set up
@@ -105,7 +105,7 @@ import { extname, join, normalize } from "node:path";
 
 const root = join(import.meta.dirname, "public");
 const token = process.env.REGISTRY_TOKEN;
-const types = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".css": "text/css" };
+const types = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".md": "text/markdown; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".svg": "image/svg+xml", ".png": "image/png" };
 
 if (!token) console.warn("REGISTRY_TOKEN is not set: the registry is open to anyone who finds it.");
 
@@ -119,6 +119,11 @@ createServer(async (req, res) => {
   }
   const headers = url.searchParams.get("token") ? { "set-cookie": \`ad_token=\${token}; HttpOnly; Secure; SameSite=Lax; Path=/\` } : {};
   let path = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\\\])+/, "");
+  // Site pages are folders: send /docs/colors to /docs/colors/ so relative links resolve.
+  if (path && !path.endsWith("/") && !extname(path)) {
+    res.writeHead(301, { location: url.pathname + "/" + url.search, ...headers });
+    return res.end();
+  }
   if (!path || path.endsWith("/")) path += "index.html";
   const file = join(root, path);
   if (!file.startsWith(root)) return res.writeHead(400).end();
@@ -137,7 +142,7 @@ function hostingFiles(hosting: Hosting, name: string): Record<string, string> {
     case "pages":
       return { ".github/workflows/docs.yml": PAGES_WORKFLOW };
     case "vercel":
-      return { "vercel.json": JSON.stringify({ $schema: "https://openapi.vercel.sh/vercel.json", buildCommand: "", installCommand: "", outputDirectory: "public", framework: null, cleanUrls: false }, null, 2) + "\n" };
+      return { "vercel.json": JSON.stringify({ $schema: "https://openapi.vercel.sh/vercel.json", buildCommand: "", installCommand: "", outputDirectory: "public", framework: null, cleanUrls: false, trailingSlash: true }, null, 2) + "\n" };
     case "railway":
       return {
         "server.mjs": PRIVATE_SERVER,
@@ -209,9 +214,16 @@ export async function publish(opts: PublishOptions): Promise<PublishResult> {
   let owner: string | null = null;
   const repoName = opts.repoName || `${opts.config.name}-design`;
 
-  // 1. Files.
+  // 1. Files, then the design site.
   const files = writeRepo(opts);
   steps.push({ step: "Write the design system", ok: true, detail: `${files.length} files in ${relative(process.cwd(), dir) || dir}` });
+  const { byModel: _b, ...copy } = opts.copy as SpecimenCopy & { byModel?: boolean };
+  const site = await writeSite(dir, buildSystem(opts.config), { copy: copy as SpecimenCopy });
+  steps.push(
+    site.error
+      ? { step: "Build the design site", ok: false, detail: `${site.error}. public/index.html is a single page for now; run npx auto-design build to try again.` }
+      : { step: "Build the design site", ok: true, detail: `${site.pages} pages: home, docs and a page for every component, with live examples` },
+  );
 
   // 2. Git.
   if (!has("git")) {

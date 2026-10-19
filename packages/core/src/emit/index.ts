@@ -6,12 +6,11 @@ import { emitDesignMd } from "./design-md.js";
 import { emitGuardrails } from "./guardrails.js";
 import { emitRegistry } from "./registry.js";
 import { emitTokens } from "./tokens.js";
-import { emitSite } from "./site.js";
 import { componentSources } from "./components.js";
 
-export { componentSources, skinFor, type ComponentSource, type Skin } from "./components.js";
+export { componentSources, generatedComponentSources, skinFor, type ComponentSource, type Skin } from "./components.js";
 export { emitSite } from "./site.js";
-export { emitCss, isDarkFirst, LOCKED_NAMESPACES, themeTokens, rootTokens } from "./css.js";
+export { codeLayer, emitCss, isDarkFirst, LOCKED_NAMESPACES, themeTokens, rootTokens } from "./css.js";
 export { emitDesignMd } from "./design-md.js";
 export { codeContrast, codeTheme, emitCodeThemes, syntaxColors, type CodeTheme, type SyntaxRole } from "./code.js";
 export { RULES, buildGuardrails, emitGuardrails, type Guardrails, type RuleId, type Severity } from "./guardrails.js";
@@ -42,11 +41,14 @@ export function emitLlmsTxt(s: DesignSystem): string {
 }
 
 export interface EmitOptions {
-  /** Sample content for the docs site, kept in specimen.copy.json so rebuilds reproduce it. */
+  /** Sample content, kept in specimen.copy.json so rebuilds reproduce it. */
   copy?: SpecimenCopy;
 }
 
-/** Every generated file in a design system repo, keyed by path. */
+/**
+ * Every generated file in a design system repo, keyed by path. The design site
+ * in public/ is built separately (it bundles React), by @auto-design/site.
+ */
 export function emitAll(s: DesignSystem, opts: EmitOptions = {}): Record<string, string> {
   const designMd = emitDesignMd(s);
   return {
@@ -54,7 +56,6 @@ export function emitAll(s: DesignSystem, opts: EmitOptions = {}): Record<string,
     "DESIGN.md": designMd,
     "public/DESIGN.md": designMd,
     "public/llms.txt": emitLlmsTxt(s),
-    ...emitSite(s, opts.copy),
     ...emitTokens(s),
     ...emitGuardrails(s),
     ...emitRegistry(s),
@@ -62,3 +63,4 @@ export function emitAll(s: DesignSystem, opts: EmitOptions = {}): Record<string,
     "build-report.json": JSON.stringify(s.report, null, 2) + "\n",
   };
 }
+export { componentExamples, type ComponentExample } from "./examples.js";

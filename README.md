@@ -8,9 +8,11 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phases 0 to 3 done.** Onboarding, five presets, the compiler, the checker, the studio,
-> publishing, the docs site, and the agent surfaces (an MCP server, chat components, an MCP Apps adapter,
-> iMessage and SMS rules, image cards and `auto-design review`) work end to end. See the [build plan](#roadmap).
+> Status: **Phases 0 to 3 done, and every system now builds its own design site.** Onboarding, five
+> presets, the compiler, the checker, the studio, publishing, a white-label design site with live
+> components, your own components and pages on top, and the agent surfaces (an MCP server, chat
+> components, an MCP Apps adapter, iMessage and SMS rules, image cards and `auto-design review`) work end
+> to end. See the [build plan](#roadmap).
 
 ## Why guardrails, not guidelines
 
@@ -78,7 +80,7 @@ The last step writes the system to a new folder, commits it, and optionally:
 
 - **Creates the GitHub repo**, public or private, with the GitHub CLI if you're signed in (`gh auth login`)
   or with a token you paste. Every push rebuilds the system in CI and fails if the committed files drift.
-- **Hosts the docs site and registry** in `public/`:
+- **Hosts the design site and registry** in `public/`:
 
 | Host | What you get |
 | --- | --- |
@@ -89,11 +91,35 @@ The last step writes the system to a new folder, commits it, and optionally:
 
 Private registries work with both installers: `AUTO_DESIGN_TOKEN=... npx auto-design add https://host/r/`.
 
-![The generated docs site, drawn in the system it documents](docs/site.png)
+Onboarding ends on the system's own design site.
 
-Each system ships a docs site at `public/index.html`: install commands, the product on every surface you
-chose, color scales, the type scale and the component list, in light and dark mode. It is built from the
-same tokens, so it doubles as the reference for what on-system looks like.
+## The design site
+
+![The Quiet design site: home page with the system at a glance and live components](docs/site.png)
+
+Every system builds a site like [ui.shadcn.com](https://ui.shadcn.com) into `public/`, next to its registry,
+white-labeled to the company and drawn in the system itself:
+
+- **Home**: the system at a glance (color, type, shape, motion) and its components in use, with the
+  product's own words and data.
+- **Docs**: introduction, installation, a guide for coding agents, the guardrails, and a page for each
+  foundation: colors with every role and contrast ratio, the type scale, radius and elevation, motion you
+  can play, voice and the rules for each surface.
+- **Components**: a page per component with a live example drawn by the real component, its code,
+  install commands for auto-design and shadcn, usage, more examples and the full source.
+- Search (⌘K), light and dark mode, and phone layouts. It's static HTML with small React islands, so it
+  hosts anywhere the registry does. `npx auto-design serve` previews it.
+
+![A component page: live preview, code, install commands and usage](docs/site-component.png)
+
+Teams add to it without forking anything. These folders in the system repo are yours, and the build reads
+them on every run:
+
+| Folder | What it does |
+| --- | --- |
+| `components/<name>.tsx` | A component of your own, or a replacement for a generated one. It joins the registry, DESIGN.md, the MCP server and the site, and CI checks it against the guardrails |
+| `examples/<name>.tsx` | A live example on the site. `button.tsx` replaces the button's preview; `button-loading.tsx` adds one |
+| `docs/<slug>.md` | A page of your own, under Guides. Front matter sets `title`, `description` and `order` |
 
 ## Refine it
 
@@ -207,15 +233,16 @@ Reviews need Playwright (`npm i -D playwright`).
 
 | Path | What it is |
 | --- | --- |
-| `design.config.ts` | The only hand-edited file: the taste choices, as a typed config |
+| `design.config.ts` | The taste choices, as a typed config. With the three folders below, the only files you edit |
 | `css/auto-design.css` | The locked Tailwind v4 theme and the light and dark role variables |
 | `tokens/*.tokens.json` | W3C design tokens (format 2025.10): primitives, plus a file per mode |
 | `DESIGN.md` | Instructions for coding agents: roles, scales, motion, voice, how to check |
 | `rules/guardrails.json` | What `auto-design check` enforces |
-| `public/index.html` | The docs site, drawn in the system |
+| `public/index.html`, `public/docs/` | The design site, drawn in the system |
 | `public/r/*.json` | A shadcn registry with a `registry.json` index, ready to host anywhere static |
 | `public/DESIGN.md`, `public/llms.txt` | The agent instructions, served next to the registry |
-| `specimen.copy.json` | The sample words the docs site and previews use: your headline, your table rows |
+| `specimen.copy.json` | The sample words the design site and previews use: your headline, your table rows |
+| `components/`, `examples/`, `docs/` | Yours: components, live examples and pages the build adds to the system and its site |
 | `registry/ui/*.tsx` | 16 component sources (listed below) |
 | `code/*.json` | Syntax-highlighting themes for code blocks, generated from the brand |
 | `build-report.json` | Every contrast check and every value the compiler adjusted |
@@ -289,7 +316,8 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | [`@auto-design/presets`](packages/presets) | Quiet, Editorial, Glass, Terminal and Tactile |
 | [`@auto-design/ai`](packages/ai) | Model calls (Claude, OpenAI, OpenRouter): onboarding suggestions and refinements as validated config changes, and review critiques |
-| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `check`, `mcp`, `message`, `card`, `review`, `presets` |
+| [`@auto-design/site`](packages/site) | The design site: pages, live examples bundled with esbuild and prerendered with React, Tailwind compiled against the system's own theme |
+| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `serve`, `check`, `mcp`, `message`, `card`, `review`, `presets` |
 | [`@auto-design/eslint-plugin`](packages/eslint-plugin) | The checker as ESLint rules |
 | [`@auto-design/stylelint-plugin`](packages/stylelint-plugin) | The checker as a Stylelint plugin |
 
@@ -306,7 +334,12 @@ npm run typecheck
 | 1 (done) | Studio with color picker, `auto-design add` for any Tailwind app, ESLint and Stylelint plugins, code theme, 16 components |
 | 2 (done) | Local onboarding app (`npx auto-design init` opens it): model key, taste questions, live previews, GitHub publish and hosting, docs site; Editorial, Glass, Terminal and Tactile presets |
 | 3 (done) | Agent surfaces: MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `auto-design review` |
-| 4 | Public launch, preset gallery, private registry template |
+| 4 (in progress) | npm package, the studio on the system's own copy, components of your own that survive rebuilds; next: better presets, visual regression screenshots |
+| 5 (first version done) | The white-label design site: home, docs, live components, your own pages; next: blocks |
+| 6 | Blocks, an Agent Skill per system, named registry installs (`@northwind/button`) |
+| 7 | Brand media: logo, illustration and icons, social and OG images, ads, email, slides, with checks and a Brand section on the site |
+| 8 | Motion and video, with an MIT renderer |
+| 9 | No-code editing, a preset gallery, maybe a hosted version |
 
 ## Credits
 

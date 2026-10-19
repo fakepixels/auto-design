@@ -20,6 +20,12 @@ Presets: Quiet, Editorial, Glass, Terminal and Tactile. Onboarding can read your
 Claude, OpenAI or OpenRouter key, and publishes the system to GitHub with hosting on GitHub Pages, Vercel,
 Railway, Render or your intranet.
 
+## The design site
+
+Every system builds a white-label site like ui.shadcn.com into `public/`: a home page, docs for each
+foundation, and a page per component with live examples drawn by the real components. Add your own
+components, examples and pages in the system repo's `components/`, `examples/` and `docs/` folders.
+
 ## Use it in an app
 
 Any Tailwind v4 app (Next.js, Vite, React Router, Astro):
@@ -38,7 +44,8 @@ rules, and registers the MCP server in `.mcp.json`.
 | --- | --- |
 | `init` | Design a system in the browser, or from a preset |
 | `dev` | The studio: adjust color, grays and corners with a live preview, and keep apps in sync |
-| `build` | Compile `design.config.ts` into tokens, CSS, components, rules and the docs site |
+| `build` | Compile `design.config.ts` into tokens, CSS, components, rules and the design site |
+| `serve` | Preview the design site and registry from `public/` |
 | `add` | Install a system into an app, from a folder or a hosted `/r/` URL |
 | `check` | Lint TSX, JSX and CSS against the guardrails |
 | `mcp` | The MCP server for coding agents: rules, tokens, components, code and message checks, image cards |

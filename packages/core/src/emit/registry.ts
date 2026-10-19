@@ -69,7 +69,9 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
 
   for (const c of componentSources(s)) {
     const isLib = c.type === "registry:lib";
-    if (!isLib) files[`registry/ui/${c.file}`] = c.content;
+    // Custom components stay where the team wrote them; the build only reads them.
+    const source = c.custom && c.path ? c.path : `registry/ui/${c.file}`;
+    if (!isLib && !c.custom) files[source] = c.content;
     for (const l of c.lib ?? []) files[`registry/lib/${l.file}`] = l.content;
     items.push({
       $schema: ITEM_SCHEMA,
@@ -79,7 +81,7 @@ export function emitRegistry(s: DesignSystem): Record<string, string> {
       description: c.description,
       dependencies: c.dependencies,
       files: [
-        ...(isLib ? [] : [{ path: `registry/ui/${c.file}`, type: "registry:ui", content: c.content }]),
+        ...(isLib ? [] : [{ path: source, type: "registry:ui", content: c.content }]),
         ...(c.lib ?? []).map((l) => ({ path: `registry/lib/${l.file}`, type: "registry:lib", content: l.content })),
       ],
       // shadcn would resolve bare names against its own registry, so in-system

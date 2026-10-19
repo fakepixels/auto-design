@@ -5,12 +5,16 @@ import {
   BuildError,
   ConfigError,
   buildSystem,
+  defaultCopy,
   emitAll,
+  emitSite,
   type DesignConfig,
   type DesignSystem,
   type SpecimenCopy,
 } from "@auto-design/core";
 import { presets } from "@auto-design/presets";
+import { buildSite } from "@auto-design/site";
+import { attachCustom, loadCustom, type CustomContent } from "./custom.js";
 import { createJiti } from "jiti";
 import pc from "picocolors";
 
@@ -42,6 +46,61 @@ export async function loadConfig(cwd: string, file = CONFIG_FILE): Promise<Desig
   const jiti = createJiti(import.meta.url, { interopDefault: true, moduleCache: false });
   const mod = await jiti.import<{ default?: DesignConfig } | DesignConfig>(path);
   return ((mod as { default?: DesignConfig }).default ?? mod) as DesignConfig;
+}
+
+/** Build the system from design.config.ts, with the repo's own components/ attached. */
+export async function loadSystem(root: string, file?: string): Promise<{ config: DesignConfig; s: DesignSystem; custom: CustomContent }> {
+  const config = await loadConfig(root, file);
+  const custom = loadCustom(root);
+  return { config, s: attachCustom(buildSystem(config), custom), custom };
+}
+
+/** The repo's GitHub page, from package.json or the git remote, for the site's source link. */
+export function repoUrlOf(root: string): string | undefined {
+  try {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as { repository?: string | { url?: string } };
+    const url = typeof pkg.repository === "string" ? pkg.repository : pkg.repository?.url;
+    if (url) return url.replace(/^git\+/, "").replace(/\.git$/, "");
+  } catch {
+    // no package.json
+  }
+  try {
+    const git = readFileSync(join(root, ".git", "config"), "utf8");
+    const m = git.match(/url\s*=\s*(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?\s*$/m);
+    if (m) return `https://github.com/${m[1]}`;
+  } catch {
+    // not a git repo
+  }
+  return undefined;
+}
+
+export const siteCopy = (s: DesignSystem, copy?: SpecimenCopy) => copy ?? defaultCopy(s.config.displayName.replace(/ design( system)?$/i, ""), s.config.description);
+
+export interface SiteBuild {
+  pages: number;
+  warnings: string[];
+  /** Set when the site couldn't be built; a single-page fallback was written instead. */
+  error?: string;
+}
+
+/** Build the design site into public/. A broken site never fails the build: it falls back to one page and says why. */
+export async function writeSite(root: string, s: DesignSystem, opts: { copy?: SpecimenCopy; custom?: CustomContent } = {}): Promise<SiteBuild> {
+  const copy = siteCopy(s, opts.copy);
+  const custom = opts.custom ?? loadCustom(root);
+  try {
+    const r = await buildSite({ root, system: s, copy, examples: custom.examples, docs: custom.docs, repoUrl: repoUrlOf(root) });
+    writeFiles(join(root, "public"), r.files);
+    return { pages: r.pages.length, warnings: r.warnings };
+  } catch (err) {
+    writeFiles(root, emitSite(s, copy));
+    return { pages: 1, warnings: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export function printSite(site: SiteBuild) {
+  if (site.error) console.log(`${pc.yellow("~")} The design site couldn't be built, so public/index.html is a single page for now: ${site.error}`);
+  else console.log(`${pc.green("✓")} Design site: ${site.pages} pages in public/. Preview it with ${pc.cyan("npx auto-design serve")}`);
+  for (const w of site.warnings) console.log(`${pc.yellow("~")} ${w}`);
 }
 
 export function configSource(config: DesignConfig): string {
@@ -109,9 +168,15 @@ npx auto-design review http://localhost:3000/        # screenshots, measured che
 | \`css/auto-design.css\` | One CSS file for apps that don't use the shadcn CLI |
 | \`tokens/\` | W3C design tokens (2025.10 format), light and dark |
 | \`rules/guardrails.json\` | What \`auto-design check\` enforces |
-| \`public/r/\` | shadcn registry items, ready to host |
+| \`public/\` | The design site (home, docs, live components) and the shadcn registry in \`public/r/\`, ready to host |
 | \`registry/ui/\` | Component sources |
+| \`components/\` | Your own components, by hand. The build adds them to the registry, DESIGN.md and the site |
+| \`examples/\` | Your own live examples for the site: \`button.tsx\` replaces a preview, \`button-loading.tsx\` adds one |
+| \`docs/\` | Your own pages for the site, in Markdown |
 | \`build-report.json\` | Every contrast check and every value the compiler adjusted |
+
+\`design.config.ts\`, \`components/\`, \`examples/\` and \`docs/\` are yours; everything else is generated.
+Preview the site with \`npx auto-design serve\`.
 `;
 }
 
@@ -148,9 +213,9 @@ jobs:
       - name: Rebuild from design.config.ts
         run: npx auto-design build
       - name: Generated files must be committed
-        run: git diff --exit-code
-      - name: Components pass the guardrails
-        run: npx auto-design check registry
+        run: git diff --exit-code -- . ':(exclude)public/_site'
+      - name: Components and examples pass the guardrails
+        run: npx auto-design check registry components examples
 `;
 
 export function printBuild(s: DesignSystem, written: number, root: string) {
@@ -164,13 +229,17 @@ export function printBuild(s: DesignSystem, written: number, root: string) {
   for (const n of r.notes) console.log(`${pc.dim("i")} ${n}`);
 }
 
-export async function runBuild(opts: { cwd: string; config?: string; quiet?: boolean }) {
+export async function runBuild(opts: { cwd: string; config?: string; quiet?: boolean; site?: boolean }) {
   const root = resolve(opts.cwd);
-  const config = await loadConfig(root, opts.config);
-  const s = buildSystem(config);
-  const files = emitAll(s, { copy: loadCopy(root) });
+  const { s, custom } = await loadSystem(root, opts.config);
+  const copy = loadCopy(root);
+  const files = emitAll(s, { copy });
   writeFiles(root, files);
   if (!opts.quiet) printBuild(s, Object.keys(files).length, root);
+  if (opts.site !== false) {
+    const site = await writeSite(root, s, { copy, custom });
+    if (!opts.quiet) printSite(site);
+  }
   return s;
 }
 
@@ -194,6 +263,7 @@ export async function runInit(opts: { dir: string; preset: string }) {
   };
   writeFiles(root, files);
   printBuild(s, Object.keys(files).length, root);
+  printSite(await writeSite(root, s));
   console.log(`\nNext: ${pc.cyan(`cd ${relative(process.cwd(), root) || "."}`)} and edit ${pc.cyan(CONFIG_FILE)}, then ${pc.cyan("npx auto-design build")}.`);
 }
 

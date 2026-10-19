@@ -50,6 +50,7 @@ import {
   type VariantField,
 } from "./session.js";
 import { publish, publishEnv, type Hosting } from "./publish.js";
+import { serveStatic } from "../serve.js";
 
 export interface OnboardOptions {
   /** Where the system repo will be created by default. */
@@ -330,6 +331,8 @@ export async function runOnboard(opts: OnboardOptions) {
     if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return send(res, 403, "Forbidden", "text/plain");
     try {
       if (req.method === "GET" && url.pathname === "/") return send(res, 200, page(), "text/html; charset=utf-8");
+      // The design site that publishing just built, so onboarding can end on it.
+      if (req.method === "GET" && createdDir && serveStatic(join(createdDir, "public"), "/site/", req, res)) return;
       if (req.method === "GET" && url.pathname === "/assets/renderer.css") return send(res, 200, specimenAssets().css, MIME[".css"]);
       if (req.method === "GET" && url.pathname === "/assets/renderer.js") return send(res, 200, specimenAssets().js, MIME[".js"]);
       if (req.method === "GET" && url.pathname.startsWith("/pkg/")) {

@@ -116,6 +116,11 @@ export interface DesignSystem {
   shadows: Record<ShadowStep, ShadowLayer[]>;
   motion: MotionProfile;
   report: BuildReport;
+  /**
+   * Components hand-written in the system repo (components/), attached by the
+   * CLI after it reads the folder. buildSystem never sets this.
+   */
+  extraComponents?: import("./emit/components.js").ComponentSource[];
 }
 
 export class BuildError extends Error {

@@ -12,7 +12,7 @@ import {
   undo,
   variants,
 } from "../src/onboard/session.js";
-import { writeRepo, type Hosting } from "../src/onboard/publish.js";
+import { publish, writeRepo, type Hosting } from "../src/onboard/publish.js";
 
 const tmp = () => mkdtempSync(join(tmpdir(), "ad-onboard-"));
 
@@ -68,7 +68,7 @@ describe("writeRepo", () => {
   it("writes a complete, reproducible system repo", () => {
     const dir = join(tmp(), "meridian-design");
     const files = writeRepo({ ...base(), dir, hosting: "intranet" });
-    for (const f of ["design.config.ts", "specimen.copy.json", "package.json", "README.md", ".gitignore", ".github/workflows/design-system.yml", "public/index.html", "public/DESIGN.md", "public/llms.txt", "public/r/registry.json", "public/r/base.json"]) {
+    for (const f of ["design.config.ts", "specimen.copy.json", "package.json", "README.md", ".gitignore", ".github/workflows/design-system.yml", "public/DESIGN.md", "public/llms.txt", "public/r/registry.json", "public/r/base.json"]) {
       expect(files, f).toContain(f);
       expect(existsSync(join(dir, f)), f).toBe(true);
     }
@@ -77,6 +77,17 @@ describe("writeRepo", () => {
     const copy = JSON.parse(readFileSync(join(dir, "specimen.copy.json"), "utf8"));
     expect(copy.byModel).toBeUndefined();
   });
+
+  it("publishes locally with the design site built and committed", async () => {
+    const dir = join(tmp(), "meridian-design");
+    const r = await publish({ ...base(), dir, hosting: "intranet" });
+    const site = r.steps.find((st) => st.step === "Build the design site");
+    expect(site?.ok, site?.detail).toBe(true);
+    for (const f of ["public/index.html", "public/docs/index.html", "public/docs/components/button/index.html", "public/_site/site.css", "public/_site/previews.js"]) {
+      expect(existsSync(join(dir, f)), f).toBe(true);
+    }
+    expect(readFileSync(join(dir, "public/index.html"), "utf8")).toContain("Meridian");
+  }, 60_000);
 
   it("refuses a folder that already has files", () => {
     const dir = tmp();

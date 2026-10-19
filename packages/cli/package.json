@@ -44,16 +44,28 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup && cp src/dev/studio.html src/onboard/onboard.html ../core/src/site/renderer.css ../core/src/site/renderer.js dist/",
+    "build": "tsup && cp src/dev/studio.html src/onboard/onboard.html ../core/src/site/renderer.css ../core/src/site/renderer.js ../site/src/site-client.js dist/",
     "prepublishOnly": "npm run build && node scripts/smoke.mjs"
   },
   "dependencies": {
     "@babel/parser": "^7.28.0",
+    "@tailwindcss/node": "^4.3.3",
     "cac": "^6.7.14",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "culori": "^4.0.2",
+    "esbuild": "^0.27.7",
     "jiti": "^2.4.2",
+    "marked": "^18.1.1",
     "picocolors": "^1.1.1",
     "postcss": "^8.5.6",
+    "radix-ui": "^1.8.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "shiki": "^4.5.0",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
     "tinyglobby": "^0.2.14",
     "zod": "^4.1.0"
   },
@@ -62,6 +74,7 @@
     "@auto-design/check": "^0.1.0",
     "@auto-design/core": "^0.1.0",
     "@auto-design/presets": "^0.1.0",
+    "@auto-design/site": "^0.1.0",
     "tsx": "^4.20.0"
   }
 }

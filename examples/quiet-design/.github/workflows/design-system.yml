@@ -15,6 +15,6 @@ jobs:
       - name: Rebuild from design.config.ts
         run: npx auto-design build
       - name: Generated files must be committed
-        run: git diff --exit-code
-      - name: Components pass the guardrails
-        run: npx auto-design check registry
+        run: git diff --exit-code -- . ':(exclude)public/_site'
+      - name: Components and examples pass the guardrails
+        run: npx auto-design check registry components examples

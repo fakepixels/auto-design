@@ -10,14 +10,21 @@ user-facing story; this file is how to work on it.
 
 - Phases 0 to 3 are done: compiler, checker, studio, five presets, onboarding app, publishing and hosting,
   docs site, MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `review`.
-- Phase 4 (in progress): quality and launch prep. The `auto-design` npm package builds as one bundle
-  (`packages/cli`, `npm publish` from there). Still to do: studio fixes, custom components that survive
-  rebuilds, visual regression screenshots, and raising the five presets and specimen scenes well above
-  defaults (Tina has feedback to fold in).
+- Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
+  bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
+  when its process stopped; custom components, examples and docs survive rebuilds. Still to do: visual
+  regression screenshots, and raising the five presets and specimen scenes well above defaults (Tina has
+  feedback to fold in).
+- Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
+  foundation, a page per component with live examples, search, light and dark, phone layouts; team pages
+  from `docs/`. Onboarding ends on it (`/site/` in the onboarding server), the studio serves it at
+  `/site/`, `auto-design serve` previews it. Next: blocks.
+  - Decision: the plan said "a generated Next.js shell". It shipped as a static site built by auto-design
+    instead (React prerender plus hydrated islands, bundled with esbuild): no Next.js install or build in
+    every system repo, it's ready in about two seconds at the end of onboarding, and every host that
+    serves `public/` today keeps working. The ownership split is the same: auto-design owns the shell, the
+    repo owns `components/`, `examples/` and `docs/`.
 - Plan after that:
-  - Phase 5: a white-label design site per system, like ui.shadcn.com (Home, Docs, Components, Blocks,
-    live previews), as a generated Next.js shell owned by auto-design with content owned by the system
-    repo. Publish deploys it and onboarding ends on it.
   - Phase 6: blocks, an Agent Skill per system, named registry installs (`@northwind/button`).
   - Phase 7: brand static media (logo, illustration and icons, social and OG images, ads, email, slides),
     code-first with image models opt-in, plus media checks and a Brand section on the site.
@@ -28,8 +35,8 @@ user-facing story; this file is how to work on it.
 - Known gaps:
   - `auto-design` is not on npm yet (still free on October 19, 2026). Until it is, the `.mcp.json` that
     `add` writes (`npx auto-design mcp`) only works where the package is linked locally.
-  - The studio preview uses a fixed sample product ("Meridian") instead of the system's own copy, and shows
-    "Failed to fetch" instead of saying the studio process stopped.
+  - The design site loads the system's fonts from Google Fonts; self-hosting them (for intranets with no
+    outside access) needs the fontsource packages at build time.
   - Model features (onboarding suggestions, review critique) are tested only against the mock provider.
 
 ## Design direction
@@ -49,15 +56,20 @@ user-facing story; this file is how to work on it.
 | `packages/check` | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | `packages/presets` | Quiet, Editorial, Glass, Terminal, Tactile |
 | `packages/ai` | Model calls over fetch (Anthropic, OpenAI, OpenRouter, mock): config patches, copy, site extraction, review critique |
-| `packages/cli` | `init` (onboarding app in `src/onboard/`), `dev` (studio in `src/dev/`), `add`, `build`, `check`, `mcp` (`src/mcp/`), `message`, `card`, `review` (`src/review/`) |
+| `packages/site` | The design site: `bundle.ts` (examples prerendered in Node, interactive ones hydrated as islands), `css.ts` (Tailwind compiled against the system's own CSS, so only on-system classes exist), `pages.ts` (content), `shell.ts` (layout), `site-client.js` (search, tabs, copy, mode) |
+| `packages/cli` | `init` (onboarding app in `src/onboard/`), `dev` (studio in `src/dev/`), `add`, `build`, `serve`, `check`, `mcp` (`src/mcp/`), `message`, `card`, `review` (`src/review/`); `custom.ts` reads a repo's `components/`, `examples/` and `docs/` |
 | `packages/eslint-plugin`, `packages/stylelint-plugin` | The checker inside editors |
 | `examples/quiet-design` | A generated system repo (Quiet preset) |
 | `examples/next-quiet` | A Next.js app with that system installed. Not a workspace: it has its own `npm install` |
 
 ## Invariants
 
-- `design.config.ts` is the only hand-edited file in a system repo. Everything else is generated, and CI
-  fails if generated files drift.
+- In a system repo, `design.config.ts` and the `components/`, `examples/` and `docs/` folders are
+  hand-edited; the build reads them and never writes them. Everything else is generated, and CI fails if
+  generated files drift (the site's JS and CSS in `public/_site/` are exempt: they depend on dependency
+  versions).
+- Generated component examples (`core/src/emit/examples.ts`) pass the checker for every preset; a custom
+  example that fails to render shows an error box on its page and a build warning, never a failed build.
 - Models never write CSS or code. They return a config patch; the compiler validates it, with one retry.
 - Tailwind's default namespaces are locked (`--color-*: initial` and friends), so off-system classes don't
   exist. Every text and fill pair passes WCAG AA in light and dark mode at build time.
@@ -68,7 +80,7 @@ user-facing story; this file is how to work on it.
 
 ```sh
 npm install
-npm test                 # vitest, about 145 tests
+npm test                 # vitest, about 160 tests
 npm run typecheck
 npx auto-design <command>   # runs the TypeScript sources through tsx
 ```
@@ -76,15 +88,16 @@ npx auto-design <command>   # runs the TypeScript sources through tsx
 When emitters change, regenerate the examples and recheck the app:
 
 ```sh
-npx auto-design build --cwd examples/quiet-design
+npx auto-design build --cwd examples/quiet-design      # also builds the site into public/
 cd examples/next-quiet && npx auto-design add ../quiet-design --components <changed> --no-install && npx auto-design check
 ```
 
 ## Working conventions
 
 - Run tests and typecheck, regenerate examples, then commit and push to `main` at the end of each phase.
-- Look at UI changes, don't assume: screenshot onboarding, the studio and the docs site with Playwright
-  in light and dark mode and at phone width.
+- Look at UI changes, don't assume: screenshot onboarding, the studio and the design site with Playwright
+  in light and dark mode and at phone width. Google Fonts isn't reachable from the sandbox; route its CSS
+  to the @fontsource packages in node_modules when a screenshot needs the real typefaces.
 - Automated runs of onboarding must never create a real GitHub repo: untick the GitHub option before
   publishing. `AUTO_DESIGN_MOCK_MODEL=1` adds a mock model; `AUTO_DESIGN_FORCE_UI=1` opens onboarding
   without a TTY; `AUTO_DESIGN_CHROMIUM` points cards and reviews at a Chromium binary.

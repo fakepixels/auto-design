@@ -935,10 +935,12 @@
   function renderDone(root) {
     const r = app.published, s = app.state;
     const head = $(".step-head");
-    if (head) head.innerHTML = `<h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} Install it in an app, tell your agents about it, and keep refining in the studio.</p>`;
+    const hasSite = r.steps.some((x) => x.step === "Build the design site" && x.ok);
+    if (head) head.innerHTML = `<h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} ${hasSite ? "Its design site has a page for every foundation and component, drawn with the system itself." : "Install it in an app, tell your agents about it, and keep refining in the studio."}</p>`;
     const src = r.registryUrl || r.dir;
     const agent = `Before writing or changing UI, read DESIGN.md. It is the ${s.displayName} design system.\nAfter every change run \`npx auto-design check\` and fix what it reports.`;
     root.append(h(`<div class="publish"><div class="form" style="max-width:640px">
+      ${hasSite ? `<div class="row" style="margin-bottom:20px"><a class="btn ink" id="open-site" href="/site/" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;text-decoration:none">Open the design site</a></div>` : ""}
       <div class="steps-out">${r.steps.map((st) => `<div class="${st.ok ? "" : "bad"}"><i aria-hidden="true"></i><div><b>${esc(st.step)}</b><small>${esc(st.detail)}${st.url ? ` <a href="${esc(st.url)}" target="_blank" rel="noreferrer">${esc(st.url.replace(/^https:\/\//, ""))}</a>` : ""}</small></div></div>`).join("")}</div>
       <p class="section-label">Install it in an app</p>
       <div class="copy-row"><pre class="cmd">npx auto-design add ${esc(src)} --components all</pre><button class="btn line small" data-copy="npx auto-design add ${esc(src)} --components all">Copy</button></div>
@@ -947,7 +949,7 @@
       <p class="note">Add this to AGENTS.md or CLAUDE.md in each app. <code>add</code> does it for you.</p>
       <div class="copy-row"><pre class="cmd">${esc(agent)}</pre><button class="btn line small" data-copy="${esc(agent)}">Copy</button></div>
       <p class="section-label">Keep refining</p>
-      <div class="row"><button class="btn ink small" id="open-studio">Open the studio</button>${r.repoUrl ? `<a class="btn line small" style="display:inline-flex;align-items:center;text-decoration:none" href="${esc(r.repoUrl)}" target="_blank" rel="noreferrer">View on GitHub</a>` : ""}</div>
+      <div class="row"><button class="btn ${hasSite ? "line" : "ink"} small" id="open-studio">Open the studio</button>${r.repoUrl ? `<a class="btn line small" style="display:inline-flex;align-items:center;text-decoration:none" href="${esc(r.repoUrl)}" target="_blank" rel="noreferrer">View on GitHub</a>` : ""}</div>
       <p class="note">Or run <code>npx auto-design dev --cwd ${esc(r.relDir)}</code> any time.</p>
     </div><div class="big-view" id="done-view"></div></div>`));
     draw($("#done-view"), s.specimen, ["hero"], { size: "m" });

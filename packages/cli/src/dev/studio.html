@@ -49,6 +49,7 @@
     transition: background-color 120ms cubic-bezier(.23,1,.32,1), opacity 120ms;
   }
   .btn:active { transform: scale(.98); }
+  a.btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
   .btn.primary { background: var(--ui-text); color: #fff; }
   .btn.primary:hover { background: #333; }
   .btn.primary:disabled { opacity: .35; cursor: default; transform: none; }
@@ -177,6 +178,7 @@
 <header class="top">
   <div class="title"><strong>auto-design</strong><span id="sysname"></span></div>
   <span class="status" id="status" role="status" aria-live="polite">Loading</span>
+  <a class="btn ghost" id="site-link" href="/site/" target="_blank" rel="noreferrer">Design site</a>
   <button class="btn ghost" id="revert" hidden>Revert</button>
   <button class="btn primary" id="save" disabled>Save</button>
 </header>
@@ -249,25 +251,25 @@
 </main>
 
 <template id="pv-body">
-  <div class="pv-side"><b>Meridian</b><span>Overview</span><span>Customers</span><span class="on">Invoices</span><span>Meters</span></div>
+  <div class="pv-side"><b data-c="product"></b><span data-c="nav0"></span><span data-c="nav1"></span><span class="on" data-c="nav2"></span><span data-c="nav3"></span></div>
   <div class="pv-main">
-    <div class="pv-row"><h3>October invoice run</h3><span class="badge">In review</span></div>
-    <p class="muted">214 invoices drafted from usage through October 31.</p>
-    <div class="pv-row"><button class="b p" tabindex="-1">Approve run</button><button class="b o" tabindex="-1">Export</button><button class="b d" tabindex="-1">Delete run</button></div>
-    <input placeholder="Filter by customer" tabindex="-1" aria-hidden="true">
+    <div class="pv-row"><h3 data-c="pageTitle"></h3><span class="badge" data-c="statusLabel"></span></div>
+    <p class="muted" data-c="pageSummary"></p>
+    <div class="pv-row"><button class="b p" tabindex="-1" data-c="primaryAction"></button><button class="b o" tabindex="-1">Export</button><button class="b d" tabindex="-1">Delete</button></div>
+    <input data-c-placeholder="filter" tabindex="-1" aria-hidden="true">
     <table>
-      <thead><tr><th>Customer</th><th class="num">Amount</th><th>Status</th></tr></thead>
+      <thead><tr><th data-c="col0"></th><th class="num" data-c="col2"></th><th data-c="col3"></th></tr></thead>
       <tbody>
-        <tr><td>Acme Robotics</td><td class="num">$41,920</td><td><span class="badge">Needs review</span></td></tr>
-        <tr><td>Larkspur AI</td><td class="num">$96,105</td><td><span class="badge ok">Expected</span></td></tr>
+        <tr><td data-c="row0name"></td><td class="num" data-c="row0value"></td><td><span class="badge" data-c="row0status"></span></td></tr>
+        <tr><td data-c="row1name"></td><td class="num" data-c="row1value"></td><td><span class="badge" data-c="row1status"></span></td></tr>
       </tbody>
     </table>
     <div class="card chat">
-      <div class="bubble">Why did Acme’s invoice go up?</div>
-      <p>Almost all of the increase is one meter. <span class="link">See usage by meter</span></p>
+      <div class="bubble" data-c="question"></div>
+      <p><span data-c="answer"></span> <span class="link">See the details</span></p>
     </div>
-    <pre><span class="c"># Report usage as it happens</span>
-curl -d meter=<span class="t">image_inference</span> -d quantity=<span class="t">1200</span></pre>
+    <pre><span class="c" data-c="comment"></span>
+<span data-c="command"></span></pre>
   </div>
 </template>
 
@@ -393,8 +395,15 @@ curl -d meter=<span class="t">image_inference</span> -d quantity=<span class="t"
   }
 
   /* ---------- Talking to the dev server ---------- */
+  // When the studio's process ends (Ctrl+C, a closed terminal), fetch fails with a bare TypeError.
+  const STOPPED = "The studio stopped running. Start it again with npx auto-design dev, then reload this page.";
   async function post(path, body) {
-    const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    let res;
+    try {
+      res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    } catch {
+      throw new Error(STOPPED);
+    }
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Something went wrong");
     return data;
@@ -664,7 +673,27 @@ curl -d meter=<span class="t">image_inference</span> -d quantity=<span class="t"
 
   document.querySelectorAll(".pv").forEach((el) => el.append($("pv-body").content.cloneNode(true)));
 
+  /** The preview shows the system's own product: its name, its data, its words. */
+  function fillCopy(c) {
+    if (!c) return;
+    const rows = (c.table && c.table.rows) || [];
+    const cols = (c.table && c.table.columns) || [];
+    const status = (r) => (r && r.status === "ok" ? "On track" : "Needs review");
+    const text = {
+      product: c.product, pageTitle: c.pageTitle, statusLabel: c.statusLabel, pageSummary: c.pageSummary, primaryAction: c.primaryAction,
+      col0: cols[0], col2: cols[2], col3: cols[3],
+      row0name: rows[0] && rows[0].name, row0value: rows[0] && rows[0].value, row0status: status(rows[0]),
+      row1name: rows[1] && rows[1].name, row1value: rows[1] && rows[1].value, row1status: status(rows[1]),
+      question: c.chat && c.chat.question, answer: c.chat && c.chat.followUp, comment: c.code && c.code.comment, command: c.code && c.code.command,
+    };
+    (c.nav || []).slice(0, 4).forEach((n, i) => (text["nav" + i] = n));
+    document.querySelectorAll(".pv [data-c]").forEach((el) => { const v = text[el.dataset.c]; if (v) el.textContent = v; });
+    document.querySelectorAll(".pv [data-c-placeholder]").forEach((el) => el.setAttribute("placeholder", `Filter by ${String(cols[1] || "owner").toLowerCase()}`));
+    document.querySelectorAll(".pv tbody tr").forEach((tr, i) => tr.querySelector(".badge").classList.toggle("ok", !!(rows[i] && rows[i].status === "ok")));
+  }
+
   fetch("/api/state").then((r) => r.json()).then((p) => {
+    fillCopy(p.copy);
     state.apps = p.apps || [];
     loadFonts(p.fontPackages || []);
     layout();
@@ -680,6 +709,10 @@ curl -d meter=<span class="t">image_inference</span> -d quantity=<span class="t"
   });
   events.addEventListener("error", (e) => {
     if (e.data) { $("status").className = "status err"; $("status").textContent = JSON.parse(e.data).message; }
+    else if (events.readyState === EventSource.CLOSED || events.readyState === EventSource.CONNECTING) {
+      // The connection dropped: the process behind the studio has ended. Say so instead of failing silently later.
+      fetch("/api/state").catch(() => { $("status").className = "status err"; $("status").textContent = STOPPED; $("save").disabled = true; });
+    }
   });
 })();
 </script>

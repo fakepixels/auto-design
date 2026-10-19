@@ -13,12 +13,13 @@ const version = run(["--version"], dir).trim();
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 if (!version.includes(pkg.version)) throw new Error(`--version printed "${version}", expected ${pkg.version}`);
 run(["init", "sys", "--preset", "glass"], dir);
-for (const f of ["design.config.ts", "css/auto-design.css", "DESIGN.md", "public/index.html", "public/r/registry.json"]) {
+for (const f of ["design.config.ts", "css/auto-design.css", "DESIGN.md", "public/index.html", "public/r/registry.json", "public/docs/components/button/index.html", "public/_site/previews.js"]) {
   if (!existsSync(join(dir, "sys", f))) throw new Error(`init didn't write ${f}`);
 }
 run(["build", "--cwd", "sys"], dir);
 run(["check", "--cwd", "sys", "registry/ui/*.tsx"], dir);
-for (const f of ["onboard.html", "studio.html", "renderer.css", "renderer.js", "index.d.ts"]) {
+if (!readFileSync(join(dir, "sys", "public/docs/components/button/index.html"), "utf8").includes('data-slot="button"')) throw new Error("The design site didn't render the real button");
+for (const f of ["onboard.html", "studio.html", "renderer.css", "renderer.js", "site-client.js", "index.d.ts"]) {
   if (!existsSync(new URL(`../dist/${f}`, import.meta.url))) throw new Error(`dist/${f} is missing`);
 }
 console.log(`smoke ok: auto-design ${pkg.version}`);
