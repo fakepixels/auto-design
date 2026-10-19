@@ -1,33 +1,67 @@
 {
   "name": "auto-design",
   "version": "0.1.0",
-  "description": "Turn a taste questionnaire into a design system with hard guardrails: tokens, shadcn components and agent instructions.",
+  "description": "Design systems with hard guardrails, for teams without a designer and the agents that write their UI: tokens, a locked Tailwind theme, shadcn components, DESIGN.md, a checker and an MCP server.",
+  "keywords": [
+    "design-system",
+    "tailwind",
+    "shadcn",
+    "design-tokens",
+    "mcp",
+    "agents",
+    "lint",
+    "guardrails"
+  ],
   "license": "MIT",
+  "author": "Tina He",
+  "homepage": "https://github.com/fakepixels/auto-design#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fakepixels/auto-design.git",
+    "directory": "packages/cli"
+  },
+  "bugs": "https://github.com/fakepixels/auto-design/issues",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "auto-design": "./bin.mjs"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "bin.mjs",
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/bin.ts --format esm --clean --external playwright --external playwright-core && cp src/dev/studio.html src/onboard/onboard.html dist/"
+    "build": "tsup && cp src/dev/studio.html src/onboard/onboard.html ../core/src/site/renderer.css ../core/src/site/renderer.js dist/",
+    "prepublishOnly": "npm run build && node scripts/smoke.mjs"
   },
   "dependencies": {
+    "@babel/parser": "^7.28.0",
+    "cac": "^6.7.14",
+    "culori": "^4.0.2",
+    "jiti": "^2.4.2",
+    "picocolors": "^1.1.1",
+    "postcss": "^8.5.6",
+    "tinyglobby": "^0.2.14",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@auto-design/ai": "^0.1.0",
     "@auto-design/check": "^0.1.0",
     "@auto-design/core": "^0.1.0",
     "@auto-design/presets": "^0.1.0",
-    "cac": "^6.7.14",
-    "jiti": "^2.4.2",
-    "picocolors": "^1.1.1",
-    "@auto-design/ai": "^0.1.0"
-  },
-  "main": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "devDependencies": {
     "tsx": "^4.20.0"
   }
 }
