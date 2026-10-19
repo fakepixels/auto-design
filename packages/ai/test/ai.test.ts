@@ -15,6 +15,7 @@ import {
   writeCopy,
   copySchema,
   pairingForFonts,
+  catalogFontsForSite,
   mockDesigner,
   type JsonRequest,
 } from "../src/index.js";
@@ -184,15 +185,30 @@ describe("site extraction", () => {
   });
 
   it("maps site fonts onto a catalog pairing", () => {
-    expect(pairingForFonts(["Inter", "Geist"])).toBe("geist");
-    expect(pairingForFonts(["Playfair Display"])).toBe("instrument");
+    expect(pairingForFonts(["Inter", "Geist"])).toBe("inter");
+    expect(pairingForFonts(["Geist"])).toBe("geist");
+    expect(pairingForFonts(["Playfair Display"])).toBe("playfair");
+    expect(pairingForFonts(["Times New Roman"])).toBe("instrument");
     expect(pairingForFonts(["Fira Mono"])).toBe("plex");
+  });
+
+  it("keeps a site's own catalog faces when no pairing matches them", () => {
+    expect(catalogFontsForSite(["Work Sans", "Space Mono", "Gloock"])).toEqual({ sans: "work-sans", mono: "space-mono", display: "gloock" });
+    expect(catalogFontsForSite(["Helvetica Neue"])).toBeNull();
+    const patch = patchFromSite({
+      url: "https://x", title: "", description: "", themeColor: null, summary: "", colors: [], neutral: null, fonts: ["Work Sans", "Gloock"],
+      pairing: null, catalogFonts: { sans: "work-sans", mono: "jetbrains-mono", display: "gloock" }, radius: null, dark: false,
+    });
+    const config = applyPatch(quiet, patch);
+    expect(config.type.sans.family).toBe("Work Sans Variable");
+    expect(config.type.display?.family).toBe("Gloock");
+    expect(validate(config).ok).toBe(true);
   });
 
   it("turns what it read into a patch", () => {
     const patch = patchFromSite({
       url: "https://x", title: "", description: "", themeColor: null, summary: "",
-      colors: [{ css: "", hex: "#0f766e", score: 9 }], neutral: "warm", fonts: [], pairing: "figtree", radius: 12, dark: true,
+      colors: [{ css: "", hex: "#0f766e", score: 9 }], neutral: "warm", fonts: [], pairing: "figtree", catalogFonts: null, radius: 12, dark: true,
     });
     expect(patch).toEqual({ brand: "#0f766e", neutral: "warm", pairing: "figtree", radius: 12, defaultMode: "dark" });
     expect(validate(applyPatch(quiet, patch)).ok).toBe(true);

@@ -29,6 +29,7 @@ import {
   voicePage,
   type PageContext,
 } from "./pages.js";
+import { homeMotion, motionPages } from "./motion.js";
 import { renderPage, rootFor, type NavGroup, type PageInput, type SiteMeta } from "./shell.js";
 
 export { candidates } from "./css.js";
@@ -120,8 +121,13 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
 
   const ctx: PageContext = { s, copy, designMd: emitDesignMd(s), components, examples: merged.examples, rendered, highlight };
 
+  const motion = motionPages(s, copy);
+  const home = homePage(ctx);
+  // The home page ends on the launch film, before the install band.
+  home.body = home.body.replace('<section class="border-t bg-muted">', `${homeMotion(s, copy)}\n<section class="border-t bg-muted">`);
+  home.motion = true;
   const generated: PageInput[] = [
-    homePage(ctx),
+    home,
     introductionPage(ctx),
     installationPage(ctx),
     agentsPage(ctx),
@@ -133,6 +139,7 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
     voicePage(ctx),
     componentsIndexPage(ctx),
     ...uiComponents.map((c) => componentPage(ctx, c)),
+    ...motion.pages,
   ];
   // A page in docs/ with a generated page's name replaces it.
   const custom = [...(input.docs ?? [])].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)).map((d) => customPage(ctx, d));
@@ -148,6 +155,10 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
   const builtIn = new Set(nav.flatMap((g) => g.links.map((l) => l.path)));
   const guides = custom.filter((p) => !builtIn.has(p.path) && customPaths.has(p.path));
   if (guides.length) nav.push({ title: "Guides", links: guides.map((p) => ({ title: p.title, path: p.path })) });
+  nav.push({
+    title: "Motion",
+    links: [{ title: "All animations", path: "motion/" }, ...motion.pages.slice(1).map((p) => ({ title: p.title, path: p.path }))],
+  });
   nav.push({
     title: "Components",
     links: [...uiComponents].sort((a, b) => a.title.localeCompare(b.title)).map((c) => ({ title: c.title, path: `docs/components/${c.name}/`, ...(c.custom ? { badge: "Custom" } : {}) })),
@@ -167,6 +178,7 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
     top: [
       { title: "Docs", path: "docs/" },
       { title: "Components", path: "docs/components/" },
+      { title: "Motion", path: "motion/" },
     ],
     search: nav.flatMap((g) => g.links.map((l) => ({ title: l.title, group: g.title, path: l.path }))),
     generator: "auto-design 0.1.0",
@@ -180,6 +192,7 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
   const client = asset("site-client.js");
   files["_site/site.js"] = client;
   if (rendered.client) files["_site/previews.js"] = rendered.client;
+  Object.assign(files, motion.files);
   files["_site/site.css"] = await siteCss(s, [
     ...Object.values(files),
     ...components.map((c) => c.content),

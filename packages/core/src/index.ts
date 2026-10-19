@@ -7,3 +7,4 @@ export * from "./emit/index.js";
 export * from "./site/specimen.js";
 export * from "./site/copy.js";
 export * from "./agents/index.js";
+export * from "./motion/index.js";

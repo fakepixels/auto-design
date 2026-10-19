@@ -1,8 +1,12 @@
 import {
+  FONTS,
   MOTION_PROFILES,
   PAIRINGS,
   TEXTURES,
   buildSystem,
+  customFonts,
+  fontsFor,
+  fontsOf,
   pairingFonts,
   pairingOf,
   parseColor,
@@ -21,6 +25,8 @@ export interface DesignPatch {
   defaultMode: "light" | "dark" | null;
   texture: (typeof TEXTURES)[number] | null;
   pairing: string | null;
+  /** Faces picked by hand from the catalog, when no pairing fits. Ignored when pairing is set. */
+  fonts: { sans: string; mono: string; display: string | null } | null;
   radius: number | null;
   density: "compact" | "comfortable" | null;
   motion: (typeof MOTION_PROFILES)[number] | null;
@@ -33,7 +39,7 @@ export interface DesignPatch {
 }
 
 export const PATCH_FIELDS = [
-  "brand", "neutral", "defaultMode", "texture", "pairing", "radius", "density", "motion",
+  "brand", "neutral", "defaultMode", "texture", "pairing", "fonts", "radius", "density", "motion",
   "energy", "warmth", "novelty", "uiCase", "emoji", "tone",
 ] as const;
 
@@ -50,7 +56,18 @@ export function patchSchema(): Record<string, unknown> {
       neutral: nullable({ type: "string", enum: ["cool", "neutral", "warm"], description: "Temperature of the grays." }),
       defaultMode: nullable({ type: "string", enum: ["light", "dark"], description: "Which mode the product loads in." }),
       texture: nullable({ type: "string", enum: [...TEXTURES] }),
-      pairing: nullable({ type: "string", enum: PAIRINGS.map((p) => p.id), description: "Font pairing id." }),
+      pairing: nullable({ type: "string", enum: PAIRINGS.map((p) => p.id), description: "Font pairing id. Prefer a pairing; use fonts only when none fits." }),
+      fonts: nullable({
+        type: "object",
+        additionalProperties: false,
+        required: ["sans", "mono", "display"],
+        description: "Faces picked from the catalog by id, used only when pairing is null.",
+        properties: {
+          sans: { type: "string", enum: fontsFor("body").map((f) => f.id), description: "Body and interface face." },
+          mono: { type: "string", enum: fontsFor("mono").map((f) => f.id) },
+          display: nullable({ type: "string", enum: fontsFor("display").map((f) => f.id), description: "Headline face, or null to use the body face." }),
+        },
+      }),
       radius: nullable({ type: "number", description: "Base corner radius in px, 0 to 20." }),
       density: nullable({ type: "string", enum: ["compact", "comfortable"] }),
       motion: nullable({ type: "string", enum: [...MOTION_PROFILES] }),
@@ -79,6 +96,14 @@ export function applyPatch(config: DesignConfig, patch: Partial<DesignPatch>): D
     const fonts = pairingFonts(patch.pairing);
     next.type = { ...next.type, sans: fonts.sans, mono: fonts.mono, display: fonts.display };
     if (!fonts.display) delete next.type.display;
+  } else if (patch.fonts && FONTS[patch.fonts.sans] && FONTS[patch.fonts.mono]) {
+    try {
+      const fonts = customFonts(patch.fonts);
+      next.type = { ...next.type, sans: fonts.sans, mono: fonts.mono, display: fonts.display };
+      if (!fonts.display) delete next.type.display;
+    } catch {
+      // A face in the wrong role (a display face as body text): keep the current type.
+    }
   }
   if (typeof patch.radius === "number" && Number.isFinite(patch.radius)) {
     next.shape = { ...next.shape, radius: Math.round(Math.min(20, Math.max(0, patch.radius))) };
@@ -116,6 +141,10 @@ export function currentChoices(config: DesignConfig): DesignPatch {
     defaultMode: config.color.defaultMode ?? "light",
     texture: config.texture,
     pairing: pairingOf(config),
+    fonts: pairingOf(config) ? null : (() => {
+      const f = fontsOf(config);
+      return f.sans && f.mono ? { sans: f.sans, mono: f.mono, display: f.display } : null;
+    })(),
     radius: config.shape?.radius ?? 8,
     density: config.density ?? "comfortable",
     motion: config.motion ?? "subtle",
@@ -133,7 +162,7 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
   const a = currentChoices(before);
   const b = currentChoices(after);
   const label: Record<string, string> = {
-    brand: "Brand color", neutral: "Grays", defaultMode: "Loads in", texture: "Texture", pairing: "Type",
+    brand: "Brand color", neutral: "Grays", defaultMode: "Loads in", texture: "Texture", pairing: "Type", fonts: "Typefaces",
     radius: "Corners", density: "Density", motion: "Motion", energy: "Energy", warmth: "Warmth",
     novelty: "Novelty", uiCase: "Label case", emoji: "Emoji", tone: "Voice",
   };
@@ -141,6 +170,10 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
     if (v === null || v === undefined) return "none";
     if (k === "radius") return `${v}px`;
     if (k === "pairing") return PAIRINGS.find((p) => p.id === v)?.name ?? String(v);
+    if (k === "fonts") {
+      const f = v as { sans: string; display: string | null };
+      return [f.display, f.sans].filter(Boolean).map((id) => FONTS[id!]?.google ?? id).join(" + ");
+    }
     if (typeof v === "number") return `${Math.round(v * 100)}%`;
     if (k === "defaultMode") return `${v} mode`;
     return String(v);

@@ -141,6 +141,18 @@ export interface MotionProfile {
   spring: { duration: number; bounce: number } | null;
   /** Ceiling for any UI transition, in ms. */
   maxDuration: number;
+  /**
+   * Content and data reveals: counters, charts, text and sections arriving as
+   * they scroll into view. Longer than UI motion because nobody is waiting on
+   * them; never used for a response to a press.
+   */
+  reveal: number;
+  /** Delay between items in a staggered reveal, in ms. 0 reveals them together. */
+  stagger: number;
+  /** Distance in px revealed content travels. 0 means fade only. */
+  revealDistance: number;
+  /** Whether ambient loops (a logo marquee) move at all. */
+  ambient: boolean;
 }
 
 export const MOTION: Record<MotionProfileName, MotionProfile> = {
@@ -152,6 +164,10 @@ export const MOTION: Record<MotionProfileName, MotionProfile> = {
     enterDistance: 0,
     spring: null,
     maxDuration: 250,
+    reveal: 200,
+    stagger: 0,
+    revealDistance: 0,
+    ambient: false,
   },
   subtle: {
     name: "subtle",
@@ -161,6 +177,10 @@ export const MOTION: Record<MotionProfileName, MotionProfile> = {
     enterDistance: 4,
     spring: { duration: 0.3, bounce: 0 },
     maxDuration: 300,
+    reveal: 700,
+    stagger: 40,
+    revealDistance: 8,
+    ambient: true,
   },
   expressive: {
     name: "expressive",
@@ -170,6 +190,10 @@ export const MOTION: Record<MotionProfileName, MotionProfile> = {
     enterDistance: 8,
     spring: { duration: 0.35, bounce: 0.15 },
     maxDuration: 400,
+    reveal: 1000,
+    stagger: 70,
+    revealDistance: 16,
+    ambient: true,
   },
 };
 

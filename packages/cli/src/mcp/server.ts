@@ -223,12 +223,69 @@ export const TOOLS: Tool[] = [
       return text(svg, { svg });
     },
   },
+  {
+    name: "list_animations",
+    title: "List brand animations",
+    description:
+      "Brand animations the system can make from its own colors, type and motion: logo reveals, announcements, metrics, charts, product walkthroughs, agent conversations, feature lists, end cards and a composed launch video. Each has fields for its words.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    async run(_args, ctx) {
+      const { systemForMotion } = await import("../animate.js");
+      const { s, copy } = await systemForMotion(ctx.root).catch(() => ({ s: null, copy: null }));
+      if (!s || !copy) return fail("Animations need the design system itself: run the MCP server in the system repo, or in an app that installed it from a local folder.");
+      const { animationsFor, animationDefaults, renderAnimation } = await import("@auto-design/core");
+      const list = animationsFor(s).map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        seconds: a.loop ? null : renderAnimation(s, a.id, { copy }).duration / 1000,
+        fields: a.fields.map((f) => ({ key: f.key, label: f.label, list: f.kind === "list", default: animationDefaults(a.id, s, copy)[f.key] ?? null })),
+      }));
+      return text(list.map((a) => `${a.id}: ${a.description} Fields: ${a.fields.map((f) => f.key).join(", ")}.`).join("\n"), { animations: list } as unknown as Json);
+    },
+  },
+  {
+    name: "render_animation",
+    title: "Render a brand animation",
+    description:
+      "Render one of the system's brand animations with your words, to a file in the project: .mp4, .webm or .gif (needs ffmpeg and Playwright), .html (plays in any browser), or a .png of the last frame. Formats: landscape 1920×1080, square 1080×1080, portrait 1080×1920. Call list_animations for ids and fields.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Animation id, e.g. announcement or launch." },
+        props: { type: "object", description: "Words by field key. Lists are arrays of strings.", additionalProperties: true },
+        format: { type: "string", enum: ["landscape", "square", "portrait"] },
+        mode: { type: "string", enum: ["light", "dark"] },
+        out: { type: "string", description: "Path relative to the project root. Defaults to .auto-design/animations/<id>.html." },
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+    async run(args, ctx) {
+      const id = str(args.id);
+      if (!id) return fail("Pass an animation id. Call list_animations for them.");
+      const out = str(args.out) ?? `.auto-design/animations/${id}.html`;
+      const path = resolve(ctx.root, out);
+      if (!path.startsWith(ctx.root + sep)) return fail("`out` must be inside the project.");
+      const raw = (args.props && typeof args.props === "object" ? args.props : {}) as Record<string, unknown>;
+      const flags = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Array.isArray(v) ? v.map(String).join("|") : String(v)]));
+      try {
+        const { runAnimate } = await import("../animate.js");
+        const r = await runAnimate({ cwd: ctx.root, id, format: str(args.format), mode: str(args.mode), out: path, props: flags, quiet: true });
+        const where = r.out ? relative(ctx.root, r.out) : "";
+        return text(`${r.note ? `${r.note} ` : ""}Saved ${where} (${(r.duration / 1000).toFixed(1)}s).`, { path: r.out, kind: r.kind, seconds: r.duration / 1000 } as unknown as Json);
+      } catch (e) {
+        return fail((e as Error).message);
+      }
+    },
+  },
 ];
 
 const INSTRUCTIONS =
   "This project has a design system with hard guardrails. Before writing or changing UI, call get_rules (or read DESIGN.md) and use list_components. " +
   "Use semantic role classes (bg-card, text-muted-foreground) and the system's scales only. After writing UI, call check_code and fix every error. " +
-  "Before sending any iMessage, SMS or chat copy, call check_message and use its formatted text.";
+  "Before sending any iMessage, SMS or chat copy, call check_message and use its formatted text. " +
+  "For launch videos, social posts and product walkthroughs, use list_animations and render_animation instead of writing animation code.";
 
 export async function handle(msg: Json, cwd: string): Promise<Json | null> {
   const id = msg.id as string | number | undefined;

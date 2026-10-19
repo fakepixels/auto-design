@@ -140,3 +140,6 @@ function asset(name: string): string {
 
 /** The renderer's stylesheet and script, for pages that embed previews. */
 export const specimenAssets = () => ({ css: asset("renderer.css"), js: asset("renderer.js") });
+
+/** The brand animation runtime (one clock for every animation on a stage). */
+export const motionRuntime = () => asset("motion-runtime.js");

@@ -160,7 +160,7 @@ export interface Variant {
 }
 
 /** The options for a taste question, each drawn on the person's own system. */
-export function variants(session: Session, field: VariantField): Variant[] {
+export function variants(session: Session, field: VariantField, opts: { mood?: string } = {}): Variant[] {
   const list: { value: string | number; name: string; note: string; config: () => DesignConfig }[] = [];
   const with_ = (patch: Partial<DesignPatch>) => () => applyPatch(session.config, patch);
   switch (field) {
@@ -174,6 +174,7 @@ export function variants(session: Session, field: VariantField): Variant[] {
       break;
     case "pairing":
       for (const p of PAIRINGS) {
+        if (opts.mood && p.mood !== opts.mood) continue;
         const faces = [p.display?.font, p.sans.font].filter(Boolean).map((f) => FONTS[f!]!.google);
         list.push({ value: p.id, name: faces.join(" + "), note: p.note, config: with_({ pairing: p.id }) });
       }

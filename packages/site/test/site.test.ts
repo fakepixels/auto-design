@@ -44,6 +44,12 @@ describe("design site", () => {
       expect(r.files["docs/components/code-block/index.html"]).toMatch(/data-preview="code-block" data-static/);
       expect(r.files["_site/previews.js"]).not.toMatch(/codeToHtml/);
       expect(brokenLinks(r.files)).toEqual([]);
+      // Motion: a gallery, a player per animation, and the scripts that redraw it.
+      expect(r.files["motion/index.html"]).toContain('class="adm-stage');
+      expect(r.files["motion/launch/index.html"]).toContain('id="adm-data"');
+      expect(r.files["_site/motion-templates.js"]).toContain("ADMotionTemplates");
+      expect(r.files["_site/motion-runtime.js"]).toContain("ADMotion");
+      expect(r.files["index.html"]).toContain('aria-label="In motion"');
       // Classes come from the system's own theme: roles exist, Tailwind's palette doesn't.
       const css = r.files["_site/site.css"]!;
       expect(css).toContain(".bg-primary");

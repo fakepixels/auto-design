@@ -8,11 +8,12 @@ agents read, and a checker that fails the build when anything drifts off-system.
 
 ![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
 
-> Status: **Phases 0 to 3 done, and every system now builds its own design site.** Onboarding, five
-> presets, the compiler, the checker, the studio, publishing, a white-label design site with live
-> components, your own components and pages on top, and the agent surfaces (an MCP server, chat
-> components, an MCP Apps adapter, iMessage and SMS rules, image cards and `auto-design review`) work end
-> to end. See the [build plan](#roadmap).
+> Status: **Phases 0 to 3 done; every system now builds its own design site and its own brand animations.**
+> Onboarding, five presets, 161 open-source typefaces in 53 pairings, the compiler, the checker, the studio,
+> publishing, a white-label design site with live components, brand animations that render to video, your
+> own components and pages on top, and the agent surfaces (an MCP server, chat components, an MCP Apps
+> adapter, iMessage and SMS rules, image cards and `auto-design review`) work end to end. See the
+> [build plan](#roadmap).
 
 ## Why guardrails, not guidelines
 
@@ -51,8 +52,10 @@ messages, so you choose by looking rather than by reading token names:
    machine and the browser never sees it. Without one, every step still works; you lose suggestions and
    "describe a change".
 3. **Start.** One of five presets, or your current site and a few screenshots for the model to read.
-4. **Feel, texture, type, color, shape, motion.** Each shows its options side by side. Color has a visual
-   picker and accepts hex, `rgb()`, `hsl()` or `oklch()`; contrast is checked in light and dark mode as you go.
+4. **Feel, texture, type, color, shape, motion.** Each shows its options side by side. Type offers 53
+   pairings in seven moods (neutral, friendly, editorial, technical, expressive, refined, playful), or any of
+   161 open-source faces for headlines, text and code. Color has a visual picker and accepts hex, `rgb()`,
+   `hsl()` or `oklch()`; contrast is checked in light and dark mode as you go.
 5. **Surfaces.** Web app, marketing site, code blocks, in-app chat, ChatGPT and Claude apps, iMessage and SMS.
 6. **Review and publish.** Writes the repo, commits it, creates the GitHub repo and sets up hosting.
 
@@ -121,6 +124,49 @@ them on every run:
 | `examples/<name>.tsx` | A live example on the site. `button.tsx` replaces the button's preview; `button-loading.tsx` adds one |
 | `docs/<slug>.md` | A page of your own, under Guides. Front matter sets `title`, `description` and `order` |
 
+## Brand animations
+
+![A launch film rendered from the Quiet system](docs/launch.gif)
+
+The system is the atom; animations are molecules built from it. Every system gets brand animations made
+from its own colors, type, corners, texture and motion profile, playing in the product's own words:
+
+| Animation | What it shows |
+| --- | --- |
+| `logo-reveal` | The mark arrives, the name follows it out, then the line. An intro or an outro |
+| `announcement` | A headline that rises word by word, one line of context and the call to action |
+| `metric` | One number that counts up, what it measures, and a line that draws the trend |
+| `chart` | Bars that build one by one, the largest in the brand color, with the total counting up |
+| `product-demo` | The app window opens, the pointer takes the main action, and the product answers |
+| `chat-demo` | A question, a tool call, a streamed answer, and an approval before the agent acts |
+| `text-thread` | A text conversation on a phone: typing, then each message in turn |
+| `feature-list` | A title, then each feature in turn with a check in the brand color |
+| `end-card` | Mark, name, the one thing to do next and where to go |
+| `loader` | The mark over a bar that fills in the system's easing |
+| `launch` | Logo, headline, the product in use, what's new and the end card, as one film |
+
+The motion profile sets their character: a still system only fades, a subtle one rises a little, an
+expressive one springs. Glass scenes sit on soft color, technical ones on a grid, editorial ones lead with
+type. Each renders in landscape (1920×1080), square (1080×1080) or portrait (1080×1920):
+
+```sh
+npx auto-design animate                                   # list them
+npx auto-design animate announcement --title "Approvals in one click" --format square --out launch.mp4
+npx auto-design animate feature-list --items "Faster search|Shared views|Exports" --out new.gif
+npx auto-design animate launch --out launch.html          # one file that plays in any browser
+```
+
+The renderer is auto-design's own (MIT): the same HTML the design site plays, stepped frame by frame in
+Playwright and encoded by ffmpeg, so every frame is exact. MP4, WebM and GIF need ffmpeg and Playwright;
+HTML and PNG don't. On the design site, the Motion section plays every animation, edits its words live,
+switches format and mode, and gives you the command for the video. Agents use the MCP tools
+`list_animations` and `render_animation`.
+
+![The Motion section of the design site](docs/motion.png)
+
+For product UI, the `motion` registry item is the same profile as a module apps import: durations, easing,
+springs and entrance and reveal presets for [Motion](https://motion.dev) or the Web Animations API.
+
 ## Refine it
 
 After publishing, the studio keeps a system and the apps that use it in step. `design.config.ts` stays the
@@ -178,6 +224,7 @@ system as tools, in a system repo or in any app that installed it:
 | `check_code` | The guardrail checker, on code in memory or files on disk |
 | `check_message` | Texting and voice rules for iMessage, SMS, RCS and chat, with a fixed version |
 | `render_card` | An image card in the system's style |
+| `list_animations`, `render_animation` | The system's brand animations, rendered to MP4, WebM, GIF or HTML in your words |
 
 Run it yourself with `npx auto-design mcp` (stdio).
 
@@ -312,12 +359,12 @@ installed through the shadcn CLI from [`examples/quiet-design`](examples/quiet-d
 
 | Package | What it does |
 | --- | --- |
-| [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, contrast enforcement, emitters |
+| [`@auto-design/core`](packages/core) | Config schema, OKLCH color engine, type and motion scales, the font catalog, contrast enforcement, emitters, the brand animation engine |
 | [`@auto-design/check`](packages/check) | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | [`@auto-design/presets`](packages/presets) | Quiet, Editorial, Glass, Terminal and Tactile |
 | [`@auto-design/ai`](packages/ai) | Model calls (Claude, OpenAI, OpenRouter): onboarding suggestions and refinements as validated config changes, and review critiques |
 | [`@auto-design/site`](packages/site) | The design site: pages, live examples bundled with esbuild and prerendered with React, Tailwind compiled against the system's own theme |
-| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `serve`, `check`, `mcp`, `message`, `card`, `review`, `presets` |
+| [`auto-design`](packages/cli) | The CLI: `init` (onboarding), `dev` (the studio), `add`, `build`, `serve`, `check`, `mcp`, `message`, `card`, `animate`, `review`, `presets` |
 | [`@auto-design/eslint-plugin`](packages/eslint-plugin) | The checker as ESLint rules |
 | [`@auto-design/stylelint-plugin`](packages/stylelint-plugin) | The checker as a Stylelint plugin |
 
@@ -338,15 +385,16 @@ npm run typecheck
 | 5 (first version done) | The white-label design site: home, docs, live components, your own pages; next: blocks |
 | 6 | Blocks, an Agent Skill per system, named registry installs (`@northwind/button`) |
 | 7 | Brand media: logo, illustration and icons, social and OG images, ads, email, slides, with checks and a Brand section on the site |
-| 8 | Motion and video, with an MIT renderer |
+| 8 (first version done) | Brand animations from the system's motion: 10 scenes and a launch film, rendered to video by an MIT renderer, on the site and over MCP; next: more scenes, sound, longer films |
 | 9 | No-code editing, a preset gallery, maybe a hosted version |
 
 ## Credits
 
 Built on [shadcn/ui](https://ui.shadcn.com) and its registry, [Tailwind CSS](https://tailwindcss.com),
 [Sonner](https://sonner.emilkowal.ski) by Emil Kowalski for toasts, and typefaces under the SIL Open Font
-License: [Geist](https://vercel.com/font), Instrument Sans and Serif, IBM Plex Sans, JetBrains Mono, Figtree,
-DM Sans, Bricolage Grotesque, Red Hat Mono, Manrope and Fira Code, served by [Fontsource](https://fontsource.org). Token files follow the [W3C Design Tokens format](https://www.designtokens.org/tr/2025.10/).
+License, 161 families from [Geist](https://vercel.com/font) and Inter to Fraunces, Bodoni Moda and
+Silkscreen, served by [Fontsource](https://fontsource.org). Animations render with [Playwright](https://playwright.dev)
+and [ffmpeg](https://ffmpeg.org) when installed. Token files follow the [W3C Design Tokens format](https://www.designtokens.org/tr/2025.10/).
 
 ## License
 

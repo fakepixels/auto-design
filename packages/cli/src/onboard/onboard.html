@@ -171,6 +171,13 @@
   .chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; cursor: pointer; }
   .chip i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
   .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .chip.text { padding: 0 12px; }
+  .type-moods { margin-bottom: 10px; }
+  .type-note { margin: 0 0 18px; }
+  .own-type { display: grid; gap: 18px; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); align-items: start; }
+  .own-type-fields { display: grid; gap: 14px; }
+  .own-type .big-view { min-height: 320px; }
+  @media (max-width: 900px) { .own-type { grid-template-columns: 1fr; } }
   .reasons { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 3px; }
   .suggestion { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: start; margin-top: 14px; max-width: 980px; }
   .suggestion .view { height: 280px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
@@ -335,14 +342,14 @@
   }
 
   /** A grid of options for one field, each drawn on the current system. */
-  async function proofs(container, field, { scenes, current, label, size = "s", height, width, onPick, autoplay } = {}) {
+  async function proofs(container, field, { scenes, current, label, size = "s", height, width, onPick, autoplay, filter } = {}) {
     container.classList.add("proofs", "loading");
     if (height) container.style.setProperty("--proof-h", height + "px");
     if (width) container.style.setProperty("--proof-w", width + "px");
     container.innerHTML = Array.from({ length: 3 }, () => '<div class="proof"><div class="view"></div><div class="meta"><b>&nbsp;</b><span>&nbsp;</span></div></div>').join("");
     let list;
     try {
-      list = await api("/api/variants", { field });
+      list = await api("/api/variants", { field, ...(filter || {}) });
     } catch (e) {
       container.classList.remove("loading");
       container.innerHTML = `<p class="error">${esc(e.message)}</p>`;
@@ -376,6 +383,65 @@
 
   /* ---------- Steps ---------- */
   const PAIRING = (id) => (app.state.pairings.find((p) => p.id === id) || {}).name || id;
+  const FACE = (id) => (app.state.catalog.find((f) => f.id === id) || {}).name || id;
+  const ownTypeName = () => { const f = app.state.fontIds || {}; return [f.display, f.sans].filter(Boolean).map(FACE).join(" + "); };
+
+  /** Type: curated pairings by mood, or any catalog face for headlines, text and code. */
+  function renderType(root) {
+    const moods = app.state.moods;
+    const current = app.state.pairings.find((p) => p.id === app.state.choices.pairing);
+    let mood = current ? current.mood : app.state.choices.pairing === null ? "own" : "neutral";
+    const bar = h(`<div class="chips type-moods" role="group" aria-label="Mood">${moods.map((m) => `<button class="chip text" data-mood="${m.id}">${esc(m.name)}</button>`).join("")}<button class="chip text" data-mood="own">Your own</button></div>`);
+    const note = h(`<p class="note type-note"></p>`);
+    const body = h("<div></div>");
+    root.append(bar, note, body);
+    const show = (m) => {
+      mood = m;
+      bar.querySelectorAll("[data-mood]").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.mood === m)));
+      note.textContent = m === "own"
+        ? `Pick from ${app.state.catalog.length} open-source faces: one for headlines, one for text, one for code.`
+        : (moods.find((x) => x.id === m) || {}).note || "";
+      body.innerHTML = "";
+      if (m === "own") return renderOwnType(body);
+      const g = h("<div></div>");
+      body.append(g);
+      proofs(g, "pairing", { scenes: ["type"], height: 300, current: () => app.state.choices.pairing, label: "Type", filter: { mood: m } });
+    };
+    bar.addEventListener("click", (e) => { const b = e.target.closest("[data-mood]"); if (b) show(b.dataset.mood); });
+    show(mood);
+  }
+
+  function renderOwnType(body) {
+    const cat = app.state.catalog, styles = app.state.fontStyles, cur = app.state.fontIds || {};
+    const options = (role, selected) => styles.map((st) => {
+      const faces = cat.filter((f) => f.style === st.id && f.roles.includes(role));
+      return faces.length ? `<optgroup label="${esc(st.name)}">${faces.map((f) => `<option value="${f.id}"${f.id === selected ? " selected" : ""}>${esc(f.name)}</option>`).join("")}</optgroup>` : "";
+    }).join("");
+    body.append(h(`<div class="own-type">
+      <div class="form own-type-fields">
+        <label class="field"><span>Headlines</span><select class="input" id="t-display"><option value="">Same as text</option>${options("display", cur.display || "")}</select><small id="t-display-note"></small></label>
+        <label class="field"><span>Text and interface</span><select class="input" id="t-sans">${options("body", cur.sans)}</select><small id="t-sans-note"></small></label>
+        <label class="field"><span>Code and numbers</span><select class="input" id="t-mono">${options("mono", cur.mono)}</select><small id="t-mono-note"></small></label>
+      </div>
+      <div class="big-view" id="own-view"></div>
+    </div>`));
+    const notes = () => {
+      for (const k of ["display", "sans", "mono"]) {
+        const id = $("#t-" + k).value;
+        $(`#t-${k}-note`).textContent = id ? (cat.find((f) => f.id === id) || {}).note || "" : "Headlines use the text face.";
+      }
+    };
+    const paint = () => draw($("#own-view"), app.state.specimen, ["type"], { size: "m" });
+    const pick = async () => {
+      const fonts = { sans: $("#t-sans").value, mono: $("#t-mono").value, display: $("#t-display").value || null };
+      notes();
+      const ok = await choose({ fonts }, `Type: ${[fonts.display, fonts.sans].filter(Boolean).map(FACE).join(" + ")}`);
+      if (ok) paint();
+    };
+    body.querySelectorAll("select").forEach((el) => el.addEventListener("change", pick));
+    notes();
+    paint();
+  }
   const STEPS = [
     {
       id: "product", title: "What are you building?", rail: "Product",
@@ -514,8 +580,8 @@
     {
       id: "type", title: "Choose type", rail: "Type",
       help: "Each pairing is set on your headline and your data. Every face is open source and installs from npm.",
-      value: () => PAIRING(app.state.choices.pairing),
-      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "pairing", { scenes: ["type"], height: 300, current: () => app.state.choices.pairing, label: "Type" }); },
+      value: () => app.state.choices.pairing ? PAIRING(app.state.choices.pairing) : ownTypeName(),
+      render(root) { renderType(root); },
     },
     {
       id: "color", title: "Choose a brand color", rail: "Color",

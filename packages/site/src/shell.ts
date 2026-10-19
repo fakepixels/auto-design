@@ -41,6 +41,8 @@ export interface PageInput {
   toc?: TocItem[];
   /** The page holds live examples and needs the hydration script. */
   previews?: boolean;
+  /** The page holds brand animations and needs the motion runtime. */
+  motion?: boolean;
 }
 
 const depth = (path: string) => path.split("/").filter(Boolean).length;
@@ -166,6 +168,10 @@ ${meta.fontsHref ? `<link rel="preconnect" href="https://fonts.googleapis.com">\
 <link rel="stylesheet" href="${root}_site/site.css">
 <script type="module" src="${root}_site/site.js"></script>
 ${page.previews ? `<script type="module" src="${root}_site/previews.js"></script>` : ""}
+${page.motion ? `<link rel="stylesheet" href="${root}_site/motion.css">
+<script defer src="${root}_site/motion-runtime.js"></script>
+<script defer src="${root}_site/motion-templates.js"></script>
+<script defer src="${root}_site/motion-player.js"></script>` : ""}
 </head>
 <body class="min-h-dvh bg-background font-sans text-foreground antialiased">
 <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md">Skip to content</a>

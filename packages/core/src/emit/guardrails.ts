@@ -85,7 +85,7 @@ export function buildGuardrails(s: DesignSystem): Guardrails {
     radius: { steps: ["none", "sm", "md", "lg", "xl", "full"] },
     shadow: { steps: ["none", ...SHADOW_STEPS] },
     motion: {
-      durations: [0, s.motion.durations.fast, s.motion.durations.base, s.motion.durations.slow],
+      durations: [...new Set([0, s.motion.durations.fast, s.motion.durations.base, s.motion.durations.slow, s.motion.reveal])],
       easings: ["linear", "out", "in-out"],
       maxDuration: s.motion.maxDuration,
       enterScale: s.motion.enterScale,

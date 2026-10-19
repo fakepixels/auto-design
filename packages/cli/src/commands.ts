@@ -258,7 +258,7 @@ export async function runInit(opts: { dir: string; preset: string }) {
     "package.json": systemPackageJson(s),
     "README.md": systemReadme(s),
     ".github/workflows/design-system.yml": WORKFLOW,
-    ".gitignore": "node_modules/\n",
+    ".gitignore": "node_modules/\n.auto-design/\n",
     ...emitAll(s),
   };
   writeFiles(root, files);

@@ -1,6 +1,7 @@
 import type { DesignSystem } from "../system.js";
 import { agentComponentSources } from "../agents/components.js";
 import { codeTheme } from "./code.js";
+import { motionModule } from "../motion/lib.js";
 
 /** The code theme as a TypeScript module, so apps need no JSON-import config. */
 function codeThemeModule(s: DesignSystem): string {
@@ -734,5 +735,15 @@ export { CodeBlock };
     { name: "message", title: "Message", description: "Chat messages and tool-call rows for agent UI.", dependencies: [], file: "message.tsx", content: message },
     ...extra,
     ...agentComponentSources(s),
+    {
+      name: "motion",
+      title: "Motion",
+      description: "Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.",
+      dependencies: [],
+      type: "registry:lib",
+      file: "",
+      content: "",
+      lib: [{ file: "motion.ts", content: motionModule(s) }],
+    },
   ];
 }

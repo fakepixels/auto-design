@@ -79,6 +79,15 @@
   --animate-fade-out: ad-fade-out var(--duration-fast) var(--ease-in-out) both;
   --animate-pulse: ad-pulse 2s var(--ease-in-out) infinite;
   --animate-spin: ad-spin 1s linear infinite;
+  --animate-reveal: ad-reveal var(--duration-reveal) var(--ease-out) both;
+  --animate-grow: ad-grow var(--duration-reveal) var(--ease-out) both;
+  --animate-draw: ad-draw var(--duration-reveal) var(--ease-out) both;
+  --animate-accordion-down: ad-accordion-down var(--duration-base) var(--ease-out);
+  --animate-accordion-up: ad-accordion-up var(--duration-fast) var(--ease-in-out);
+  --animate-sheet-in: ad-sheet-in var(--duration-slow) var(--ease-out) both;
+  --animate-sheet-out: ad-sheet-out var(--duration-base) var(--ease-in-out) both;
+  --animate-indeterminate: ad-indeterminate 1.4s var(--ease-in-out) infinite;
+  --animate-marquee: ad-marquee var(--marquee-duration, 40s) linear infinite;
 }
 
 @theme inline {
@@ -130,6 +139,9 @@
   --duration-slow: 260ms;
   --enter-scale: 0.97;
   --enter-distance: 4px;
+  --duration-reveal: 700ms;
+  --stagger: 40ms;
+  --reveal-distance: 8px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0.007 256);
   --card: oklch(1 0 0);
@@ -247,10 +259,101 @@
   }
 }
 
+@keyframes ad-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-distance));
+  }
+}
+
+/* Data grows from its baseline: bars in a chart, a filling meter. Set the origin with origin-bottom or origin-left. */
+@keyframes ad-grow {
+  from {
+    transform: scale(var(--grow-x, 1), var(--grow-y, 0));
+  }
+}
+
+/* Strokes draw along their length. Give the path pathLength="1" and stroke-dasharray="1". */
+@keyframes ad-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ad-accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height, auto));
+  }
+}
+
+@keyframes ad-accordion-up {
+  from {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height, auto));
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Sheets travel from the edge set in --sheet-from (translateX(100%) for a right sheet). */
+@keyframes ad-sheet-in {
+  from {
+    transform: var(--sheet-from);
+  }
+}
+
+@keyframes ad-sheet-out {
+  to {
+    transform: var(--sheet-from);
+  }
+}
+
+@keyframes ad-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes ad-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Page transitions with the View Transitions API use the same timing as everything else. */
+::view-transition-old(root) {
+  animation: ad-fade-out var(--duration-fast) var(--ease-in-out) both;
+}
+
+::view-transition-new(root) {
+  animation: ad-enter var(--duration-base) var(--ease-out) both;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-in-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --enter-scale: 1;
     --enter-distance: 0px;
+    --reveal-distance: 0px;
+    --stagger: 0ms;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 

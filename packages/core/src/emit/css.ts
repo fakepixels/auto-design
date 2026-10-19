@@ -65,6 +65,18 @@ export function themeTokens(s: DesignSystem): Record<string, string> {
   t["--animate-fade-out"] = "ad-fade-out var(--duration-fast) var(--ease-in-out) both";
   t["--animate-pulse"] = "ad-pulse 2s var(--ease-in-out) infinite";
   t["--animate-spin"] = "ad-spin 1s linear infinite";
+  // Content reveals: text, sections, charts and counters arriving in view.
+  t["--animate-reveal"] = "ad-reveal var(--duration-reveal) var(--ease-out) both";
+  t["--animate-grow"] = "ad-grow var(--duration-reveal) var(--ease-out) both";
+  t["--animate-draw"] = "ad-draw var(--duration-reveal) var(--ease-out) both";
+  // Disclosure and sheets: height and edge travel, with the system's easing.
+  t["--animate-accordion-down"] = "ad-accordion-down var(--duration-base) var(--ease-out)";
+  t["--animate-accordion-up"] = "ad-accordion-up var(--duration-fast) var(--ease-in-out)";
+  t["--animate-sheet-in"] = "ad-sheet-in var(--duration-slow) var(--ease-out) both";
+  t["--animate-sheet-out"] = "ad-sheet-out var(--duration-base) var(--ease-in-out) both";
+  t["--animate-indeterminate"] = "ad-indeterminate 1.4s var(--ease-in-out) infinite";
+  // Ambient: the only looping motion, for logo strips and tickers on marketing pages.
+  t["--animate-marquee"] = "ad-marquee var(--marquee-duration, 40s) linear infinite";
   return t;
 }
 
@@ -83,6 +95,9 @@ export function staticRootTokens(s: DesignSystem): Record<string, string> {
     "--duration-slow": `${s.motion.durations.slow}ms`,
     "--enter-scale": String(s.motion.enterScale),
     "--enter-distance": `${s.motion.enterDistance}px`,
+    "--duration-reveal": `${s.motion.reveal}ms`,
+    "--stagger": `${s.motion.stagger}ms`,
+    "--reveal-distance": `${s.motion.revealDistance}px`,
   };
 }
 
@@ -127,6 +142,90 @@ export const KEYFRAMES = `@keyframes ad-enter {
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes ad-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-distance));
+  }
+}
+
+/* Data grows from its baseline: bars in a chart, a filling meter. Set the origin with origin-bottom or origin-left. */
+@keyframes ad-grow {
+  from {
+    transform: scale(var(--grow-x, 1), var(--grow-y, 0));
+  }
+}
+
+/* Strokes draw along their length. Give the path pathLength="1" and stroke-dasharray="1". */
+@keyframes ad-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ad-accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height, auto));
+  }
+}
+
+@keyframes ad-accordion-up {
+  from {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height, auto));
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Sheets travel from the edge set in --sheet-from (translateX(100%) for a right sheet). */
+@keyframes ad-sheet-in {
+  from {
+    transform: var(--sheet-from);
+  }
+}
+
+@keyframes ad-sheet-out {
+  to {
+    transform: var(--sheet-from);
+  }
+}
+
+@keyframes ad-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes ad-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Page transitions with the View Transitions API use the same timing as everything else. */
+::view-transition-old(root) {
+  animation: ad-fade-out var(--duration-fast) var(--ease-in-out) both;
+}
+
+::view-transition-new(root) {
+  animation: ad-enter var(--duration-base) var(--ease-out) both;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-in-out);
 }`;
 
 export const baseLayer = (darkFirst: boolean) => `@layer base {
@@ -191,6 +290,13 @@ export const REDUCED_MOTION = `@media (prefers-reduced-motion: reduce) {
   :root {
     --enter-scale: 1;
     --enter-distance: 0px;
+    --reveal-distance: 0px;
+    --stagger: 0ms;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }`;
 

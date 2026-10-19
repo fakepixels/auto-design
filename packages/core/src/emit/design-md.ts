@@ -6,6 +6,8 @@ import { isDarkFirst } from "./css.js";
 import { RULES, buildGuardrails, type RuleId } from "./guardrails.js";
 import { WEIGHT_NAMES, header } from "./shared.js";
 import { surfacesSection } from "../agents/design-md.js";
+import { motionLanguage } from "../motion/language.js";
+import { animationsFor } from "../motion/templates.js";
 
 const TEXTURE_PRINCIPLES: Record<Texture, string[]> = {
   minimal: [
@@ -187,12 +189,21 @@ export function emitDesignMd(s: DesignSystem): string {
     "",
     `Profile: **${s.motion.name}**.`,
     "",
-    `- Durations that pass the check: ${g.motion.durations.map((d) => `\`duration-${d}\``).join(", ")}. Nothing longer than ${s.motion.maxDuration}ms in product UI.`,
+    `- Durations that pass the check: ${g.motion.durations.map((d) => `\`duration-${d}\``).join(", ")}. Nothing that answers a press runs longer than ${s.motion.maxDuration}ms.`,
+    `- \`duration-${s.motion.reveal}\` is for reveals only: counters, charts, text and sections arriving as they scroll into view. Use \`animate-reveal\` (${s.motion.revealDistance ? `${s.motion.revealDistance}px of travel and a fade` : "a fade"}), \`animate-grow\` for bars and meters, \`animate-draw\` for lines${s.motion.stagger ? `, ${s.motion.stagger}ms between staggered items` : ""}.`,
+    s.motion.ambient
+      ? "- The only looping motion is `animate-marquee`, for logo strips on marketing pages. It pauses on hover and stops for reduced motion."
+      : "- Nothing loops. Logo strips and tickers stand still.",
     "- `ease-out` for things entering or responding to the user; `ease-in-out` for things moving on screen.",
     `- Entering elements use \`animate-enter\`: a fade${s.motion.enterScale < 1 ? ` from scale ${s.motion.enterScale}` : ""}${s.motion.enterDistance ? ` and ${s.motion.enterDistance}px of travel` : ""}. Never animate from \`scale-0\`.`,
     "- Decide whether an animation is needed before adding one. Frequent actions (menus, toggles, command palettes) are fast or instant; keyboard-triggered actions don't animate.",
     "- Popovers grow from their trigger, not from their center.",
-    "- Reduced motion is handled globally: `--enter-scale` and `--enter-distance` neutralize, leaving fades.",
+    "- Reduced motion is handled globally: `--enter-scale`, `--enter-distance`, `--reveal-distance` and `--stagger` neutralize, leaving fades; page transitions turn off.",
+    ...motionComponentsLine(s),
+    "",
+    "## Brand motion",
+    "",
+    ...brandMotionLines(s),
     "",
     "## Voice",
     "",
@@ -232,6 +243,30 @@ export function emitDesignMd(s: DesignSystem): string {
     "",
   );
   return lines.filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n");
+}
+
+/** Motion components, listed only when the system ships them. */
+function motionComponentsLine(s: DesignSystem): string[] {
+  const motion = ["number-ticker", "text-reveal", "reveal", "chart", "progress", "spinner", "accordion", "tooltip", "sheet", "segmented-control", "animated-list", "marquee", "hold-to-confirm", "copy-button", "page-transition"];
+  const have = new Set(componentSources(s).map((c) => c.name));
+  const list = motion.filter((m) => have.has(m));
+  return list.length ? [`- Use the motion components before writing your own: ${list.map((m) => `\`${m}\``).join(", ")}.`] : [];
+}
+
+/** Launch films, social posts and walkthroughs, made from the same motion. */
+function brandMotionLines(s: DesignSystem): string[] {
+  const lang = motionLanguage(s);
+  const list = animationsFor(s);
+  return [
+    "Launch films, social posts and product walkthroughs come from the system, not from a video editor. Don't hand-write animation code for them:",
+    "render one of these with `npx auto-design animate <id> --out file.mp4` (or the MCP tool `render_animation`), in the product's own words.",
+    "",
+    ...list.map((a) => `- \`${a.id}\`: ${a.description}`),
+    "",
+    `- Brand motion is slower and larger than product UI: entrances take ${lang.beat}ms${lang.travel ? ` and rise ${lang.travel}% of the frame` : " and only fade"}, items arrive ${lang.stagger}ms apart, and each scene holds ${lang.hold}ms before the next.`,
+    `- One idea per scene. Words come from the product (specimen.copy.json); pass your own with flags like \`--title\`.`,
+    "- Formats: landscape (1920×1080) for sites and decks, square (1080×1080) for social posts, portrait (1080×1920) for stories.",
+  ];
 }
 
 export function emitDesignMdFile(s: DesignSystem): Record<string, string> {

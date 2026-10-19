@@ -24,12 +24,22 @@ user-facing story; this file is how to work on it.
     every system repo, it's ready in about two seconds at the end of onboarding, and every host that
     serves `public/` today keeps working. The ownership split is the same: auto-design owns the shell, the
     repo owns `components/`, `examples/` and `docs/`.
+- Phase 8 (first version done, pulled ahead because Tina called it the core value: the system is the atom,
+  animations are molecules): `core/src/motion/`. A motion language derived from the profile
+  (`language.ts`), 10 scene templates plus a composed `launch` film (`templates.ts`), shared CSS
+  (`css.ts`), the runtime in `core/src/site/motion-runtime.js` (pauses every CSS animation and drives one
+  clock, so playback, scrubbing and video frames match), standalone documents (`document.ts`) and the
+  `motion` lib for apps (`lib.ts`). `auto-design animate` renders with Playwright frame stepping into
+  ffmpeg (`cli/src/animate.ts`); the site's Motion section plays and edits them (`site/src/motion.ts`,
+  `motion-player.js`); MCP has `list_animations` and `render_animation`.
+- Fonts: 161 OFL families in `core/src/font-catalog.ts` (generated from Fontsource metadata on npm), 53
+  pairings in seven moods in `fonts.ts`, and hand-picked faces (`customFonts`, the `fonts` patch field).
+  Onboarding's type step filters by mood and has a "Your own" picker.
 - Plan after that:
   - Phase 6: blocks, an Agent Skill per system, named registry installs (`@northwind/button`).
   - Phase 7: brand static media (logo, illustration and icons, social and OG images, ads, email, slides),
     code-first with image models opt-in, plus media checks and a Brand section on the site.
-  - Phase 8: motion and video with an MIT renderer (not Remotion, which is paid for companies over 3
-    people).
+  - Phase 8 next: more scenes, sound, longer films. Remotion stays out (paid for companies over 3 people).
   - Phase 9: no-code editing, a preset gallery, maybe a hosted version. Local and self-hosted first.
   - Dogfood: build the onboarding and site chrome from an auto-design system.
 - Known gaps:
@@ -52,12 +62,12 @@ user-facing story; this file is how to work on it.
 
 | Path | What it is |
 | --- | --- |
-| `packages/core` | Config schema, OKLCH color engine, scales, contrast enforcement, every emitter (`src/emit/`), the specimen renderer shared by onboarding, studio and docs site (`src/site/`), agent surfaces (`src/agents/`: messaging rules, image cards, MCP Apps layer, chat components, agent theme) |
+| `packages/core` | Config schema, OKLCH color engine, scales, font catalog, contrast enforcement, every emitter (`src/emit/`), the specimen renderer shared by onboarding, studio and docs site (`src/site/`), brand animations (`src/motion/`), agent surfaces (`src/agents/`: messaging rules, image cards, MCP Apps layer, chat components, agent theme) |
 | `packages/check` | The guardrail checker (Babel for TSX, PostCSS for CSS) |
 | `packages/presets` | Quiet, Editorial, Glass, Terminal, Tactile |
 | `packages/ai` | Model calls over fetch (Anthropic, OpenAI, OpenRouter, mock): config patches, copy, site extraction, review critique |
 | `packages/site` | The design site: `bundle.ts` (examples prerendered in Node, interactive ones hydrated as islands), `css.ts` (Tailwind compiled against the system's own CSS, so only on-system classes exist), `pages.ts` (content), `shell.ts` (layout), `site-client.js` (search, tabs, copy, mode) |
-| `packages/cli` | `init` (onboarding app in `src/onboard/`), `dev` (studio in `src/dev/`), `add`, `build`, `serve`, `check`, `mcp` (`src/mcp/`), `message`, `card`, `review` (`src/review/`); `custom.ts` reads a repo's `components/`, `examples/` and `docs/` |
+| `packages/cli` | `init` (onboarding app in `src/onboard/`), `dev` (studio in `src/dev/`), `add`, `build`, `serve`, `check`, `mcp` (`src/mcp/`), `message`, `card`, `animate`, `review` (`src/review/`); `custom.ts` reads a repo's `components/`, `examples/` and `docs/` |
 | `packages/eslint-plugin`, `packages/stylelint-plugin` | The checker inside editors |
 | `examples/quiet-design` | A generated system repo (Quiet preset) |
 | `examples/next-quiet` | A Next.js app with that system installed. Not a workspace: it has its own `npm install` |
@@ -80,7 +90,7 @@ user-facing story; this file is how to work on it.
 
 ```sh
 npm install
-npm test                 # vitest, about 160 tests
+npm test                 # vitest, about 180 tests
 npm run typecheck
 npx auto-design <command>   # runs the TypeScript sources through tsx
 ```
@@ -104,5 +114,10 @@ cd examples/next-quiet && npx auto-design add ../quiet-design --components <chan
 - Browser-side code embedded in template strings (`site/renderer.js` consumers, `review/audit.ts`,
   `emit/site.ts`) needs doubled backslashes in regexes.
 - The studio started from onboarding runs inside the `init` process; ending it stops the studio.
+- Animation scenes: every animated element sets its own `--d` delay (the `d()` helper); scenes in a
+  sequence fade on `--sd`, which elements never read. Sizes are in stage units (`--u`, 1% of the short
+  side), never px. Render a contact sheet of frames (seek with `window.__seek`) to review a change.
+- Regenerate `font-catalog.ts` from Fontsource metadata when adding families: every entry must be OFL-1.1
+  and carry a style, roles and a one-line note.
 - Product copy follows the system's own voice: plain words, sentence case, active verbs, no emoji, errors
   that say what to do next.

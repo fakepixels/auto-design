@@ -23,6 +23,8 @@ export interface SiteMaterial {
   neutral: "cool" | "neutral" | "warm" | null;
   fonts: string[];
   pairing: string | null;
+  /** Catalog faces the site itself uses, when there are any. */
+  catalogFonts: { sans: string; mono: string; display: string | null } | null;
   radius: number | null;
   dark: boolean;
   /** What was read, for the model and for the person. */
@@ -147,6 +149,16 @@ function radiusIn(css: string): number | null {
   return Math.round(values[Math.floor(values.length / 2)]!);
 }
 
+/** The faces a site uses that are in the catalog, in a shape a patch can set. */
+export function catalogFontsForSite(fonts: string[]): { sans: string; mono: string; display: string | null } | null {
+  const found = fonts.map((f) => findFont(f)).filter((e): e is NonNullable<ReturnType<typeof findFont>> => !!e);
+  const body = found.find((e) => e.roles.includes("body") && e.kind !== "mono");
+  const display = found.find((e) => e.roles.includes("display") && e !== body && e.kind !== "mono");
+  const mono = found.find((e) => e.kind === "mono");
+  if (!body && !display) return null;
+  return { sans: body?.id ?? "inter", mono: mono?.id ?? "jetbrains-mono", display: display?.id ?? null };
+}
+
 /** The pairing whose sans or display face matches one of the site's fonts. */
 export function pairingForFonts(fonts: string[]): string | null {
   for (const f of fonts) {
@@ -188,6 +200,7 @@ export async function extractFromSite(input: string, signal?: AbortSignal): Prom
   const scheme = meta(html, "color-scheme") ?? "";
   const dark = (theme ? theme.l < 0.3 : false) || /^dark\b/i.test(scheme.trim());
   const pairing = pairingForFonts(fonts);
+  const catalogFonts = catalogFontsForSite(fonts);
 
   const summary = [
     `Site: ${url}`,
@@ -203,7 +216,7 @@ export async function extractFromSite(input: string, signal?: AbortSignal): Prom
     .filter(Boolean)
     .join("\n");
 
-  return { url, title, description, themeColor, colors, neutral, fonts, pairing, radius, dark, summary };
+  return { url, title, description, themeColor, colors, neutral, fonts, pairing, catalogFonts, radius, dark, summary };
 }
 
 /** A patch from what the site shows, without a model. */
@@ -211,7 +224,9 @@ export function patchFromSite(m: SiteMaterial): Partial<DesignPatch> {
   const patch: Partial<DesignPatch> = {};
   if (m.colors[0]) patch.brand = m.colors[0].hex;
   if (m.neutral) patch.neutral = m.neutral;
-  if (m.pairing) patch.pairing = m.pairing;
+  // The site's own faces when the catalog has them; otherwise the closest pairing.
+  if (m.catalogFonts && !PAIRINGS.some((p) => p.sans.font === m.catalogFonts!.sans && (p.display?.font ?? null) === m.catalogFonts!.display)) patch.fonts = m.catalogFonts;
+  else if (m.pairing) patch.pairing = m.pairing;
   if (m.radius !== null) patch.radius = m.radius;
   if (m.dark) patch.defaultMode = "dark";
   return patch;

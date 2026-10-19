@@ -122,7 +122,7 @@ export function homePage(ctx: PageContext): PageInput {
     },
     {
       title: "Motion",
-      href: "docs/motion/",
+      href: "motion/",
       body: `<div class="flex h-10 items-center"><span data-glance-motion class="block h-2 w-full overflow-hidden rounded-full bg-muted"><span class="block h-full w-1/3 rounded-full bg-primary"></span></span></div>
       <p class="mt-3 text-sm text-muted-foreground">${s.motion.name.charAt(0).toUpperCase() + s.motion.name.slice(1)}: ${s.motion.durations.fast} to ${s.motion.durations.slow}ms, nothing over ${s.motion.maxDuration}ms.</p>`,
     },
@@ -464,6 +464,7 @@ export function motionPage(ctx: PageContext): PageInput {
     { id: "easing", text: "Easing", level: 2 },
     { id: "entering", text: "Entering", level: 2 },
     { id: "rules", text: "Rules", level: 2 },
+    { id: "brand", text: "Brand animations", level: 2 },
   ];
   const body = `
 ${p(`The ${esc(s.motion.name)} profile. Motion answers what people do: a press, a confirmation, a sheet sliding in. Press a row to play it.`)}
@@ -491,7 +492,9 @@ ${p(`${inlineCode("animate-enter")}: a fade${s.motion.enterScale < 1 ? ` from sc
   <button type="button" data-replay class="inline-flex h-${s.controls.sm} items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-accent">Replay</button>
 </div>
 ${h2("rules", "Rules")}
-${prose(ctx, mdSection(ctx.designMd, "Motion").replace(/^Profile:.*$/m, ""))}`;
+${prose(ctx, mdSection(ctx.designMd, "Motion").replace(/^Profile:.*$/m, ""))}
+${h2("brand", "Brand animations")}
+${p(`The same profile drives launch films, social posts and product walkthroughs, slower and larger than product UI. See them in <a href="{root}motion/" class="font-medium text-primary underline underline-offset-4">Motion</a>.`)}`;
   return { path: "docs/motion/", title: "Motion", description: "Durations, easing and how things enter.", body, docs: true, toc };
 }
 

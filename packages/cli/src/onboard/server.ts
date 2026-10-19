@@ -4,6 +4,10 @@ import { dirname, extname, join, normalize, relative, resolve, sep } from "node:
 import { fileURLToPath } from "node:url";
 import {
   FONTS,
+  FONT_CATALOG,
+  FONT_STYLES,
+  MOODS,
+  fontsOf,
   PAIRINGS,
   SURFACES,
   specimenAssets,
@@ -101,15 +105,22 @@ function packageDir(name: string, bases: string[]): string | null {
 
 const MIME: Record<string, string> = { ".css": "text/css; charset=utf-8", ".woff2": "font/woff2", ".woff": "font/woff", ".js": "text/javascript; charset=utf-8" };
 
-/** Font stylesheets for every catalog face: the local npm package when installed, else Google Fonts. */
+/**
+ * Font stylesheets for every catalog face: the local npm package when installed,
+ * else Google Fonts, a few families per request. Browsers only download a face's
+ * files when a preview uses it, so linking the whole catalog stays light.
+ */
 function fontLinks(bases: string[]): string[] {
   const local: string[] = [];
   const google: string[] = [];
   for (const f of Object.values(FONTS)) {
     if (packageDir(f.package, bases)) local.push(`/pkg/${f.package}/index.css`);
-    else google.push(f.available.length === 1 ? `family=${f.google.replace(/ /g, "+")}` : `family=${f.google.replace(/ /g, "+")}:wght@${f.available.join(";")}`);
+    else {
+      const weights = f.available.filter((w) => w >= 300 && w <= 700);
+      google.push(weights.length <= 1 ? `family=${f.google.replace(/ /g, "+")}` : `family=${f.google.replace(/ /g, "+")}:wght@${weights.join(";")}`);
+    }
   }
-  if (google.length) local.push(`https://fonts.googleapis.com/css2?${google.join("&")}&display=swap`);
+  for (let i = 0; i < google.length; i += 20) local.push(`https://fonts.googleapis.com/css2?${google.slice(i, i + 20).join("&")}&display=swap`);
   return local;
 }
 
@@ -132,6 +143,7 @@ function view(s: Session) {
     preset: s.preset,
     model: s.model ? { provider: s.model.provider, label: s.model.label, model: s.model.model ?? null } : null,
     choices: choices(s),
+    fontIds: fontsOf(s.config),
     surfaces: s.config.surfaces ?? [],
     name: s.config.name,
     displayName: s.config.displayName,
@@ -174,7 +186,10 @@ export async function runOnboard(opts: OnboardOptions) {
       textures: TEXTURE_INFO,
       motions: MOTION_INFO,
       surfacesInfo: Object.fromEntries(SURFACES.map((s) => [s, SURFACE_INFO[s]])),
-      pairings: PAIRINGS.map((p) => ({ id: p.id, name: p.name, note: p.note })),
+      pairings: PAIRINGS.map((p) => ({ id: p.id, name: p.name, note: p.note, mood: p.mood })),
+      moods: MOODS,
+      fontStyles: FONT_STYLES,
+      catalog: FONT_CATALOG.map((f) => ({ id: f.id, name: f.google, style: f.style, roles: f.roles, note: f.note })),
       fonts: fontLinks(fontBases),
       defaultDir: defaultDir ? relative(process.cwd(), defaultDir) || "." : null,
       cwd: process.cwd(),
@@ -209,7 +224,7 @@ export async function runOnboard(opts: OnboardOptions) {
       return view(session);
     },
 
-    "POST /api/variants": (b) => variants(session, String(b.field) as VariantField),
+    "POST /api/variants": (b) => variants(session, String(b.field) as VariantField, { mood: b.mood ? String(b.mood) : undefined }),
 
     "POST /api/preview": (b) => specimen(applyPatch(session.config, (b.patch ?? {}) as Partial<DesignPatch>)),
 

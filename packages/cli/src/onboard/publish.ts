@@ -178,7 +178,7 @@ export function writeRepo(opts: PublishOptions): string[] {
     "package.json": JSON.stringify(pkg, null, 2) + "\n",
     "README.md": readme(opts.config, hostingReadme(opts.hosting)),
     ".github/workflows/design-system.yml": WORKFLOW,
-    ".gitignore": "node_modules/\n.env*.local\n.vercel\n",
+    ".gitignore": "node_modules/\n.env*.local\n.vercel\n.auto-design/\n",
     ...hostingFiles(opts.hosting, opts.config.name),
     ...emitAll(s, { copy: copy as SpecimenCopy }),
   };

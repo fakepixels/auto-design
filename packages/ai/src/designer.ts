@@ -1,4 +1,4 @@
-import { MOTION_PROFILES, PAIRINGS, TEXTURES, type DesignConfig } from "@auto-design/core";
+import { FONT_CATALOG, MOODS, MOTION_PROFILES, PAIRINGS, TEXTURES, type DesignConfig } from "@auto-design/core";
 import { copySchema, defaultCopy, mergeCopy, type SpecimenCopy } from "./copy.js";
 import type { SiteMaterial } from "./extract.js";
 import { applyPatch, currentChoices, describeChanges, patchSchema, validate, type DesignPatch } from "./patch.js";
@@ -22,8 +22,9 @@ function catalog(): string {
   return [
     "Textures:",
     ...TEXTURES.map((t) => `- ${t}: ${TEXTURE_NOTES[t]}`),
-    "Font pairings (id: feel):",
-    ...PAIRINGS.map((p) => `- ${p.id}: ${p.note}`),
+    "Font pairings by mood (id: feel). Prefer one of these:",
+    ...MOODS.flatMap((m) => [`${m.name}:`, ...PAIRINGS.filter((p) => p.mood === m.id).map((p) => `- ${p.id}: ${p.note}`)]),
+    `Or set fonts to faces picked from the catalog of ${FONT_CATALOG.length} open-source families when no pairing fits (a site's own typeface, say).`,
     "Motion profiles:",
     ...MOTION_PROFILES.map((m) => `- ${m}: ${MOTION_NOTES[m]}`),
     "Corner radius: 0 to 20 px. Density: compact (32px controls) or comfortable (36px).",

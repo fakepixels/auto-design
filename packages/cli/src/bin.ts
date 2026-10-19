@@ -118,6 +118,24 @@ cli
   });
 
 cli
+  .command("animate [animation]", "Render a brand animation to video (mp4, webm, gif), HTML or PNG. Run it alone to list them")
+  .option("--cwd <dir>", "The design system repo, or an app that installed one from a local folder", { default: "." })
+  .option("--format <format>", "landscape (1920×1080), square (1080×1080) or portrait (1080×1920)", { default: "landscape" })
+  .option("--mode <mode>", "light or dark")
+  .option("--out <file>", "Output: .mp4, .webm, .gif, .mov, .html, .png, or a folder ending in / for PNG frames")
+  .option("--fps <fps>", "Frames per second", { default: 30 })
+  .option("--json", "Machine-readable output")
+  .example("auto-design animate announcement --title \"Approvals in one click\" --format square --out launch.mp4")
+  .example("auto-design animate feature-list --items \"Faster search|Shared views|Exports\" --out new.gif")
+  .allowUnknownOptions()
+  .action(async (animation: string | undefined, opts: Record<string, unknown> & { cwd: string; format: string; mode?: string; out?: string; fps: number; json?: boolean }) => {
+    const { runAnimate } = await import("./animate.js");
+    const { cwd, format, mode, out, fps, json, "--": _rest, ...props } = opts;
+    const r = await runAnimate({ cwd, id: animation, format, mode, out, fps: Number(fps), json, props: props as Record<string, string> });
+    if (json && animation) console.log(JSON.stringify(r, null, 2));
+  });
+
+cli
   .command("review [...targets]", "Open the app in a browser and review what it draws: measured checks, plus a design critique with a model key")
   .option("--cwd <dir>", "The app (where auto-design.json is)", { default: "." })
   .option("--base <url>", "Base URL for paths like /pricing", { default: "http://localhost:3000" })

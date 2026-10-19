@@ -44,7 +44,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup && cp src/dev/studio.html src/onboard/onboard.html ../core/src/site/renderer.css ../core/src/site/renderer.js ../site/src/site-client.js dist/",
+    "build": "tsup && cp src/dev/studio.html src/onboard/onboard.html ../core/src/site/renderer.css ../core/src/site/renderer.js ../core/src/site/motion-runtime.js ../site/src/site-client.js ../site/src/motion-player.js dist/ && esbuild ../core/src/motion/templates.ts --bundle --format=iife --global-name=ADMotionTemplates --minify --legal-comments=none --log-level=warning --outfile=dist/motion-templates.js",
     "prepublishOnly": "npm run build && node scripts/smoke.mjs"
   },
   "dependencies": {

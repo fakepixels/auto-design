@@ -100,12 +100,34 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 
 Profile: **subtle**.
 
-- Durations that pass the check: `duration-0`, `duration-120`, `duration-180`, `duration-260`. Nothing longer than 300ms in product UI.
+- Durations that pass the check: `duration-0`, `duration-120`, `duration-180`, `duration-260`, `duration-700`. Nothing that answers a press runs longer than 300ms.
+- `duration-700` is for reveals only: counters, charts, text and sections arriving as they scroll into view. Use `animate-reveal` (8px of travel and a fade), `animate-grow` for bars and meters, `animate-draw` for lines, 40ms between staggered items.
+- The only looping motion is `animate-marquee`, for logo strips on marketing pages. It pauses on hover and stops for reduced motion.
 - `ease-out` for things entering or responding to the user; `ease-in-out` for things moving on screen.
 - Entering elements use `animate-enter`: a fade from scale 0.97 and 4px of travel. Never animate from `scale-0`.
 - Decide whether an animation is needed before adding one. Frequent actions (menus, toggles, command palettes) are fast or instant; keyboard-triggered actions don't animate.
 - Popovers grow from their trigger, not from their center.
-- Reduced motion is handled globally: `--enter-scale` and `--enter-distance` neutralize, leaving fades.
+- Reduced motion is handled globally: `--enter-scale`, `--enter-distance`, `--reveal-distance` and `--stagger` neutralize, leaving fades; page transitions turn off.
+
+## Brand motion
+
+Launch films, social posts and product walkthroughs come from the system, not from a video editor. Don't hand-write animation code for them:
+render one of these with `npx auto-design animate <id> --out file.mp4` (or the MCP tool `render_animation`), in the product's own words.
+
+- `logo-reveal`: The mark arrives, the name follows it out, then the line. An intro or an outro.
+- `announcement`: A headline that rises word by word, one line of context and the call to action.
+- `metric`: One number that counts up, what it measures, and a line that draws the trend.
+- `chart`: Bars that build one by one, the largest in the brand color, with the total counting up.
+- `product-demo`: The app window opens, the pointer takes the main action, and the product answers.
+- `chat-demo`: A question, a tool call, a streamed answer, and an approval before the agent acts.
+- `feature-list`: A title, then each feature in turn with a check in the brand color.
+- `end-card`: Mark, name, the one thing to do next and where to go.
+- `loader`: The mark over a bar that fills in the system's easing. For splash screens and long waits.
+- `launch`: Logo, headline, the product in use, what's new and the end card, as one film.
+
+- Brand motion is slower and larger than product UI: entrances take 700ms and rise 2.2% of the frame, items arrive 120ms apart, and each scene holds 1300ms before the next.
+- One idea per scene. Words come from the product (specimen.copy.json); pass your own with flags like `--title`.
+- Formats: landscape (1920×1080) for sites and decks, square (1080×1080) for social posts, portrait (1080×1920) for stories.
 
 ## Voice
 
@@ -172,6 +194,7 @@ Use these before writing your own. They already follow every rule here. Install 
 | `streaming-text` | Model output as it arrives, with a caret and screen-reader-safe updates. |
 | `file-card` | Attachments and generated files, with type, name and size. |
 | `reasoning` | The agent's thinking, folded away with how long it took. |
+| `motion` | Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API. |
 
 ## Checking your work
 

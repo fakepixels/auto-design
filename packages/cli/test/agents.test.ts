@@ -39,10 +39,23 @@ describe("MCP server", () => {
     const old = await rpc(repo, "initialize", { protocolVersion: "1999-01-01" });
     expect(old.result.protocolVersion).toBe("2025-11-25");
     const tools = await rpc(repo, "tools/list");
-    expect(tools.result.tools.map((t: { name: string }) => t.name)).toEqual(["get_rules", "get_tokens", "list_components", "get_component", "check_code", "check_message", "render_card"]);
+    expect(tools.result.tools.map((t: { name: string }) => t.name)).toEqual(["get_rules", "get_tokens", "list_components", "get_component", "check_code", "check_message", "render_card", "list_animations", "render_animation"]);
     for (const t of tools.result.tools) expect(t.inputSchema.type).toBe("object");
     expect(await handle({ jsonrpc: "2.0", method: "notifications/initialized" }, repo)).toBeNull();
     expect((await rpc(repo, "nope")).error.code).toBe(-32601);
+  });
+
+  it("lists the system's brand animations and renders one to HTML", async () => {
+    const list = await tool(repo, "list_animations");
+    const ids = list.structuredContent.animations.map((a: { id: string }) => a.id);
+    expect(ids).toEqual(expect.arrayContaining(["logo-reveal", "announcement", "product-demo", "chat-demo", "text-thread", "launch"]));
+    const r = await tool(repo, "render_animation", { id: "announcement", props: { title: "Approvals in one click" }, format: "square", out: "launch/announce.html" });
+    expect(r.isError).toBeFalsy();
+    const html = readFileSync(join(repo, "launch/announce.html"), "utf8");
+    expect(html).toContain("Approvals");
+    expect(html).toContain('data-format="square"');
+    expect((await tool(repo, "render_animation", { id: "nope" })).isError).toBe(true);
+    expect((await tool(repo, "render_animation", { id: "announcement", out: "../outside.html" })).isError).toBe(true);
   });
 
   it("serves rules by section", async () => {

@@ -16,7 +16,7 @@ npx auto-design init                    # design it in the browser
 npx auto-design init my-design --preset glass   # or start from a preset
 ```
 
-Presets: Quiet, Editorial, Glass, Terminal and Tactile. Onboarding can read your site and screenshots with a
+Presets: Quiet, Editorial, Glass, Terminal and Tactile, and 161 open-source typefaces in 53 pairings. Onboarding can read your site and screenshots with a
 Claude, OpenAI or OpenRouter key, and publishes the system to GitHub with hosting on GitHub Pages, Vercel,
 Railway, Render or your intranet.
 
@@ -51,6 +51,7 @@ rules, and registers the MCP server in `.mcp.json`.
 | `mcp` | The MCP server for coding agents: rules, tokens, components, code and message checks, image cards |
 | `message` | Check an iMessage, SMS or chat message against the voice and texting rules |
 | `card` | Draw an image card or link preview in the system's style |
+| `animate` | Render a brand animation (logo reveal, announcement, product walkthrough, launch film) to MP4, WebM, GIF or HTML |
 | `review` | Screenshot the running app and check what it drew, with an optional design critique |
 
 Full documentation: [github.com/fakepixels/auto-design](https://github.com/fakepixels/auto-design).

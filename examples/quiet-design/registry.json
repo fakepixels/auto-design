@@ -339,6 +339,19 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "motion",
+      "type": "registry:lib",
+      "title": "Motion",
+      "description": "Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/motion.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }
