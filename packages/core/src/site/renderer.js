@@ -135,13 +135,36 @@
       );
     },
 
-    code: function (d, copy) {
-      var cmd = e(copy.code.command)
-        .replace(/(&quot;.*?&quot;)/g, '<span class="s">$1</span>')
-        .replace(/(\s)(--?[a-z][\w-]*)/g, '$1<span class="k">$2</span>')
-        .replace(/(\s)(\d[\d.]*)\b/g, '$1<span class="n">$2</span>')
-        .replace(/^(\S+)/, '<span class="f">$1</span>');
-      return '<div style="padding:var(--sp-pad)"><pre class="sp-code"><span class="c">' + e(copy.code.comment) + "</span>\n" + cmd + "</pre></div>";
+    code: function (d, copy, o) {
+      var hl = function (text, first) {
+        var out = e(text)
+          .replace(/(&quot;.*?&quot;)/g, '<span class="s">$1</span>')
+          .replace(/(^|\s)(--?[a-z][\w-]*)/g, '$1<span class="k">$2</span>')
+          .replace(/(\s)(\d[\d.]*)\b/g, '$1<span class="n">$2</span>');
+        return first ? out.replace(/^(\S+)/, '<span class="f">$1</span>') : out;
+      };
+      if (!o || o.size !== "l") {
+        return '<div style="padding:var(--sp-pad)"><pre class="sp-code"><span class="c">' + e(copy.code.comment) + "</span>\n" + hl(copy.code.command, true) + "</pre></div>";
+      }
+      // A terminal session: the command broken at its flags, then what it printed.
+      var parts = String(copy.code.command).split(/ (?=--)/);
+      var cmd = parts.map(function (p, i) { return i ? "    " + hl(p, false) : hl(p, true); }).join(' \\\n');
+      var row = copy.table.rows[0] || { name: "", detail: "", value: "", status: "ok" };
+      var cols = copy.table.columns;
+      var pad = function (t) { t = String(t); return t + new Array(Math.max(1, 9 - t.length)).join(" "); };
+      var status = row.status === "ok" ? copy.okLabel || "On track" : copy.reviewLabel || "Needs review";
+      var lines = [
+        '<span class="c">' + e(copy.code.comment) + "</span>",
+        '<span class="p">$</span> ' + cmd,
+        "",
+        '<span class="ok">\u2713</span> Created ' + e(row.name),
+        '  <span class="dim">' + e(pad(cols[1])) + "</span>" + e(row.detail),
+        '  <span class="dim">' + e(pad(cols[2])) + "</span>" + e(row.value),
+        '  <span class="dim">' + e(pad(cols[3])) + "</span>" + e(status),
+        "",
+        '<span class="p">$</span> <span class="caret"></span>',
+      ];
+      return '<div class="sp-term"><pre class="sp-code">' + lines.join("\n") + "</pre></div>";
     },
 
     sms: function (d, copy) {

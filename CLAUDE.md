@@ -10,15 +10,37 @@ user-facing story; this file is how to work on it.
 
 - Phases 0 to 3 are done: compiler, checker, studio, five presets, onboarding app, publishing and hosting,
   docs site, MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `review`.
-- Phase 4 is next: publish to npm (the `auto-design` name was free as of October 2026), preset gallery,
-  private registry template.
+- Phase 4 (in progress): quality and launch prep. The `auto-design` npm package builds as one bundle
+  (`packages/cli`, `npm publish` from there). Onboarding was redesigned as "the stage and the swatchbook"
+  (below). Still to do: raise the five presets and specimen scenes well above defaults (Tina has feedback
+  to fold in), visual regression screenshots, studio fixes, custom components that survive rebuilds.
+- Plan after that:
+  - Phase 5: a white-label design site per system, like ui.shadcn.com (Home, Docs, Components, Blocks,
+    live previews), as a generated Next.js shell owned by auto-design with content owned by the system
+    repo. Publish deploys it and onboarding ends on it.
+  - Phase 6: blocks, an Agent Skill per system, named registry installs (`@northwind/button`).
+  - Phase 7: brand static media (logo, illustration and icons, social and OG images, ads, email, slides),
+    code-first with image models opt-in, plus media checks and a Brand section on the site.
+  - Phase 8: motion and video with an MIT renderer (not Remotion, which is paid for companies over 3
+    people).
+  - Phase 9: no-code editing, a preset gallery, maybe a hosted version. Local and self-hosted first.
+  - Dogfood: build the onboarding and site chrome from an auto-design system.
 - Known gaps:
-  - Only `@auto-design/core` has `publishConfig`; the other packages export `./src/index.ts`, which only
-    works inside this monorepo. Fix before publishing.
-  - The `.mcp.json` that `add` writes runs `npx auto-design mcp`, which needs the npm package.
+  - `auto-design` is not on npm yet (still free on October 19, 2026). Until it is, the `.mcp.json` that
+    `add` writes (`npx auto-design mcp`) only works where the package is linked locally.
   - The studio preview uses a fixed sample product ("Meridian") instead of the system's own copy, and shows
     "Failed to fetch" instead of saying the studio process stopped.
   - Model features (onboarding suggestions, review critique) are tested only against the mock provider.
+
+## Onboarding design
+
+`packages/cli/src/onboard/onboard.html` is one file. A booth-gray stage shows the person's own product as a
+board of frames (browser, app window, phone, chat and terminal panels); a swatchbook column on the left
+holds the options. Hovering an option previews it on the stage through CSS variables, so colors cross-fade;
+clicking commits. "Compare all" lays every option out side by side. The chrome is neutral (Funnel Display
+and Funnel Sans, served from `/chrome-fonts.css`) so the brand is the only color on screen. Below 1080px the
+stage sits on top and the choices scroll under it; below 700px the board is one column of the two most
+telling frames.
 
 ## Layout
 
