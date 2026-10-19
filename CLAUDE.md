@@ -11,9 +11,9 @@ user-facing story; this file is how to work on it.
 - Phases 0 to 3 are done: compiler, checker, studio, five presets, onboarding app, publishing and hosting,
   docs site, MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `review`.
 - Phase 4 (in progress): quality and launch prep. The `auto-design` npm package builds as one bundle
-  (`packages/cli`, `npm publish` from there). Onboarding was redesigned as "the stage and the swatchbook"
-  (below). Still to do: raise the five presets and specimen scenes well above defaults (Tina has feedback
-  to fold in), visual regression screenshots, studio fixes, custom components that survive rebuilds.
+  (`packages/cli`, `npm publish` from there). Still to do: studio fixes, custom components that survive
+  rebuilds, visual regression screenshots, and raising the five presets and specimen scenes well above
+  defaults (Tina has feedback to fold in).
 - Plan after that:
   - Phase 5: a white-label design site per system, like ui.shadcn.com (Home, Docs, Components, Blocks,
     live previews), as a generated Next.js shell owned by auto-design with content owned by the system
@@ -32,15 +32,14 @@ user-facing story; this file is how to work on it.
     "Failed to fetch" instead of saying the studio process stopped.
   - Model features (onboarding suggestions, review critique) are tested only against the mock provider.
 
-## Onboarding design
+## Design direction
 
-`packages/cli/src/onboard/onboard.html` is one file. A booth-gray stage shows the person's own product as a
-board of frames (browser, app window, phone, chat and terminal panels); a swatchbook column on the left
-holds the options. Hovering an option previews it on the stage through CSS variables, so colors cross-fade;
-clicking commits. "Compare all" lays every option out side by side. The chrome is neutral (Funnel Display
-and Funnel Sans, served from `/chrome-fonts.css`) so the brand is the only color on screen. Below 1080px the
-stage sits on top and the choices scroll under it; below 700px the board is one column of the two most
-telling frames.
+- Tina's bar for auto-design's own UI: simple, subtle and elevated, in the spirit of Apple, Linear and
+  shadcn. No heavy drop shadows or decorative chrome.
+- The original onboarding (step list on the left, live specimen on the right) is the keeper. A full
+  redesign ("stage and swatchbook", commit 6b39da1) was tried and reverted: it read as busier, not more
+  elegant. Future polish refines the original in small steps.
+- Functionality comes before UI polish: finish the planned features first.
 
 ## Layout
 

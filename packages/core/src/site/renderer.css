@@ -183,11 +183,6 @@
 .sp-code .n { color: var(--sp-code-number); }
 .sp-code .c { color: var(--sp-code-comment); font-style: italic; }
 .sp-code .f { color: var(--sp-code-function); }
-.sp-code .p, .sp-code .dim { color: var(--muted-foreground); }
-.sp-code .ok { color: var(--success); }
-.sp-code .caret { display: inline-block; width: 0.6em; height: 1.1em; vertical-align: -0.2em; background: var(--muted-foreground); opacity: 0.6; }
-.sp-term { display: flex; flex-direction: column; height: 100%; padding: var(--sp-pad); }
-.sp-term .sp-code { flex: 1; }
 
 /* ---------- Dialog, toast, sheet ---------- */
 .sp-scrim { position: absolute; inset: 0; background: var(--overlay); }

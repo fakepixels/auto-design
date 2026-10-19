@@ -101,12 +101,6 @@ function packageDir(name: string, bases: string[]): string | null {
 const MIME: Record<string, string> = { ".css": "text/css; charset=utf-8", ".woff2": "font/woff2", ".woff": "font/woff", ".js": "text/javascript; charset=utf-8" };
 
 /** Font stylesheets for every catalog face: the local npm package when installed, else Google Fonts. */
-/** Typefaces for the onboarding app itself, chosen to stand apart from any system it previews. */
-const CHROME_FONTS = [
-  { package: "@fontsource-variable/funnel-display", google: "Funnel Display" },
-  { package: "@fontsource-variable/funnel-sans", google: "Funnel Sans" },
-];
-
 function fontLinks(bases: string[]): string[] {
   const local: string[] = [];
   const google: string[] = [];
@@ -338,15 +332,6 @@ export async function runOnboard(opts: OnboardOptions) {
       if (req.method === "GET" && url.pathname === "/") return send(res, 200, page(), "text/html; charset=utf-8");
       if (req.method === "GET" && url.pathname === "/assets/renderer.css") return send(res, 200, specimenAssets().css, MIME[".css"]);
       if (req.method === "GET" && url.pathname === "/assets/renderer.js") return send(res, 200, specimenAssets().js, MIME[".js"]);
-      if (req.method === "GET" && url.pathname === "/chrome-fonts.css") {
-        // The onboarding app's own typefaces: local when installed, Google Fonts otherwise.
-        const local = CHROME_FONTS.every((f) => packageDir(f.package, fontBases));
-        const css = local
-          ? CHROME_FONTS.map((f) => `@import url("/pkg/${f.package}/index.css");`).join("\n")
-          : `@import url("https://fonts.googleapis.com/css2?${CHROME_FONTS.map((f) => `family=${f.google.replace(/ /g, "+")}:wght@300..800`).join("&")}&display=swap");`;
-        res.writeHead(200, { "content-type": "text/css; charset=utf-8", "cache-control": "max-age=3600" });
-        return res.end(css + "\n");
-      }
       if (req.method === "GET" && url.pathname.startsWith("/pkg/")) {
         const parts = url.pathname.slice(5).split("/").map(decodeURIComponent);
         const nameLen = parts[0]?.startsWith("@") ? 2 : 1;
