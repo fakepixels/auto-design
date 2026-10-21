@@ -6,10 +6,25 @@ DESIGN.md that coding agents read, a checker that fails the build, and agent too
 card tools, a rendered-page review). MIT. Owner: Tina He (GitHub `fakepixels`). Read README.md for the
 user-facing story; this file is how to work on it.
 
+## Starting a session
+
+- A new session has no memory of earlier ones. This file, README.md and `git log` are the record, so keep
+  Status below current at the end of every piece of work, including decisions and Tina's feedback.
+- In a fresh cloud workspace: clone `fakepixels/auto-design`, run `npm install`, then `npm test` and
+  `npm run typecheck` to confirm a clean start. Chromium is at `/opt/pw-browsers`; ffmpeg is usually on PATH.
+- The sandbox's `gh` is signed in as fakepixels, so anything that creates repos or publishes is real. Never
+  let an automated run create a GitHub repo, and don't spend real model API keys without asking.
+- Commits are authored as Tina He <fkpxls@gmail.com>. Run `git fetch origin main` before pushing to main.
+
 ## Status
 
 - Phases 0 to 3 are done: compiler, checker, studio, five presets, onboarding app, publishing and hosting,
   docs site, MCP server, chat components, MCP Apps adapter, iMessage and SMS rules, image cards, `review`.
+- Last session (October 18 to 21, 2026) shipped, in order: the design site and custom components
+  (9a9da8e), then brand animations and 161 typefaces (a1d2e7e). Tina's words on the goal: "the AGI of
+  design where with this design system as the atom, you can scale to any molecules, including animations."
+  Open question for her: commit a1d2e7e also carried motion-token edits (reveal, stagger, travel distance,
+  ambient in `scales.ts` and the CSS emitter) that were already in the tree, of unknown origin.
 - Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
   bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
   when its process stopped; custom components, examples and docs survive rebuilds. Still to do: visual
@@ -102,6 +117,18 @@ npx auto-design build --cwd examples/quiet-design      # also builds the site in
 cd examples/next-quiet && npx auto-design add ../quiet-design --components <changed> --no-install && npx auto-design check
 ```
 
+## Scripts
+
+```sh
+node scripts/shot.cjs <url> <out.png> [width] [height] [full] [light|dark]   # screenshot, fonts served locally
+npx tsx scripts/motion-sheet.mts [preset] [ids|all] [format] [mode]          # contact sheet of every animation
+python3 scripts/fonts/curate.py | node scripts/fonts/fetch.mjs                  # look up new families on npm
+python3 scripts/fonts/gen.py                                                    # rewrite core/src/font-catalog.ts
+```
+
+To add a typeface, add a line to `scripts/fonts/curate.py` (style, roles, a one-line note), fetch, then gen.
+Only families in the root devDependencies render in screenshots; others fall back and the scripts say so.
+
 ## Working conventions
 
 - Run tests and typecheck, regenerate examples, then commit and push to `main` at the end of each phase.
@@ -116,8 +143,7 @@ cd examples/next-quiet && npx auto-design add ../quiet-design --components <chan
 - The studio started from onboarding runs inside the `init` process; ending it stops the studio.
 - Animation scenes: every animated element sets its own `--d` delay (the `d()` helper); scenes in a
   sequence fade on `--sd`, which elements never read. Sizes are in stage units (`--u`, 1% of the short
-  side), never px. Render a contact sheet of frames (seek with `window.__seek`) to review a change.
-- Regenerate `font-catalog.ts` from Fontsource metadata when adding families: every entry must be OFL-1.1
-  and carry a style, roles and a one-line note.
+  side), never px. Review a change with a contact sheet (`scripts/motion-sheet.mts`).
+- Every font catalog entry must be OFL-1.1 and carry a style, roles and a one-line note (see Scripts).
 - Product copy follows the system's own voice: plain words, sentence case, active verbs, no emoji, errors
   that say what to do next.
