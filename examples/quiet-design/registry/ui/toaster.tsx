@@ -18,7 +18,7 @@ function Toaster(props: ToasterProps) {
       }
       toastOptions={{
         classNames: {
-          toast: "font-sans text-sm shadow-lg",
+          toast: "font-sans text-sm shadow-md",
           // Sonner colors descriptions for its own light theme; the system's role has to win in both modes.
           description: "text-muted-foreground!",
         },

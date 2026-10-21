@@ -72,9 +72,9 @@ export function mockDesigner(config: () => DesignConfig) {
       [];
     const patch: DesignPatch = { ...emptyPatch(), texture, pairing: PAIRING_FOR[texture!] };
     if (colors[0]) patch.brand = colors[0];
-    if (texture === "technical") Object.assign(patch, { defaultMode: "dark", density: "compact", radius: 2 });
+    if (texture === "technical") Object.assign(patch, { defaultMode: "dark", density: "compact", radius: 4 });
     if (texture === "tactile") Object.assign(patch, { radius: 16, motion: "expressive" });
-    if (texture === "glass") Object.assign(patch, { radius: 14, motion: "expressive" });
+    if (texture === "glass") Object.assign(patch, { radius: 12, motion: "expressive" });
     if (texture === "editorial") Object.assign(patch, { radius: 4, motion: "still", neutral: "warm" });
     return {
       patch,

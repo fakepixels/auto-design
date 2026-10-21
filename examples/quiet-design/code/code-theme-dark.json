@@ -29,7 +29,7 @@
         "support.class.component"
       ],
       "settings": {
-        "foreground": "#6da7f3"
+        "foreground": "#e2e5ea"
       }
     },
     {
@@ -65,7 +65,7 @@
         "entity.other.inherited-class"
       ],
       "settings": {
-        "foreground": "#cfabf6"
+        "foreground": "#d9a8ef"
       }
     },
     {

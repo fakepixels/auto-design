@@ -157,7 +157,7 @@ describe("glass texture", () => {
     expect(has("glass")).toBe(true);
     expect(has("bg-backdrop")).toBe(true);
     expect(out).toMatch(/@supports \(backdrop-filter: blur\(1px\)\) or \(-webkit-backdrop-filter: blur\(1px\)\)/);
-    expect(out).toContain("-webkit-backdrop-filter: blur(20px) saturate(1.6)");
+    expect(out).toContain("-webkit-backdrop-filter: blur(24px) saturate(1.8)");
   });
 
   it("puts dialogs on glass and keeps cards solid", () => {

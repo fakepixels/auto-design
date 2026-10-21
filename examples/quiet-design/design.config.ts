@@ -8,7 +8,7 @@ import type { DesignConfig } from "auto-design";
 export default {
   name: "quiet",
   displayName: "Quiet",
-  description: "Calm, dense and precise. Built for dashboards and tools people use all day.",
+  description: "Ink on white, hairlines and soft depth. Calm and dense, for tools people use all day.",
   personality: {
     energy: 0.2,
     warmth: 0.3,
@@ -16,7 +16,7 @@ export default {
   },
   texture: "minimal",
   color: {
-    brand: "oklch(0.49 0.13 256)",
+    brand: "oklch(0.21 0.006 265)",
     neutral: "cool",
     modes: "both",
     defaultMode: "light"
@@ -56,7 +56,7 @@ export default {
     ratio: 1.2
   },
   shape: {
-    radius: 6
+    radius: 8
   },
   density: "compact",
   motion: "subtle",

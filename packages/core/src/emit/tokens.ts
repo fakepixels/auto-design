@@ -66,11 +66,12 @@ export function emitBaseTokens(s: DesignSystem): Group {
     shadow[step] = {
       $type: "shadow",
       $value: layers.map((l) => ({
-        color: { colorSpace: "oklch", components: [0, 0, 0], alpha: l.alpha },
+        color: { colorSpace: "oklch", components: [l.light ? 1 : 0, 0, 0], alpha: l.alpha },
         offsetX: { value: l.x, unit: "px" },
         offsetY: { value: l.y, unit: "px" },
         blur: { value: l.blur, unit: "px" },
         spread: { value: l.spread, unit: "px" },
+        ...(l.inset ? { inset: true } : {}),
       })),
     };
   }

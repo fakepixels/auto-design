@@ -27,9 +27,9 @@ user-facing story; this file is how to work on it.
   ambient in `scales.ts` and the CSS emitter) that were already in the tree, of unknown origin.
 - Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
   bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
-  when its process stopped; custom components, examples and docs survive rebuilds. Still to do: visual
-  regression screenshots, and raising the five presets and specimen scenes well above defaults (Tina has
-  feedback to fold in).
+  when its process stopped; custom components, examples and docs survive rebuilds. First taste pass on the
+  presets, textures, specimens and onboarding chrome is done (see Design direction); it waits on Tina's
+  reaction. Still to do: visual regression screenshots.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
   foundation, a page per component with live examples, search, light and dark, phone layouts; team pages
   from `docs/`. Onboarding ends on it (`/site/` in the onboarding server), the studio serves it at
@@ -72,6 +72,16 @@ user-facing story; this file is how to work on it.
   redesign ("stage and swatchbook", commit 6b39da1) was tried and reverted: it read as busier, not more
   elegant. Future polish refines the original in small steps.
 - Functionality comes before UI polish: finish the planned features first.
+- Taste pass (October 21, 2026), after Tina called the textures, motion and default presets ugly and pointed
+  at bencho.dev, affectui.com, runeicons.com and minimal.gallery. What those share, and what auto-design now
+  does: monochrome first with color as a rare accent; surfaces separated by light steps and hairline rings
+  (`0 0 0 1px`), not gray borders and dark drop shadows; soft layered shadows (a tight contact layer plus a
+  wide ambient one); a 1px light inner edge on raised buttons (`shadow-raised`); medium-weight headings with
+  tight tracking; short ease-out motion that answers a press. Glass is a frosted pane over a faint aurora
+  in the brand's neighboring hues, never three colored blobs. Technical heroes sit on a dot grid (`bg-grid`).
+  Quiet is an ink brand; an ink or paper brand flips to the other end of the grays in the other mode.
+  Review preset changes with `scripts/preset-sheet.mts` (every preset on the onboarding specimens, light and
+  dark, and trial variants through `VARIANTS`).
 
 ## Layout
 
@@ -122,6 +132,7 @@ cd examples/next-quiet && npx auto-design add ../quiet-design --components <chan
 ```sh
 node scripts/shot.cjs <url> <out.png> [width] [height] [full] [light|dark]   # screenshot, fonts served locally
 npx tsx scripts/motion-sheet.mts [preset] [ids|all] [format] [mode]          # contact sheet of every animation
+npx tsx scripts/preset-sheet.mts [presets|all] [light|dark|both] [tag]        # every preset on the onboarding specimens
 python3 scripts/fonts/curate.py | node scripts/fonts/fetch.mjs                  # look up new families on npm
 python3 scripts/fonts/gen.py                                                    # rewrite core/src/font-catalog.ts
 ```

@@ -483,12 +483,23 @@
       }),
       ...r.notes.map((n) => {
         const li = document.createElement("li");
-        li.textContent = n.replace(/^(light|dark): /, (_, m) => m[0].toUpperCase() + m.slice(1) + " mode: ");
+        li.textContent = humanize(n);
         return li;
       }),
     );
     syncControls();
     updateDirty();
+  }
+  /** Compiler notes name roles; say the same thing in plain words. */
+  function humanize(n) {
+    return n
+      .replace(/^(light|dark): /, (_, m) => m[0].toUpperCase() + m.slice(1) + " mode: ")
+      .replace(/sidebar-primary-foreground uses (light|dark) text to read on sidebar-primary\./, "the sidebar uses $1 text on the brand color too.")
+      .replace(/primary-foreground uses (light|dark) text to read on primary\./, "buttons use $1 text on the brand color, so labels stay readable.")
+      .replace(/primary uses brand-(\d+), a (lighter|darker) step of the brand color, so it reads as text on (light|dark) surfaces\./, "the brand color shifts to a $2 shade ($1) so links and highlights stay readable.")
+      .replace(/primary uses neutral-\d+, so the brand's (ink|paper) reads as its opposite in (light|dark) mode\./, (_, b, m) => b === "ink" ? "the ink brand becomes a light gray, the way a black button turns white." : "the paper brand becomes near-black, the way a white button turns dark.")
+      .replace(/Keep text-primary off bg-muted\./, "Avoid brand-colored text on gray panels.")
+      .replace(/links and highlighted text use text-foreground with an underline\./, "links use body text with an underline instead.");
   }
   function syncControls() {
     document.querySelectorAll("#neutral button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.v === state.edits.neutral)));

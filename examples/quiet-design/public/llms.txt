@@ -1,6 +1,6 @@
 # Quiet design system
 
-> Calm, dense and precise. Built for dashboards and tools people use all day.
+> Ink on white, hairlines and soft depth. Calm and dense, for tools people use all day.
 
 Read DESIGN.md before writing any UI for this product. Install the system with `npx auto-design add <this site>/r/`
 and check work with `npx auto-design check`.

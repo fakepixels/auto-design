@@ -31,7 +31,7 @@ export interface SpecimenData {
   shadows: Record<string, string>;
   controls: { sm: number; md: number; lg: number };
   pad: number;
-  skin: { press: "scale" | "translate" | "none"; raised: boolean; tableMono: boolean; glass: boolean; cardShadow: string; cardBorder: "always" | "dark" | "none" };
+  skin: { press: "scale" | "translate" | "none"; raised: boolean; rest: string; tableMono: boolean; glass: boolean; cardShadow: string; cardBorder: "always" | "dark" | "none" };
   motion: { name: string; fast: number; base: number; slow: number; easeOut: string; easeInOut: string; enterScale: number; enterDistance: number };
   palettes: { brand: { step: number; css: string }[]; neutral: { step: number; css: string }[] };
   seedStep: number;
@@ -95,6 +95,7 @@ export function specimenData(s: DesignSystem): SpecimenData {
     skin: {
       press: skin.press.includes("translate") ? "translate" : skin.press.includes("scale") ? "scale" : "none",
       raised: skin.raised.trim().length > 0,
+      rest: /shadow-(xs|sm)/.exec(skin.rest)?.[1] ?? "none",
       tableMono: skin.tableHead.includes("font-mono"),
       glass: skin.overlay === "glass",
       cardShadow: /shadow-(xs|sm|md)/.exec(skin.card)?.[1] ?? "none",

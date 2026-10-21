@@ -2,16 +2,17 @@ import { defineConfig, pairingFonts } from "@auto-design/core";
 
 /**
  * Terminal: for developer tools and infrastructure. Dark first, crisp 1px
- * borders, monospace for labels and data, and motion that gets out of the way.
+ * hairlines, a cool cyan that reads on black and on white, monospace for
+ * labels and data, and motion that gets out of the way.
  */
 export default defineConfig({
   name: "terminal",
   displayName: "Terminal",
-  description: "Dark, dense and exact. Monospace for anything a developer reads or copies.",
+  description: "Dark first, crisp hairlines on a dot grid. Monospace for anything a developer reads or copies.",
   personality: { energy: 0.35, warmth: 0.15, novelty: 0.45 },
   texture: "technical",
   color: {
-    brand: "oklch(0.8 0.16 130)",
+    brand: "oklch(0.8 0.12 205)",
     neutral: "neutral",
     modes: "both",
     defaultMode: "dark",
@@ -21,7 +22,7 @@ export default defineConfig({
     baseSize: 14,
     ratio: 1.2,
   },
-  shape: { radius: 2 },
+  shape: { radius: 4 },
   density: "compact",
   motion: "subtle",
   surfaces: ["web-app", "marketing", "code", "chat", "mcp-apps"],

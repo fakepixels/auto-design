@@ -1,24 +1,5 @@
 {
-  "fixes": [
-    {
-      "role": "muted-foreground",
-      "against": "muted",
-      "mode": "light",
-      "before": 4.29,
-      "after": 4.58,
-      "from": "oklch(0.556 0.012 256)",
-      "to": "oklch(0.541 0.012 256)"
-    },
-    {
-      "role": "success",
-      "against": "success-foreground",
-      "mode": "light",
-      "before": 4.25,
-      "after": 4.54,
-      "from": "oklch(0.555 0.146 152)",
-      "to": "oklch(0.54 0.142 152)"
-    }
-  ],
+  "fixes": [],
   "checks": [
     {
       "mode": "light",
@@ -64,7 +45,7 @@
       "mode": "light",
       "fg": "muted-foreground",
       "bg": "background",
-      "ratio": 5.04,
+      "ratio": 5.39,
       "min": 4.5,
       "pass": true
     },
@@ -72,7 +53,7 @@
       "mode": "light",
       "fg": "muted-foreground",
       "bg": "card",
-      "ratio": 5.04,
+      "ratio": 5.39,
       "min": 4.5,
       "pass": true
     },
@@ -80,7 +61,7 @@
       "mode": "light",
       "fg": "muted-foreground",
       "bg": "muted",
-      "ratio": 4.58,
+      "ratio": 4.9,
       "min": 4.5,
       "pass": true
     },
@@ -112,7 +93,7 @@
       "mode": "light",
       "fg": "primary-foreground",
       "bg": "primary",
-      "ratio": 6.05,
+      "ratio": 16.97,
       "min": 4.5,
       "pass": true
     },
@@ -144,7 +125,7 @@
       "mode": "light",
       "fg": "success-foreground",
       "bg": "success",
-      "ratio": 4.54,
+      "ratio": 4.74,
       "min": 4.5,
       "pass": true
     },
@@ -160,7 +141,7 @@
       "mode": "light",
       "fg": "sidebar-primary-foreground",
       "bg": "sidebar-primary",
-      "ratio": 6.05,
+      "ratio": 16.97,
       "min": 4.5,
       "pass": true
     },
@@ -176,7 +157,7 @@
       "mode": "light",
       "fg": "ring",
       "bg": "background",
-      "ratio": 6.32,
+      "ratio": 17.72,
       "min": 3,
       "pass": true
     },
@@ -272,7 +253,7 @@
       "mode": "dark",
       "fg": "primary-foreground",
       "bg": "primary",
-      "ratio": 7.97,
+      "ratio": 15.72,
       "min": 4.5,
       "pass": true
     },
@@ -320,7 +301,7 @@
       "mode": "dark",
       "fg": "sidebar-primary-foreground",
       "bg": "sidebar-primary",
-      "ratio": 7.97,
+      "ratio": 15.72,
       "min": 4.5,
       "pass": true
     },
@@ -336,7 +317,7 @@
       "mode": "dark",
       "fg": "primary",
       "bg": "background",
-      "ratio": 7.97,
+      "ratio": 15.72,
       "min": 4.5,
       "pass": true
     },
@@ -344,7 +325,7 @@
       "mode": "dark",
       "fg": "primary",
       "bg": "card",
-      "ratio": 7.21,
+      "ratio": 14.23,
       "min": 4.5,
       "pass": true
     },
@@ -352,7 +333,7 @@
       "mode": "dark",
       "fg": "primary",
       "bg": "muted",
-      "ratio": 6.08,
+      "ratio": 12,
       "min": 4.5,
       "pass": true
     },
@@ -360,13 +341,13 @@
       "mode": "dark",
       "fg": "ring",
       "bg": "background",
-      "ratio": 7.97,
+      "ratio": 15.72,
       "min": 3,
       "pass": true
     }
   ],
   "notes": [
-    "dark: primary uses brand-400, a lighter step of the brand color, so it reads as text on dark surfaces.",
+    "dark: primary uses neutral-200, so the brand's ink reads as its opposite in dark mode.",
     "dark: primary-foreground uses dark text to read on primary.",
     "dark: sidebar-primary-foreground uses dark text to read on sidebar-primary."
   ]

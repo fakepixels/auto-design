@@ -72,58 +72,89 @@ export function radiusScale(base: number) {
 
 /* ---------- Elevation ---------- */
 
-export const SHADOW_STEPS = ["xs", "sm", "md", "lg"] as const;
+/**
+ * xs: controls at rest (inputs, outline buttons). sm: content cards. md: menus,
+ * popovers and toasts. lg: dialogs. raised: solid buttons, which get a light
+ * top edge so they read as something to press.
+ */
+export const SHADOW_STEPS = ["xs", "sm", "md", "lg", "raised"] as const;
 export type ShadowStep = (typeof SHADOW_STEPS)[number];
 
-/** One shadow layer: offsets, blur and spread in px; black at the given alpha. */
+/**
+ * One shadow layer: offsets, blur and spread in px, at the given alpha.
+ * Layers are black unless `light` is set; `inset` layers draw inside the edge,
+ * for the highlight along the top of a raised button.
+ */
 export interface ShadowLayer {
   x: number;
   y: number;
   blur: number;
   spread: number;
   alpha: number;
+  inset?: boolean;
+  light?: boolean;
 }
 
 const L = (y: number, blur: number, spread: number, alpha: number): ShadowLayer => ({ x: 0, y, blur, spread, alpha });
+/** A 1px edge inside the top (y 1) or bottom (y -1) of a surface. */
+const edge = (y: 1 | -1, alpha: number, light: boolean): ShadowLayer => ({ x: 0, y, blur: 0, spread: 0, alpha, inset: true, light });
 
 /**
- * Shadows by texture. Technical and editorial systems separate surfaces with
- * borders and space, so only floating layers (popovers, dialogs) cast a shadow.
- * An empty array means no shadow.
+ * Shadows by texture. Elevation is a stack of soft, low layers rather than one
+ * dark blur: a tight contact shadow plus a wide ambient one. Technical and
+ * editorial systems separate surfaces with lines and space, so only floating
+ * layers cast a shadow there. An empty array means no shadow.
  */
 export function shadows(texture: Texture): Record<ShadowStep, ShadowLayer[]> {
   switch (texture) {
     case "minimal":
       return {
-        xs: [L(1, 2, 0, 0.05)],
-        sm: [L(1, 3, 0, 0.07), L(1, 2, -1, 0.07)],
-        md: [L(4, 12, -2, 0.08), L(2, 4, -2, 0.06)],
-        lg: [L(12, 32, -8, 0.14), L(4, 8, -4, 0.06)],
+        xs: [L(1, 2, 0, 0.04)],
+        sm: [L(1, 2, 0, 0.04), L(2, 6, -2, 0.04)],
+        md: [L(2, 4, -1, 0.05), L(8, 24, -6, 0.1)],
+        lg: [L(4, 8, -2, 0.05), L(24, 56, -12, 0.18)],
+        raised: [edge(1, 0.14, true), L(1, 2, 0, 0.1)],
       };
     case "editorial":
-      return { xs: [], sm: [], md: [L(1, 0, 0, 0.04)], lg: [L(16, 40, -16, 0.16)] };
+      return {
+        xs: [],
+        sm: [],
+        md: [L(2, 4, -1, 0.04), L(12, 32, -8, 0.12)],
+        lg: [L(4, 8, -2, 0.04), L(24, 64, -16, 0.18)],
+        raised: [],
+      };
     case "technical":
-      return { xs: [], sm: [], md: [], lg: [L(12, 32, -8, 0.32)] };
+      return {
+        xs: [],
+        sm: [],
+        md: [L(8, 24, -8, 0.36)],
+        lg: [L(24, 64, -16, 0.48)],
+        raised: [edge(1, 0.1, true)],
+      };
     case "tactile":
       return {
-        xs: [L(1, 2, 0, 0.06)],
-        sm: [L(2, 6, -1, 0.08), L(1, 2, 0, 0.04)],
-        md: [L(8, 20, -6, 0.12), L(2, 6, -2, 0.06)],
-        lg: [L(20, 40, -12, 0.18), L(6, 12, -6, 0.08)],
+        xs: [L(1, 1, 0, 0.05)],
+        sm: [L(1, 2, 0, 0.04), L(4, 12, -4, 0.08)],
+        md: [L(1, 2, 0, 0.04), L(4, 12, -2, 0.06), L(16, 32, -12, 0.12)],
+        lg: [L(4, 8, -2, 0.06), L(28, 64, -16, 0.2)],
+        raised: [edge(1, 0.24, true), edge(-1, 0.14, false), L(1, 2, 0, 0.12), L(3, 8, -2, 0.14)],
       };
     case "glass":
       return {
-        xs: [L(1, 2, 0, 0.06)],
-        sm: [L(2, 8, -2, 0.1)],
-        md: [L(8, 32, -8, 0.18)],
-        lg: [L(24, 64, -16, 0.24)],
+        xs: [L(1, 2, 0, 0.04)],
+        sm: [L(1, 2, 0, 0.04), L(8, 24, -8, 0.08)],
+        md: [L(2, 6, -2, 0.06), L(16, 40, -12, 0.16)],
+        lg: [L(4, 12, -4, 0.08), L(32, 72, -20, 0.24)],
+        raised: [edge(1, 0.22, true), L(1, 2, 0, 0.1), L(4, 12, -4, 0.2)],
       };
   }
 }
 
 export function shadowCss(layers: ShadowLayer[]): string {
   if (!layers.length) return "0 0 #0000";
-  return layers.map((s) => `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px oklch(0 0 0 / ${s.alpha})`).join(", ");
+  return layers
+    .map((s) => `${s.inset ? "inset " : ""}${s.x}px ${s.y}px ${s.blur}px ${s.spread}px oklch(${s.light ? 1 : 0} 0 0 / ${s.alpha})`)
+    .join(", ");
 }
 
 /* ---------- Motion ---------- */

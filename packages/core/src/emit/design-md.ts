@@ -68,6 +68,7 @@ function textureSection(s: DesignSystem): string[] {
       "- Labels, table headers and metadata: `font-mono text-xs uppercase tracking-wide text-muted-foreground`.",
       "- IDs, keys, hashes, versions, paths and commands are always `font-mono`.",
       "- Separate with `border` and spacing. No shadows except on floating layers.",
+      "- `bg-grid` puts a faint dot grid behind marketing heroes, empty states and canvases. Never behind tables, forms or body text.",
     );
   } else if (t === "editorial") {
     lines.push(
@@ -79,14 +80,14 @@ function textureSection(s: DesignSystem): string[] {
     );
   } else if (t === "tactile") {
     lines.push(
-      "- Solid buttons are raised (`shadow-sm`) and press down (`active:translate-y-px`); the Button component already does this.",
+      "- Solid buttons are raised (`shadow-raised`: a lit top edge and a soft drop) and press down (`active:translate-y-px active:shadow-xs`); the Button component already does this.",
       "- Cards are raised with a soft shadow and no border in light mode; the Card component does this. Group with space before adding a border.",
       s.type.fonts.display ? "- Headlines use `font-display`; they carry the personality." : "- Headlines carry the personality through size and weight.",
     );
   } else {
     lines.push(
       "- Structure comes from alignment and spacing first, `border` second, `shadow-xs` last.",
-      "- Cards have a hairline border and the lightest shadow; floating layers use `shadow-lg`.",
+      "- Cards have a hairline border and a soft `shadow-sm`; menus and toasts use `shadow-md`, dialogs `shadow-lg`. Solid buttons use `shadow-raised`; the Button component already does.",
     );
   }
   lines.push("");
@@ -182,7 +183,7 @@ export function emitDesignMd(s: DesignSystem): string {
     `- Padding, margin, gap and space utilities use these steps only: ${g.spacing.steps.map((n) => `\`${n}\``).join(", ")} (× 4px).`,
     `- Control heights (${c.density}): small \`h-${s.controls.sm}\`, default \`h-${s.controls.md}\`, large \`h-${s.controls.lg}\`. Inputs match buttons.`,
     `- Radius: \`rounded-sm\`, \`rounded-md\`, \`rounded-lg\` (${c.shape.radius}px, the default for cards), \`rounded-xl\`, \`rounded-full\` for pills and avatars.`,
-    `- Elevation: \`shadow-xs\` to \`shadow-lg\`. ${c.texture === "technical" || c.texture === "editorial" ? "Only floating layers (popovers, dialogs) use a shadow here." : "Use `shadow-lg` only for floating layers."}`,
+    `- Elevation: \`shadow-xs\` (controls at rest), \`shadow-sm\` (cards), \`shadow-md\` (menus, toasts), \`shadow-lg\` (dialogs) and \`shadow-raised\` (solid buttons). ${c.texture === "technical" || c.texture === "editorial" ? "Only floating layers (popovers, dialogs) use a shadow here." : "Use `shadow-lg` only for floating layers."}`,
     "",
     ...textureSection(s),
     "## Motion",

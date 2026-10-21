@@ -20,7 +20,10 @@
     --focus: #2a6cf0;
     --ok: #157f3c;
     --err: #b42318;
-    --shadow: 0 1px 2px rgba(16, 17, 20, 0.06), 0 4px 16px -6px rgba(16, 17, 20, 0.12);
+    --shadow: 0 0 0 1px rgba(16, 17, 20, 0.06), 0 1px 2px rgba(16, 17, 20, 0.04), 0 8px 24px -12px rgba(16, 17, 20, 0.14);
+    --shadow-hover: 0 0 0 1px rgba(16, 17, 20, 0.12), 0 1px 2px rgba(16, 17, 20, 0.05), 0 12px 28px -12px rgba(16, 17, 20, 0.18);
+    --raised: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(16, 17, 20, 0.2);
+    --ease: cubic-bezier(.22, 1, .36, 1);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -37,7 +40,9 @@
       --focus: #6b9bff;
       --ok: #4cc27a;
       --err: #ff7a6b;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px -8px rgba(0, 0, 0, 0.6);
+      --shadow: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+      --shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 28px -12px rgba(0, 0, 0, 0.8);
+      --raised: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
       color-scheme: dark;
     }
   }
@@ -81,7 +86,8 @@
     padding: 7px 10px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--muted);
   }
   .rail button:hover { background: color-mix(in srgb, var(--panel) 60%, transparent); }
-  .rail button[aria-current="step"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+  .rail button { transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+  .rail button[aria-current="step"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line-soft), 0 1px 2px rgba(16, 17, 20, 0.04); }
   .rail .n { font-size: 12px; line-height: 22px; color: var(--faint); font-variant-numeric: tabular-nums; }
   .rail .done .n { color: var(--ok); }
   .rail b { font-weight: 500; display: block; line-height: 22px; }
@@ -91,6 +97,9 @@
   .stage { min-width: 0; display: flex; flex-direction: column; }
   .step { flex: 1; padding: 36px 40px 40px; max-width: 1320px; width: 100%; }
   .step-head { margin-bottom: 26px; max-width: 74ch; }
+  .step > * { animation: rise 280ms var(--ease) both; }
+  .step > * + * { animation-delay: 40ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
   .step-head h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
   .step-head p { margin: 8px 0 0; color: var(--muted); font-size: 15.5px; }
   .actions {
@@ -102,9 +111,9 @@
   .actions .status { color: var(--muted); font-size: 13.5px; margin-right: auto; }
   .actions.done { position: static; border-top: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .actions .status.err { color: var(--err); }
-  .btn { height: 38px; padding: 0 18px; border-radius: 9px; border: 1px solid transparent; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 120ms cubic-bezier(.23,1,.32,1), transform 120ms cubic-bezier(.23,1,.32,1); }
-  .btn:active:not(:disabled) { transform: scale(.98); }
-  .btn.ink { background: var(--ink); color: var(--mat); }
+  .btn { height: 38px; padding: 0 18px; border-radius: 9px; border: 1px solid transparent; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease); }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn.ink { background: var(--ink); color: var(--mat); box-shadow: var(--raised); }
   .btn.ink:hover:not(:disabled) { background: var(--ink-soft); }
   .btn.ink:disabled { opacity: .35; cursor: default; }
   .btn.line { background: var(--panel); border-color: var(--line); }
@@ -131,29 +140,37 @@
 
   /* ---------- Choice cards (providers, hosting, surfaces) ---------- */
   .choices { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); max-width: 900px; }
-  .choice { position: relative; text-align: left; padding: 14px 16px 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; display: grid; gap: 3px; align-content: start; }
-  .choice:hover { border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); }
-  .choice[aria-pressed="true"], .choice[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .choice { position: relative; text-align: left; padding: 14px 16px 15px; border-radius: 12px; border: 0; background: var(--panel); box-shadow: var(--shadow); cursor: pointer; display: grid; gap: 3px; align-content: start; transition: box-shadow 160ms var(--ease); }
+  .choice:hover { box-shadow: var(--shadow-hover); }
+  .choice[aria-pressed="true"], .choice[aria-checked="true"] { box-shadow: 0 0 0 1.5px var(--ink), 0 8px 24px -12px rgba(16, 17, 20, 0.16); }
   .choice b { font-weight: 600; }
   .choice span { color: var(--muted); font-size: 13.5px; }
   .choice em { font-style: normal; font-size: 12.5px; color: var(--ok); }
 
   /* ---------- Proofs: options drawn on the person's own system ---------- */
   .proofs { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--proof-w, 360px)), 1fr)); }
-  .proof { all: unset; box-sizing: border-box; display: flex; flex-direction: column; cursor: pointer; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); outline-offset: 3px; transition: box-shadow 160ms cubic-bezier(.23,1,.32,1); }
+  .proof { all: unset; box-sizing: border-box; display: flex; flex-direction: column; cursor: pointer; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); outline-offset: 3px; transition: box-shadow 200ms var(--ease), transform 200ms var(--ease); }
+  .proof:hover { box-shadow: var(--shadow-hover); }
+  .proof:active { transform: scale(.995); }
   .proof:focus-visible { outline: 2px solid var(--focus); }
   .proof .view { height: var(--proof-h, 300px); border-radius: 14px 14px 0 0; overflow: hidden; pointer-events: none; position: relative; }
   .proof .view > .sp { height: 100%; }
+  .proof .view > .sp::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 0%, transparent), color-mix(in oklab, var(--background) 92%, transparent)); pointer-events: none; }
   .proof .meta { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 12px 14px 14px; border-top: 1px solid var(--line-soft); }
   .proof .meta b { font-weight: 600; }
   .proof .meta span { grid-column: 1; color: var(--muted); font-size: 13.5px; }
-  .proof .tick { grid-row: 1 / span 2; grid-column: 2; align-self: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; }
-  .proof[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink), var(--shadow); }
-  .proof[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); }
+  .proof .tick { grid-row: 1 / span 2; grid-column: 2; align-self: center; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: grid; place-items: center; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease); }
+  .proof[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink), 0 8px 24px -12px rgba(16, 17, 20, 0.16); }
+  .proof[aria-pressed="true"] .tick { background: var(--ink); box-shadow: none; }
   .proof[aria-pressed="true"] .tick::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--mat); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
   .proof .err { padding: 16px; color: var(--err); font-size: 13.5px; }
-  .proofs.loading .proof .view { background: linear-gradient(90deg, var(--line-soft), var(--hover), var(--line-soft)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
-  @keyframes shimmer { to { background-position: -200% 0; } }
+  .proofs.loading .proof .view { background: var(--hover); animation: breathe 1.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .55; } }
+  .proofs:not(.loading) .proof { animation: rise 320ms var(--ease) both; }
+  .proofs:not(.loading) .proof:nth-child(2) { animation-delay: 30ms; }
+  .proofs:not(.loading) .proof:nth-child(3) { animation-delay: 60ms; }
+  .proofs:not(.loading) .proof:nth-child(4) { animation-delay: 90ms; }
+  .proofs:not(.loading) .proof:nth-child(n+5) { animation-delay: 120ms; }
 
   .section-label { margin: 34px 0 12px; font-size: 15px; font-weight: 600; }
   .section-label:first-child { margin-top: 0; }
@@ -161,7 +178,7 @@
 
   /* ---------- Starting points ---------- */
   .material { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; max-width: 980px; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; }
+  .panel { background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; }
   .panel h3 { margin: 0; font-size: 15px; font-weight: 600; }
   .drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; cursor: pointer; }
   .drop.over { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 6%, transparent); }
@@ -180,7 +197,7 @@
   @media (max-width: 900px) { .own-type { grid-template-columns: 1fr; } }
   .reasons { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 3px; }
   .suggestion { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: start; margin-top: 14px; max-width: 980px; }
-  .suggestion .view { height: 280px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  .suggestion .view { height: 280px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
 
   /* ---------- Feel ---------- */
   .feel { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -198,7 +215,7 @@
 
   /* ---------- Color ---------- */
   .color { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: start; }
-  .picker { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .picker { background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
   .area-wrap { position: relative; width: 100%; aspect-ratio: 300 / 200; border-radius: 9px; overflow: hidden; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
   .area-wrap canvas, .hue-wrap canvas { display: block; width: 100%; height: 100%; }
   .marker { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25); pointer-events: none; }
@@ -224,7 +241,7 @@
   .frame.wide { grid-column: 1 / -1; }
 
   .frame-label { font-size: 12.5px; color: var(--muted); margin: 0 0 6px 2px; }
-  .refine { position: sticky; top: 72px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .refine { position: sticky; top: 72px; background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
   .refine h3 { margin: 0; font-size: 15px; font-weight: 600; }
   .refine textarea { width: 100%; min-height: 72px; resize: vertical; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); }
   .refine textarea:focus { border-color: var(--focus); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
@@ -262,7 +279,7 @@
     .suggestion { grid-template-columns: 1fr; }
     .bar .product { display: none; }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; animation-delay: 0ms !important; } }
 </style>
 </head>
 <body>
@@ -375,7 +392,7 @@
 
   let timers = [];
   function startAutoplay(container) {
-    const play = () => container.querySelectorAll(".proof .view > .sp").forEach((el, i) => setTimeout(() => S.play(el), i * 220));
+    const play = () => container.querySelectorAll(".proof .view > .sp").forEach((el, i) => setTimeout(() => S.play(el, { loop: true }), i * 220));
     play();
     timers.push(setInterval(play, 3200));
   }
@@ -455,6 +472,7 @@
           <label class="field"><span>Your site <span class="note">(optional)</span></span><input class="input" id="p-url" placeholder="northwind.com" value="${esc(p.url)}" autocomplete="off" inputmode="url"><small>Read for its colors and fonts on the next steps. Nothing is sent anywhere without a model.</small></label>
         </div>`));
         setTimeout(() => $("#p-name").focus(), 0);
+        $("#p-name").addEventListener("input", () => { if ($("#status").classList.contains("err")) status(""); });
       },
       async leave() {
         const name = $("#p-name").value.trim();
@@ -606,7 +624,7 @@
     },
     {
       id: "motion", title: "Choose motion", rail: "Motion",
-      help: "Each one plays on a loop: a button press, a confirmation and a sheet. Motion answers what people do; nothing moves on its own.",
+      help: "Each one plays the same moment: a press, the status changing, and a confirmation arriving. Motion answers what people do; nothing moves on its own.",
       value: () => (app.state.motions[app.state.choices.motion] || {}).name,
       render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "motion", { scenes: ["motion"], height: 260, current: () => app.state.choices.motion, label: "Motion", autoplay: true }); },
     },
@@ -652,7 +670,8 @@
     const f = app.feel || {};
     const p = {};
     if (f.touched?.energy) { p.energy = f.energy; p.motion = f.energy < 0.34 ? "still" : f.energy < 0.67 ? "subtle" : "expressive"; }
-    if (f.touched?.warmth) { p.warmth = f.warmth; p.neutral = f.warmth < 0.34 ? "cool" : f.warmth < 0.67 ? "neutral" : "warm"; p.radius = Math.round(2 + f.warmth * 14); }
+    // Corners land on the options the Shape step offers, so one of them is always shown as chosen.
+    if (f.touched?.warmth) { p.warmth = f.warmth; p.neutral = f.warmth < 0.34 ? "cool" : f.warmth < 0.67 ? "neutral" : "warm"; p.radius = [0, 4, 8, 12, 16].reduce((a, b) => (Math.abs(b - (2 + f.warmth * 14)) < Math.abs(a - (2 + f.warmth * 14)) ? b : a)); }
     if (f.touched?.novelty) { p.novelty = f.novelty; p.pairing = ["plex", "geist", "manrope", "figtree", "bricolage"][Math.min(4, Math.floor(f.novelty * 5))]; }
     return p;
   }
@@ -819,7 +838,7 @@
     const preview = async () => {
       if (inflight) { again = true; return; }
       inflight = true;
-      try { const sp = await api("/api/preview", { patch: app.colorPatch }); paintColor(sp); $("#code-err").hidden = true; status("Not saved yet: continue or pick another step to keep it."); }
+      try { const sp = await api("/api/preview", { patch: app.colorPatch }); paintColor(sp); if (app.syncNext) { app.syncNext = false; app.syncPicker(sp); } $("#code-err").hidden = true; status("Not saved yet: continue or pick another step to keep it."); }
       catch (e) { $("#code-err").hidden = false; $("#code-err").textContent = e.message; }
       finally { inflight = false; if (again) { again = false; preview(); } }
     };
@@ -841,9 +860,10 @@
       const st = e.shiftKey ? 10 : 2; if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; e.preventDefault();
       const hh = (app.pick.h + (e.key === "ArrowRight" ? st : -st) + 360) % 360; app.pick = { ...app.pick, h: hh, c: Math.min(app.pick.c, maxChroma(app.pick.l, hh)) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick));
     });
-    $("#code").addEventListener("keydown", (e) => { if (e.key === "Enter") { setBrand($("#code").value.trim()); } });
-    $("#code").addEventListener("change", () => setBrand($("#code").value.trim()));
-    if ("EyeDropper" in window) { $("#eyedrop").hidden = false; $("#eyedrop").onclick = async () => { try { const r = await new window.EyeDropper().open(); $("#code").value = r.sRGBHex; setBrand(r.sRGBHex); } catch {} }; }
+    const fromCode = () => { app.syncNext = true; setBrand($("#code").value.trim()); };
+    $("#code").addEventListener("keydown", (e) => { if (e.key === "Enter") fromCode(); });
+    $("#code").addEventListener("change", fromCode);
+    if ("EyeDropper" in window) { $("#eyedrop").hidden = false; $("#eyedrop").onclick = async () => { try { const r = await new window.EyeDropper().open(); $("#code").value = r.sRGBHex; app.syncNext = true; setBrand(r.sRGBHex); } catch {} }; }
     $("#neutral").querySelectorAll("button").forEach((b) => b.onclick = () => { $("#neutral").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); app.colorPatch.neutral = b.dataset.v; app.colorDirty = true; preview(); });
     $("#mode").querySelectorAll("button").forEach((b) => b.onclick = () => { $("#mode").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); app.colorPatch.defaultMode = b.dataset.v; app.colorDirty = true; preview(); });
     app.syncPicker = (sp) => { const s = sp.palettes.brand.find((p) => p.step === sp.seedStep); const p = parseOklch(s && s.css); if (p) { app.pick = { ...p, h: p.c < 0.002 ? app.pick.h : p.h }; drawArea(); place(); } };
@@ -864,6 +884,7 @@
       .replace(/sidebar-primary-foreground uses (light|dark) text to read on sidebar-primary\./, "the sidebar uses $1 text on the brand color too.")
       .replace(/primary-foreground uses (light|dark) text to read on primary\./, "buttons use $1 text on the brand color, so labels stay readable.")
       .replace(/primary uses brand-(\d+), a (lighter|darker) step of the brand color, so it reads as text on (light|dark) surfaces\./, "the brand color shifts to a $2 shade ($1) so links and highlights stay readable.")
+      .replace(/primary uses neutral-\d+, so the brand's (ink|paper) reads as its opposite in (light|dark) mode\./, (_, b, m) => b === "ink" ? "the ink brand becomes a light gray, the way a black button turns white." : "the paper brand becomes near-black, the way a white button turns dark.")
       .replace(/Keep text-primary off bg-muted\./, "Avoid brand-colored text on gray panels.")
       .replace(/links and highlighted text use text-foreground with an underline\./, "links use body text with an underline instead.");
   }

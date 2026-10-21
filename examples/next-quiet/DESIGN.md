@@ -2,7 +2,7 @@
 
 # Quiet design system
 
-Calm, dense and precise. Built for dashboards and tools people use all day.
+Ink on white, hairlines and soft depth. Calm and dense, for tools people use all day.
 
 Read this before writing or changing any UI. Every rule below is enforced:
 off-system classes don't compile, and `npx auto-design check` fails the build.
@@ -40,7 +40,7 @@ arbitrary color values (`text-[#333]`) are not available. Opacity modifiers on r
 - One `bg-primary` action per view. Everything else is `secondary`, `outline` or `ghost`.
 - Status is a tinted fill with a colored dot and `text-foreground` (`<Badge variant="warning">`). Solid status fills are for banners and buttons only.
 - `text-primary` is for links, selected states and highlighted code, never body copy.
-- dark: primary uses brand-400, a lighter step of the brand color, so it reads as text on dark surfaces.
+- dark: primary uses neutral-200, so the brand's ink reads as its opposite in dark mode.
 - dark: primary-foreground uses dark text to read on primary.
 - dark: sidebar-primary-foreground uses dark text to read on sidebar-primary.
 
@@ -51,17 +51,17 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 | light | foreground | background | 19.79:1 |
 | light | foreground | card | 19.79:1 |
 | light | foreground | popover | 19.79:1 |
-| light | muted-foreground | background | 5.04:1 |
-| light | muted-foreground | card | 5.04:1 |
-| light | muted-foreground | muted | 4.58:1 |
-| light | primary-foreground | primary | 6.05:1 |
+| light | muted-foreground | background | 5.39:1 |
+| light | muted-foreground | card | 5.39:1 |
+| light | muted-foreground | muted | 4.9:1 |
+| light | primary-foreground | primary | 16.97:1 |
 | dark | foreground | background | 18.96:1 |
 | dark | foreground | card | 17.16:1 |
 | dark | foreground | popover | 17.16:1 |
 | dark | muted-foreground | background | 7.64:1 |
 | dark | muted-foreground | card | 6.91:1 |
 | dark | muted-foreground | muted | 5.83:1 |
-| dark | primary-foreground | primary | 7.97:1 |
+| dark | primary-foreground | primary | 15.72:1 |
 
 ## Type
 
@@ -88,13 +88,13 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 
 - Padding, margin, gap and space utilities use these steps only: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `4`, `5`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `64` (× 4px).
 - Control heights (compact): small `h-7`, default `h-8`, large `h-9`. Inputs match buttons.
-- Radius: `rounded-sm`, `rounded-md`, `rounded-lg` (6px, the default for cards), `rounded-xl`, `rounded-full` for pills and avatars.
-- Elevation: `shadow-xs` to `shadow-lg`. Use `shadow-lg` only for floating layers.
+- Radius: `rounded-sm`, `rounded-md`, `rounded-lg` (8px, the default for cards), `rounded-xl`, `rounded-full` for pills and avatars.
+- Elevation: `shadow-xs` (controls at rest), `shadow-sm` (cards), `shadow-md` (menus, toasts), `shadow-lg` (dialogs) and `shadow-raised` (solid buttons). Use `shadow-lg` only for floating layers.
 
 ## Texture
 
 - Structure comes from alignment and spacing first, `border` second, `shadow-xs` last.
-- Cards have a hairline border and the lightest shadow; floating layers use `shadow-lg`.
+- Cards have a hairline border and a soft `shadow-sm`; menus and toasts use `shadow-md`, dialogs `shadow-lg`. Solid buttons use `shadow-raised`; the Button component already does.
 
 ## Motion
 

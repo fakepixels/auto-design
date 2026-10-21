@@ -49,6 +49,8 @@ export interface Skin {
   overlay: string;
   /** Extra classes on solid buttons. */
   raised: string;
+  /** Extra classes on outline buttons and other controls at rest. */
+  rest: string;
   /** Press feedback on buttons. */
   press: string;
   /** Table header cells. */
@@ -67,6 +69,7 @@ export function skinFor(s: DesignSystem): Skin {
         card: "bg-card",
         overlay: "border bg-popover shadow-lg",
         raised: "",
+        rest: "",
         press: scalePress,
         tableHead: "font-medium text-muted-foreground",
         label: "text-sm font-medium",
@@ -76,7 +79,8 @@ export function skinFor(s: DesignSystem): Skin {
       return {
         card: "border bg-card shadow-sm",
         overlay: "glass",
-        raised: " shadow-sm",
+        raised: " shadow-raised",
+        rest: " shadow-xs",
         press: scalePress,
         tableHead: "font-medium text-muted-foreground",
         label: "text-sm font-medium",
@@ -86,7 +90,8 @@ export function skinFor(s: DesignSystem): Skin {
       return {
         card: "border border-transparent bg-card shadow-md dark:border-border",
         overlay: "border bg-popover shadow-lg",
-        raised: " shadow-sm",
+        raised: " shadow-raised",
+        rest: " shadow-sm",
         press: " active:translate-y-px active:shadow-xs",
         tableHead: "font-medium text-muted-foreground",
         label: "text-sm font-medium",
@@ -96,7 +101,8 @@ export function skinFor(s: DesignSystem): Skin {
       return {
         card: "border bg-card",
         overlay: "border bg-popover shadow-lg",
-        raised: "",
+        raised: " shadow-raised",
+        rest: "",
         press: "",
         tableHead: "font-mono text-xs font-normal uppercase tracking-wide text-muted-foreground",
         label: "font-mono text-xs font-normal uppercase tracking-wide",
@@ -104,9 +110,10 @@ export function skinFor(s: DesignSystem): Skin {
       };
     default:
       return {
-        card: "border bg-card shadow-xs",
+        card: "border bg-card shadow-sm",
         overlay: "border bg-popover shadow-lg",
-        raised: " shadow-xs",
+        raised: " shadow-raised",
+        rest: " shadow-xs",
         press: scalePress,
         tableHead: "font-medium text-muted-foreground",
         label: "text-sm font-medium",
@@ -149,7 +156,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground${k.raised} hover:bg-primary/90",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        outline: "border border-input bg-background${k.raised} hover:bg-accent hover:text-accent-foreground",
+        outline: "border border-input bg-background${k.rest} hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         destructive: "bg-destructive text-destructive-foreground${k.raised} hover:bg-destructive/90",
         link: "text-foreground underline-offset-4 hover:underline",
@@ -286,7 +293,7 @@ function Toaster(props: ToasterProps) {
       }
       toastOptions={{
         classNames: {
-          toast: "font-sans text-sm ${s.config.texture === "glass" ? "glass" : "shadow-lg"}",
+          toast: "font-sans text-sm ${s.config.texture === "glass" ? "glass" : "shadow-md"}",
           // Sonner colors descriptions for its own light theme; the system's role has to win in both modes.
           description: "text-muted-foreground!",
         },

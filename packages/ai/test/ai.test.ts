@@ -66,7 +66,7 @@ describe("applyPatch", () => {
 
   it("describes changes in words", () => {
     const next = applyPatch(quiet, { neutral: "warm", radius: 10, pairing: "figtree" });
-    expect(describeChanges(quiet, next)).toEqual(["Grays: cool → warm", "Type: Geist → Figtree", "Corners: 6px → 10px"]);
+    expect(describeChanges(quiet, next)).toEqual(["Grays: cool → warm", "Type: Geist → Figtree", "Corners: 8px → 10px"]);
   });
 });
 
@@ -118,7 +118,7 @@ describe("the designer, against a mock model", () => {
 describe("quick tweaks without a model", () => {
   it("maps plain requests to system options", () => {
     expect(quickTweak(quiet, "Warmer")).toMatchObject({ neutral: "warm" });
-    expect(quickTweak(quiet, "Rounder")).toMatchObject({ radius: 10 });
+    expect(quickTweak(quiet, "Rounder")).toMatchObject({ radius: 12 });
     expect(quickTweak(quiet, "Denser, like Linear")).toMatchObject({ density: "compact" });
     expect(quickTweak(quiet, "Calmer motion")).toMatchObject({ motion: "still" });
   });

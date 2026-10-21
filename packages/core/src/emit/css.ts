@@ -84,7 +84,7 @@ export function themeTokens(s: DesignSystem): Record<string, string> {
 export function rootTokens(s: DesignSystem, mode: Mode): Record<string, string> {
   const v: Record<string, string> = {};
   for (const role of ROLE_NAMES) v[`--${role}`] = toCss(s.roles[mode][role]);
-  return v;
+  return { ...v, ...glassVars(s, mode) };
 }
 
 export function staticRootTokens(s: DesignSystem): Record<string, string> {
@@ -313,6 +313,15 @@ export function isDarkFirst(s: DesignSystem): boolean {
  * properties there.
  */
 export function textureLayer(s: DesignSystem): string {
+  if (s.config.texture === "technical") {
+    return `/* Technical pages can sit on a faint dot grid: marketing heroes, empty states, canvases. Never behind tables or body text. */
+@utility bg-grid {
+  background-color: var(--background);
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 12%, transparent) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+  background-position: -8px -8px;
+}`;
+  }
   if (s.config.texture !== "glass") return "";
   return `/* Glass is chrome, never content: nav bars, sheets, dialogs and popovers only. */
 @utility glass {
@@ -322,27 +331,28 @@ export function textureLayer(s: DesignSystem): string {
   box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--shadow-md);
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
     background-color: var(--glass);
-    -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    backdrop-filter: blur(24px) saturate(1.8);
   }
 }
 
+/* The page behind the glass: soft light in the brand's neighboring hues, so frosting has color to catch. */
 @utility bg-backdrop {
   background-color: var(--background);
   background-image:
-    radial-gradient(55% 45% at 12% 8%, color-mix(in oklab, var(--primary) 26%, transparent), transparent 70%),
-    radial-gradient(45% 45% at 88% 22%, color-mix(in oklab, var(--chart-2) 24%, transparent), transparent 70%),
-    radial-gradient(60% 50% at 50% 100%, color-mix(in oklab, var(--chart-4) 20%, transparent), transparent 70%);
+    radial-gradient(70% 55% at 18% -6%, color-mix(in oklab, var(--chart-4) 16%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 92% 6%, color-mix(in oklab, var(--chart-2) 12%, transparent), transparent 70%),
+    radial-gradient(90% 60% at 50% 110%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%);
   background-attachment: fixed;
 }`;
 }
 
-function glassVars(s: DesignSystem): Record<string, string> {
+function glassVars(s: DesignSystem, mode: Mode): Record<string, string> {
   if (s.config.texture !== "glass") return {};
   return {
-    "--glass": "color-mix(in oklab, var(--popover) 62%, transparent)",
-    "--glass-border": "color-mix(in oklab, var(--foreground) 10%, transparent)",
-    "--glass-highlight": "color-mix(in oklab, white 45%, transparent)",
+    "--glass": `color-mix(in oklab, var(--popover) ${mode === "light" ? 72 : 64}%, transparent)`,
+    "--glass-border": `color-mix(in oklab, var(--foreground) ${mode === "light" ? 8 : 10}%, transparent)`,
+    "--glass-highlight": `color-mix(in oklab, white ${mode === "light" ? 60 : 8}%, transparent)`,
   };
 }
 
@@ -373,7 +383,7 @@ export function emitCss(s: DesignSystem): string {
     block("@theme inline", colorMap),
     // Doubled selectors outrank a plain :root or .dark left in an app's own CSS,
     // so the system's values win regardless of import order.
-    block(":root:root", { ...staticRootTokens(s), ...glassVars(s), ...rootTokens(s, rootMode) }),
+    block(":root:root", { ...staticRootTokens(s), ...rootTokens(s, rootMode) }),
   ];
   if (modes === "both") {
     parts.push(darkFirst ? block(":root.light", rootTokens(s, "light")) : block(":root.dark", rootTokens(s, "dark")));

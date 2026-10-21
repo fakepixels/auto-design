@@ -33,7 +33,8 @@
     v["--sp-w-strong"] = String(d.weights.strong);
     v["--sp-w-display"] = String(d.weights.display);
     for (var sh in d.shadows) v["--sp-shadow-" + sh] = d.shadows[sh];
-    v["--sp-raised"] = d.skin.raised ? (d.texture === "minimal" ? d.shadows.xs : d.shadows.sm) : "none";
+    v["--sp-raised"] = d.skin.raised ? d.shadows.raised : "none";
+    v["--sp-rest"] = d.skin.rest && d.skin.rest !== "none" ? d.shadows[d.skin.rest] : "none";
     v["--sp-card-shadow"] = d.skin.cardShadow === "none" ? "none" : d.shadows[d.skin.cardShadow];
     var cb = d.skin.cardBorder || "always";
     v["--sp-card-border"] = cb === "always" || (cb === "dark" && mode === "dark") ? "var(--border)" : "transparent";
@@ -67,6 +68,12 @@
     else el.removeAttribute("data-display-titles");
   }
 
+  /** The product's mark: its first letter on the brand color. */
+  function mark(copy) {
+    var ch = String(copy.product || "N").trim().charAt(0).toUpperCase() || "N";
+    return '<i class="sp-mark" aria-hidden="true">' + e(ch) + "</i>";
+  }
+
   function badge(status, copy) {
     return status === "ok"
       ? '<span class="sp-badge ok">' + e(copy.okLabel || "On track") + "</span>"
@@ -89,13 +96,13 @@
     app: function (d, copy, o) {
       var size = o.size || "m";
       var side = size === "s" ? "" :
-        '<aside class="sp-side"><div class="brand"><i></i>' + e(copy.product) + "</div>" +
+        '<aside class="sp-side"><div class="brand">' + mark(copy) + e(copy.product) + "</div>" +
         copy.nav.slice(0, size === "l" ? 5 : 4).map(function (n, i) { return '<a class="' + (i === 1 ? "on" : "") + '">' + e(n) + "</a>"; }).join("") +
         "</aside>";
       var metrics = size === "s" ? "" :
         '<dl class="sp-metrics">' + copy.metrics.map(function (m) { return "<div><dt>" + e(m.label) + "</dt><dd>" + e(m.value) + "</dd></div>"; }).join("") + "</dl>";
       return (
-        '<div class="sp-app sp-shell"' + (size === "s" ? ' style="grid-template-columns:1fr"' : "") + ">" + side +
+        '<div class="sp-app sp-shell' + (size !== "s" && (d.texture === "minimal" || d.texture === "glass" || d.texture === "tactile") ? " inset" : "") + '"' + (size === "s" ? ' style="grid-template-columns:1fr"' : "") + ">" + side +
         '<div class="sp-main"><div class="sp-head"><div><div class="sp-row"><h2 class="sp-title">' + e(copy.pageTitle) + "</h2>" +
         '<span class="sp-badge warn">' + e(copy.statusLabel) + '</span></div><p class="muted t-sm" style="margin-top:4px">' + e(copy.pageSummary) +
         '</p></div><button class="sp-btn primary" tabindex="-1">' + e(copy.primaryAction) + "</button></div>" +
@@ -110,10 +117,10 @@
       var style = size === "xs" ? ' style="--sp-hero-size:var(--sp-t-2xl);--sp-hero-lh:var(--sp-lh-2xl);padding-top:calc(var(--sp-pad)*0.75);padding-bottom:var(--sp-pad)"' :
         size === "s" ? ' style="--sp-hero-size:var(--sp-t-3xl);--sp-hero-lh:var(--sp-lh-3xl)"' : size === "m" ? ' style="--sp-hero-size:var(--sp-t-4xl);--sp-hero-lh:var(--sp-lh-4xl)"' : "";
       return (
-        '<div class="sp-shell"><nav class="sp-nav' + glass + '"><span class="brand"><i></i>' + e(copy.product) + "</span>" +
+        '<div class="sp-shell sp-marketing"><nav class="sp-nav' + glass + '"><span class="brand">' + mark(copy) + e(copy.product) + "</span>" +
         (small ? "" : "<a>Product</a><a>Pricing</a><a>Docs</a>") +
         '<button class="sp-btn sm outline" tabindex="-1">Sign in</button></nav>' +
-        '<section class="sp-hero"' + style + "><h1>" + e(copy.headline) + "</h1>" + (size === "xs" ? "" : '<p class="lead">' + e(copy.subhead) + "</p>") +
+        '<section class="sp-hero"' + style + ">" + (size === "xs" ? "" : '<span class="sp-eyebrow"><i>New</i>' + e(copy.eyebrow || "Introducing " + copy.product + " 2.0") + "</span>") + "<h1" + (d.fonts.display ? ' class="display"' : "") + ">" + e(copy.headline) + "</h1>" + (size === "xs" ? "" : '<p class="lead">' + e(copy.subhead) + "</p>") +
         '<div class="sp-row"><button class="sp-btn primary lg" tabindex="-1">' + e(copy.cta) + "</button>" +
         (small ? "" : '<button class="sp-btn outline lg" tabindex="-1">' + e(copy.secondaryCta) + "</button>") + "</div>" +
         (small ? "" : '<p class="note">' + e(copy.note) + "</p>") + "</section></div>"
@@ -223,14 +230,16 @@
       );
     },
 
+    /** One beat of the system's motion: a press, the status changing, a confirmation. */
     motion: function (d, copy) {
+      var r = copy.table.rows[0];
+      var check = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5"/></svg>';
       return (
-        '<div class="sp-stage sp-shell"><div class="sp-row"><button class="sp-btn primary" tabindex="-1">' + e(copy.primaryAction) + "</button>" +
-        '<button class="sp-btn outline" tabindex="-1">Details</button></div>' +
-        '<div class="sp-stage-list">' + copy.table.rows.slice(0, 3).map(function (r) { return '<div><span>' + e(r.name) + '</span><span class="muted num">' + e(r.value) + "</span></div>"; }).join("") + "</div>" +
-        '<div class="sp-sheet sp-overlay"><p class="sp-h4">' + e(copy.table.rows[0].name) + '</p><p class="muted t-sm" style="margin-top:2px">' +
-        e(copy.table.rows[0].detail) + " · " + e(copy.table.rows[0].value) + "</p></div>" +
-        '<div class="sp-toast sp-overlay"><b>' + e(copy.done || copy.primaryAction) + '</b><span class="muted">' + e(copy.pageSummary) + "</span></div></div>"
+        '<div class="sp-stage sp-shell"><div class="sp-card sp-beat"><div class="top"><div><b>' + e(r.name) + '</b><span class="muted">' + e(r.detail) + " · " + e(r.value) +
+        '</span></div><span class="sp-swap"><span class="sp-badge warn before">' + e(copy.reviewLabel || "Needs review") + '</span><span class="sp-badge ok after">' +
+        e(copy.approvedLabel || "Approved") + "</span></span></div>" +
+        '<div class="sp-row"><button class="sp-btn primary" tabindex="-1">' + e(copy.primaryAction) + '</button><button class="sp-btn ghost" tabindex="-1">Details</button></div></div>' +
+        '<div class="sp-toast sp-overlay"><b><span class="ic">' + check + "</span>" + e(copy.done || copy.primaryAction) + '</b><span class="muted">' + e(copy.pageSummary) + "</span></div></div>"
       );
     },
   };
@@ -258,11 +267,12 @@
     return el;
   }
 
-  /** Replay the motion demo in an element. */
-  function play(el) {
+  /** Replay the motion demo in an element. With { loop: true } it settles back at the end, ready to play again. */
+  function play(el, opts) {
     var stage = el.querySelector(".sp-stage");
     if (!stage) return;
     stage.classList.remove("play");
+    stage.classList.toggle("loop", !!(opts && opts.loop));
     void stage.offsetWidth;
     stage.classList.add("play");
   }

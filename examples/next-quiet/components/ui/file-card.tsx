@@ -27,7 +27,7 @@ function FileCard({
     </>
   );
   return (
-    <div data-slot="file-card" className={cn("inline-flex w-fit max-w-full items-center rounded-lg border bg-card shadow-xs p-2 pr-4", className)} {...props}>
+    <div data-slot="file-card" className={cn("inline-flex w-fit max-w-full items-center rounded-lg border bg-card shadow-sm p-2 pr-4", className)} {...props}>
       {href ? (
         <a href={href} download className="flex min-w-0 items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
           {body}

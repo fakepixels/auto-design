@@ -70,10 +70,10 @@
         <h1 class="text-3xl font-semibold tracking-tight">Shape and space</h1>
         <p class="mt-2 text-lg text-muted-foreground">Radius, elevation, control sizes, spacing and texture.</p>
         <div class="mt-8">
-<p class="leading-relaxed [&:not(:first-child)]:mt-4">Compact density, 6px corners and minimal surfaces.</p>
+<p class="leading-relaxed [&:not(:first-child)]:mt-4">Compact density, 8px corners and minimal surfaces.</p>
 <h2 id="radius" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">Radius</h2>
 <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
-  <div><div class="h-20 rounded-sm border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-sm</p><p class="text-xs text-muted-foreground">2px</p></div><div><div class="h-20 rounded-md border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-md</p><p class="text-xs text-muted-foreground">4px</p></div><div><div class="h-20 rounded-lg border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-lg</p><p class="text-xs text-muted-foreground">6px</p></div><div><div class="h-20 rounded-xl border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-xl</p><p class="text-xs text-muted-foreground">10px</p></div><div><div class="h-20 rounded-full border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-full</p><p class="text-xs text-muted-foreground">pill</p></div>
+  <div><div class="h-20 rounded-sm border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-sm</p><p class="text-xs text-muted-foreground">4px</p></div><div><div class="h-20 rounded-md border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-md</p><p class="text-xs text-muted-foreground">6px</p></div><div><div class="h-20 rounded-lg border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-lg</p><p class="text-xs text-muted-foreground">8px</p></div><div><div class="h-20 rounded-xl border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-xl</p><p class="text-xs text-muted-foreground">12px</p></div><div><div class="h-20 rounded-full border bg-muted"></div><p class="mt-2 font-mono text-xs">rounded-full</p><p class="text-xs text-muted-foreground">pill</p></div>
 </div>
 <h2 id="elevation" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">Elevation</h2>
 <div class="mt-6 grid grid-cols-2 gap-6 rounded-lg bg-muted p-6 sm:grid-cols-4">
@@ -93,7 +93,7 @@
 <h2 id="texture" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">Texture</h2>
 <ul class="my-4 ml-6 list-disc [&>li]:mt-2">
 <li>Structure comes from alignment and spacing first, <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">border</code> second, <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-xs</code> last.</li>
-<li>Cards have a hairline border and the lightest shadow; floating layers use <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-lg</code>.</li>
+<li>Cards have a hairline border and a soft <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-sm</code>; menus and toasts use <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-md</code>, dialogs <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-lg</code>. Solid buttons use <code class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">shadow-raised</code>; the Button component already does.</li>
 </ul>
 </div>
       </main>

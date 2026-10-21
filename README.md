@@ -69,11 +69,11 @@ Keys are read from `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or `OPENROUTER_API_KEY`
 
 | Preset | Feel |
 | --- | --- |
-| Quiet | Calm, dense and precise. Geist, hairline borders, 6px corners. For dashboards and tools people use all day. |
-| Editorial | Typography carries the design: Instrument Serif headlines, no borders or shadows, color used sparingly. |
-| Glass | Frosted navigation and dialogs over solid content, Figtree, rounder corners, springier motion. |
-| Terminal | Dark first, dense and exact. IBM Plex Sans with JetBrains Mono labels, 2px corners. |
-| Tactile | Soft raised surfaces and buttons that press down. Bricolage Grotesque headlines, 16px corners. |
+| Quiet | Ink on white, in the spirit of shadcn and Linear. Geist, hairline rings and soft layered shadows, 8px corners. For dashboards and tools people use all day. |
+| Editorial | Typography carries the design: Instrument Serif headlines on warm paper, rules and space instead of boxes, a deep green used sparingly. |
+| Glass | Frosted navigation and dialogs over soft light, solid content underneath. Inter, iOS blue, 12px corners, springier motion. |
+| Terminal | Dark first on a faint dot grid, dense and exact. IBM Plex Sans with JetBrains Mono labels, a cyan that reads on black and white, 4px corners. |
+| Tactile | Raised buttons with a lit top edge that press down, soft cards, a warm tangerine with dark labels. Figtree, 16px corners. |
 
 Skip the browser with `npx auto-design init my-design --preset glass`.
 

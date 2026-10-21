@@ -8,11 +8,11 @@ import { defineConfig, pairingFonts } from "@auto-design/core";
 export default defineConfig({
   name: "editorial",
   displayName: "Editorial",
-  description: "Calm and literate. Typography carries the design; color is used sparingly.",
+  description: "Warm paper and a serif voice. Typography carries the design; color is used sparingly.",
   personality: { energy: 0.15, warmth: 0.6, novelty: 0.35 },
   texture: "editorial",
   color: {
-    brand: "oklch(0.4 0.075 158)",
+    brand: "oklch(0.36 0.06 165)",
     neutral: "warm",
     modes: "both",
     defaultMode: "light",

@@ -27,7 +27,7 @@
     },
     "primary": {
       "$type": "color",
-      "$value": "{color.brand.400}"
+      "$value": "{color.neutral.200}"
     },
     "primary-foreground": {
       "$type": "color",
@@ -91,7 +91,7 @@
     },
     "ring": {
       "$type": "color",
-      "$value": "{color.brand.400}"
+      "$value": "{color.neutral.200}"
     },
     "overlay": {
       "$type": "color",
@@ -108,7 +108,7 @@
     },
     "chart-1": {
       "$type": "color",
-      "$value": "{color.brand.400}"
+      "$value": "{color.neutral.200}"
     },
     "chart-2": {
       "$type": "color",
@@ -160,7 +160,7 @@
     },
     "sidebar-primary": {
       "$type": "color",
-      "$value": "{color.brand.400}"
+      "$value": "{color.neutral.200}"
     },
     "sidebar-primary-foreground": {
       "$type": "color",
@@ -180,7 +180,7 @@
     },
     "sidebar-ring": {
       "$type": "color",
-      "$value": "{color.brand.400}"
+      "$value": "{color.neutral.200}"
     }
   }
 }

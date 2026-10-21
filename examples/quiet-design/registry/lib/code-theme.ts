@@ -15,7 +15,7 @@ export const light: ThemeRegistration = {
         "punctuation.definition.comment"
       ],
       "settings": {
-        "foreground": "#6a6f76",
+        "foreground": "#666b71",
         "fontStyle": "italic"
       }
     },
@@ -32,7 +32,7 @@ export const light: ThemeRegistration = {
         "support.class.component"
       ],
       "settings": {
-        "foreground": "#2760a8"
+        "foreground": "#17181b"
       }
     },
     {
@@ -68,7 +68,7 @@ export const light: ThemeRegistration = {
         "entity.other.inherited-class"
       ],
       "settings": {
-        "foreground": "#735194"
+        "foreground": "#7b4e8e"
       }
     },
     {
@@ -102,7 +102,7 @@ export const light: ThemeRegistration = {
         "punctuation.terminator"
       ],
       "settings": {
-        "foreground": "#6a6f76"
+        "foreground": "#666b71"
       }
     }
   ]
@@ -139,7 +139,7 @@ export const dark: ThemeRegistration = {
         "support.class.component"
       ],
       "settings": {
-        "foreground": "#6da7f3"
+        "foreground": "#e2e5ea"
       }
     },
     {
@@ -175,7 +175,7 @@ export const dark: ThemeRegistration = {
         "entity.other.inherited-class"
       ],
       "settings": {
-        "foreground": "#cfabf6"
+        "foreground": "#d9a8ef"
       }
     },
     {

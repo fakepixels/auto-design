@@ -158,12 +158,13 @@ function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], 
     secondary: light ? n[100] : n[800],
     "secondary-foreground": light ? n[900] : n[50],
     muted: light ? n[100] : n[800],
-    "muted-foreground": light ? n[500] : n[400],
+    // Helper text sits on muted panels too, so it starts dark enough to read there (n500 alone is 4.3:1 on n100).
+    "muted-foreground": light ? inGamut({ ...n[500], l: 0.525 }) : n[400],
     accent: light ? n[100] : n[800],
     "accent-foreground": light ? n[900] : n[50],
     destructive: light ? p.danger[600] : p.danger[400],
     "destructive-foreground": light ? n[50] : n[950],
-    success: light ? p.success[600] : p.success[400],
+    success: light ? inGamut({ ...p.success[600], l: 0.53 }) : p.success[400],
     "success-foreground": light ? n[50] : n[950],
     warning: light ? p.warning[400] : p.warning[400],
     "warning-foreground": n[950],
@@ -224,6 +225,13 @@ function primaryFor(
 
   const hardest = mode === "dark" ? n[800] : n[100];
   if (contrast(seed, hardest) >= TEXT_MIN) return seed;
+  // An ink or paper brand (almost no color) flips to the other end of the grays,
+  // the way a black button becomes a white one in dark mode.
+  if (seed.c < 0.03) {
+    const flipped = mode === "dark" ? n[200] : n[900];
+    report.notes.push(`${mode}: primary uses neutral-${mode === "dark" ? 200 : 900}, so the brand's ${mode === "dark" ? "ink" : "paper"} reads as its opposite in ${mode} mode.`);
+    return flipped;
+  }
   const toward = mode === "dark" ? steps.filter((s) => s < seedStep).sort((a, b) => b - a) : steps.filter((s) => s > seedStep).sort((a, b) => a - b);
   for (const step of toward) {
     if (contrast(brand[step], hardest) >= TEXT_MIN) {

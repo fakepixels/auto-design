@@ -53,7 +53,7 @@ function header(meta: SiteMeta, page: PageInput, root: string): string {
   const current = (p: string) => (p === "" ? page.path === "" : page.path.startsWith(p) && !(p === "docs/" && page.path.startsWith("docs/components/")));
   return `<header class="sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur">
   <div class="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 md:gap-8 md:px-6">
-    ${page.docs ? `<button type="button" data-menu aria-label="Open navigation" class="-ml-1 inline-flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent md:hidden">${icons.menu}</button>` : ""}
+    <button type="button" data-menu aria-label="Open navigation" class="-ml-1 inline-flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent md:hidden">${icons.menu}</button>
     <a href="${root}" class="flex items-center gap-2 text-sm font-semibold text-foreground">
       <span aria-hidden="true" class="flex size-6 items-center justify-center rounded-md bg-primary text-xs font-semibold text-primary-foreground">${esc(meta.name.charAt(0).toUpperCase())}</span>
       <span>${esc(meta.name)}</span>
@@ -139,8 +139,10 @@ export function renderPage(meta: SiteMeta, page: PageInput): string {
       ${tocRail(page.toc)}
     </div>
   </div>
-</div>
-<div data-sheet hidden class="fixed inset-0 z-50 md:hidden">
+</div>`
+    : `<main id="content">${page.body}</main>`;
+  // Phones get the same navigation on every page, home and Motion included: the top links, then the docs.
+  const sheet = `<div data-sheet hidden class="fixed inset-0 z-50 md:hidden">
   <div data-sheet-close class="absolute inset-0 bg-overlay"></div>
   <div class="absolute inset-y-0 left-0 w-72 max-w-full overflow-y-auto border-r bg-background p-4 shadow-lg">
     <div class="mb-4 flex items-center justify-between">
@@ -150,8 +152,7 @@ export function renderPage(meta: SiteMeta, page: PageInput): string {
     <ul class="mb-6 grid gap-px">${meta.top.map((l) => `<li><a href="${link(root, l.path)}" class="block rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent">${esc(l.title)}</a></li>`).join("")}</ul>
     ${sidebar(meta, page, root)}
   </div>
-</div>`
-    : `<main id="content">${page.body}</main>`;
+</div>`;
 
   return `<!doctype html>
 <html lang="en" data-root="${root}"${meta.modeClass ? ` data-mode-class="${meta.modeClass}" data-default-mode="${meta.defaultMode}" data-storage-key="${esc(meta.storageKey)}"` : ""}>
@@ -177,6 +178,7 @@ ${page.motion ? `<link rel="stylesheet" href="${root}_site/motion.css">
 <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md">Skip to content</a>
 ${header(meta, page, root)}
 ${content}
+${sheet}
 ${footer(meta)}
 <div data-palette hidden class="fixed inset-0 z-50">
   <div data-palette-close class="absolute inset-0 bg-overlay"></div>

@@ -12,7 +12,7 @@
         "punctuation.definition.comment"
       ],
       "settings": {
-        "foreground": "#6a6f76",
+        "foreground": "#666b71",
         "fontStyle": "italic"
       }
     },
@@ -29,7 +29,7 @@
         "support.class.component"
       ],
       "settings": {
-        "foreground": "#2760a8"
+        "foreground": "#17181b"
       }
     },
     {
@@ -65,7 +65,7 @@
         "entity.other.inherited-class"
       ],
       "settings": {
-        "foreground": "#735194"
+        "foreground": "#7b4e8e"
       }
     },
     {
@@ -99,7 +99,7 @@
         "punctuation.terminator"
       ],
       "settings": {
-        "foreground": "#6a6f76"
+        "foreground": "#666b71"
       }
     }
   ]

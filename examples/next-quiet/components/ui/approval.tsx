@@ -36,7 +36,7 @@ function Approval({
       data-slot="approval"
       data-status={status}
       role="group"
-      className={cn("rounded-lg border bg-card shadow-xs text-sm text-card-foreground", className)}
+      className={cn("rounded-lg border bg-card shadow-sm text-sm text-card-foreground", className)}
       {...props}
     >
       <div className="flex flex-col gap-1 px-3 py-3">
