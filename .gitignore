@@ -6,3 +6,4 @@ dist/
 .DS_Store
 coverage/
 .auto-design/
+__pycache__/
