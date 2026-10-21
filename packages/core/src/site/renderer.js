@@ -74,6 +74,14 @@
     return '<i class="sp-mark" aria-hidden="true">' + e(ch) + "</i>";
   }
 
+  var DECISION = { label: "Q4 plan", title: "Approve the Q4 plan?", body: "Three projects need a decision by Friday.", approve: "Approve", decline: "Not now", command: "app approve q4 --notify" };
+  function decision(copy) {
+    var dc = copy.decision || {};
+    var out = {};
+    for (var k in DECISION) out[k] = dc[k] || DECISION[k];
+    return out;
+  }
+
   function badge(status, copy) {
     return status === "ok"
       ? '<span class="sp-badge ok">' + e(copy.okLabel || "On track") + "</span>"
@@ -93,6 +101,31 @@
   }
 
   var scenes = {
+    /**
+     * One composed object on the system's own backdrop: a decision card in its
+     * type, color, surface and corners. Onboarding compares options with it, so
+     * the only differences you see are the ones you're choosing between.
+     */
+    object: function (d, copy) {
+      var dc = decision(copy);
+      var tech = d.texture === "technical";
+      return (
+        '<div class="sp-tile"><div class="sp-ob"><div class="sp-ob-top">' + mark(copy) + "<span>" + e(copy.product) + '</span><span class="lb">' +
+        e(tech ? dc.label.toUpperCase() : dc.label) + '</span></div><p class="sp-ob-h">' + e(dc.title) + '</p><p class="sp-ob-p">' + e(dc.body) + "</p>" +
+        (tech ? '<code class="sp-ob-cmd">$ ' + e(dc.command) + "</code>" : "") +
+        '<div class="sp-ob-a"><button class="sp-ob-pri" tabindex="-1">' + e(dc.approve) + '</button><button class="sp-ob-sec" tabindex="-1">' + e(dc.decline) + "</button></div></div></div>"
+      );
+    },
+
+    /** Type on its own: the headline, a paragraph and figures in the code face. */
+    typeface: function (d, copy) {
+      var r = copy.table.rows;
+      return (
+        '<div class="sp-tile"><div class="sp-face"><p class="h' + (d.fonts.display ? " dsp" : "") + '">' + e(copy.headline) + '</p><p class="b">' + e(copy.subhead) +
+        '</p><p class="m"><span>' + e(r[0].value) + "</span><span>" + e(r[1].value) + "</span><span>" + e(copy.metrics[1].value) + "</span></p></div></div>"
+      );
+    },
+
     app: function (d, copy, o) {
       var size = o.size || "m";
       var side = size === "s" ? "" :

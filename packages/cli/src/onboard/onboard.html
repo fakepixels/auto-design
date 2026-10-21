@@ -7,42 +7,51 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317181a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/renderer.css">
 <style>
+  /* Dark is the gallery: near-black page, soft graphite cards. Light is its paper twin. */
   :root {
-    --mat: #e8e9eb;
+    --mat: #fafaf9;
     --panel: #ffffff;
-    --ink: #17181a;
-    --ink-soft: #2b2d31;
-    --muted: #5e6168;
-    --faint: #8b8e95;
-    --line: #d7d9dd;
-    --line-soft: #e4e5e8;
-    --hover: #f3f4f5;
-    --focus: #2a6cf0;
-    --ok: #157f3c;
+    --field: #ffffff;
+    --ink: #18181b;
+    --ink-soft: #3f3f46;
+    --on-ink: #fafafa;
+    --muted: #71717a;
+    --faint: #a1a1aa;
+    --line: #e4e4e7;
+    --line-soft: #efeff1;
+    --hover: #f4f4f5;
+    --tint: rgb(0 0 0 / .04);
+    --focus: #2563eb;
+    --ok: #15803d;
     --err: #b42318;
-    --shadow: 0 0 0 1px rgba(16, 17, 20, 0.06), 0 1px 2px rgba(16, 17, 20, 0.04), 0 8px 24px -12px rgba(16, 17, 20, 0.14);
-    --shadow-hover: 0 0 0 1px rgba(16, 17, 20, 0.12), 0 1px 2px rgba(16, 17, 20, 0.05), 0 12px 28px -12px rgba(16, 17, 20, 0.18);
-    --raised: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(16, 17, 20, 0.2);
+    --card: 0 0 0 1px rgb(0 0 0 / .06), 0 1px 2px rgb(0 0 0 / .03);
+    --card-hover: 0 0 0 1px rgb(0 0 0 / .1), 0 8px 24px -12px rgb(0 0 0 / .16);
+    --shadow: var(--card);
+    --shadow-hover: var(--card-hover);
+    --raised: inset 0 1px 0 rgb(255 255 255 / .14), 0 1px 2px rgb(0 0 0 / .2);
     --ease: cubic-bezier(.22, 1, .36, 1);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --mat: #121315;
-      --panel: #1b1c1f;
-      --ink: #eceef1;
-      --ink-soft: #d6d8dc;
-      --muted: #9a9da5;
-      --faint: #70737a;
-      --line: #2e3035;
-      --line-soft: #26282c;
-      --hover: #24262a;
-      --focus: #6b9bff;
+      --mat: #0a0a0b;
+      --panel: #141416;
+      --field: #1a1a1d;
+      --ink: #ededee;
+      --ink-soft: #ffffff;
+      --on-ink: #0a0a0b;
+      --muted: #8b8b92;
+      --faint: #5f5f66;
+      --line: #26262a;
+      --line-soft: #1e1e21;
+      --hover: #1c1c1f;
+      --tint: rgb(255 255 255 / .06);
+      --focus: #7aa2ff;
       --ok: #4cc27a;
       --err: #ff7a6b;
-      --shadow: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
-      --shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 28px -12px rgba(0, 0, 0, 0.8);
-      --raised: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+      --card: none;
+      --card-hover: 0 0 0 1px rgb(255 255 255 / .08);
+      --raised: inset 0 1px 0 #fff, 0 1px 2px rgb(0 0 0 / .4);
       color-scheme: dark;
     }
   }
@@ -50,76 +59,70 @@
   html, body { margin: 0; }
   body {
     background: var(--mat); color: var(--ink);
-    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 13.5px/1.5 "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    letter-spacing: -0.005em; font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
   }
-  button, input, select, textarea { font: inherit; color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   [hidden] { display: none !important; }
   a { color: inherit; }
 
-  /* ---------- Frame ---------- */
-  .bar {
-    position: sticky; top: 0; z-index: 20; height: 52px;
-    display: flex; align-items: center; gap: 14px; padding: 0 20px;
-    background: color-mix(in srgb, var(--mat) 86%, transparent);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line);
-  }
-  .mark { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: -0.01em; }
-  .mark i { width: 18px; height: 18px; border-radius: 5px; background: var(--ink); display: grid; place-items: center; }
-  .mark i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mat); }
-  .bar .product { color: var(--muted); }
-  .bar .spacer { flex: 1; }
-  .pill { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--muted); }
-  .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
-  .pill.on { color: var(--ink); }
-  .pill.on i { background: var(--ok); }
-  .ghost-btn { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-size: 13px; }
-  .ghost-btn:hover { background: var(--hover); }
-
-  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: calc(100vh - 52px); }
-  .rail { padding: 22px 12px; border-right: 1px solid var(--line); }
+  /* ---------- Frame: steps on the left, the step on the right, actions on top ---------- */
+  .shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100vh; }
+  .rail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 18px 12px; border-right: 1px solid var(--line-soft); }
+  .mark { display: flex; align-items: center; gap: 8px; margin: 3px 10px 28px; font-weight: 600; letter-spacing: -0.01em; }
+  .mark i { width: 16px; height: 16px; border-radius: 5px; background: var(--ink); }
   .rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
   .rail button {
-    width: 100%; text-align: left; display: grid; grid-template-columns: 20px 1fr; column-gap: 8px; align-items: start;
-    padding: 7px 10px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--muted);
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--faint); text-align: left;
+    transition: background-color 160ms var(--ease), color 160ms var(--ease);
   }
-  .rail button:hover { background: color-mix(in srgb, var(--panel) 60%, transparent); }
-  .rail button { transition: background-color 160ms var(--ease), color 160ms var(--ease); }
-  .rail button[aria-current="step"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line-soft), 0 1px 2px rgba(16, 17, 20, 0.04); }
-  .rail .n { font-size: 12px; line-height: 22px; color: var(--faint); font-variant-numeric: tabular-nums; }
-  .rail .done .n { color: var(--ok); }
-  .rail b { font-weight: 500; display: block; line-height: 22px; }
-  .rail small { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--faint); line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rail small .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .rail button:hover { color: var(--ink); }
+  .rail button.done { color: var(--muted); }
+  .rail button[aria-current="step"] { background: var(--tint); color: var(--ink); }
+  .rail b { font-weight: 500; white-space: nowrap; }
+  .rail small { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rail small .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .rail-foot { margin-top: auto; padding: 0 4px; }
+  .pill { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--tint); font-size: 12px; color: var(--muted); }
+  .pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+  .pill.on { color: var(--ink); }
+  .pill.on i { background: var(--ok); }
 
   .stage { min-width: 0; display: flex; flex-direction: column; }
-  .step { flex: 1; padding: 36px 40px 40px; max-width: 1320px; width: 100%; }
-  .step-head { margin-bottom: 26px; max-width: 74ch; }
-  .step > * { animation: rise 280ms var(--ease) both; }
+  .actions {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 40px 0 32px;
+    background: color-mix(in srgb, var(--mat) 82%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .crumb { color: var(--faint); white-space: nowrap; }
+  .crumb b { color: var(--muted); font-weight: 500; }
+  .crumb b:empty { display: none; }
+  .crumb b:not(:empty) + span::before { content: " · "; }
+  .actions .status { color: var(--muted); font-size: 13px; margin: 0 8px 0 auto; text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .actions .status.err { color: var(--err); }
+  .step { flex: 1; padding: 20px 40px 56px 32px; max-width: 1320px; width: 100%; }
+  .step-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+  .step-head .txt { max-width: 64ch; }
+  .step > * { animation: rise 320ms var(--ease) both; }
   .step > * + * { animation-delay: 40ms; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
-  .step-head h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
-  .step-head p { margin: 8px 0 0; color: var(--muted); font-size: 15.5px; }
-  .actions {
-    position: sticky; bottom: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
-    padding: 14px 40px; border-top: 1px solid var(--line);
-    background: color-mix(in srgb, var(--mat) 90%, transparent);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  }
-  .actions .status { color: var(--muted); font-size: 13.5px; margin-right: auto; }
-  .actions.done { position: static; border-top: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .actions .status.err { color: var(--err); }
-  .btn { height: 38px; padding: 0 18px; border-radius: 9px; border: 1px solid transparent; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease); }
+  .step-head h1 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 600; letter-spacing: -0.028em; }
+  .step-head p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+  .modes { flex: none; }
+
+  .btn { height: 32px; padding: 0 15px; border-radius: 999px; border: 0; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease), opacity 160ms var(--ease); }
   .btn:active:not(:disabled) { transform: scale(.97); }
-  .btn.ink { background: var(--ink); color: var(--mat); box-shadow: var(--raised); }
+  .btn.ink { background: var(--ink); color: var(--on-ink); box-shadow: var(--raised); }
   .btn.ink:hover:not(:disabled) { background: var(--ink-soft); }
   .btn.ink:disabled { opacity: .35; cursor: default; }
-  .btn.line { background: var(--panel); border-color: var(--line); }
-  .btn.line:hover { background: var(--hover); }
-  .btn.small { height: 32px; padding: 0 13px; font-size: 13.5px; border-radius: 8px; }
-  .link-btn { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 14px; }
+  .btn.line { background: var(--tint); color: var(--ink); }
+  .btn.line:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .btn.small { height: 30px; padding: 0 13px; font-size: 13px; }
+  .ghost-btn { height: 32px; padding: 0 12px; border-radius: 999px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+  .ghost-btn:hover { color: var(--ink); background: var(--tint); }
+  .link-btn { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 13.5px; }
   .link-btn:hover { color: var(--ink); }
 
   /* ---------- Forms ---------- */
@@ -127,77 +130,80 @@
   .field { display: grid; gap: 6px; }
   .field > span { font-size: 13.5px; font-weight: 500; }
   .field > small { color: var(--muted); font-size: 13px; }
-  .input { height: 40px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); width: 100%; }
-  .input:focus { border-color: var(--focus); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+  .input { height: 38px; padding: 0 12px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--field); width: 100%; transition: box-shadow 160ms var(--ease); }
+  .input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--focus), 0 0 0 3px color-mix(in srgb, var(--focus) 20%, transparent); }
   .input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
   .error { color: var(--err); font-size: 13.5px; margin: 0; }
   .okmsg { color: var(--ok); font-size: 13.5px; margin: 0; }
   .note { color: var(--muted); font-size: 13.5px; margin: 0; }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
-  .seg button { height: 30px; padding: 0 13px; border: 0; background: transparent; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13.5px; }
-  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--tint); }
+  .seg button { height: 26px; padding: 0 12px; border: 0; background: transparent; border-radius: 999px; cursor: pointer; color: var(--muted); font-size: 13px; transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px rgb(0 0 0 / .04), 0 1px 2px rgb(0 0 0 / .08); }
+  @media (prefers-color-scheme: dark) { .seg button[aria-pressed="true"] { background: rgb(255 255 255 / .1); box-shadow: none; } }
 
   /* ---------- Choice cards (providers, hosting, surfaces) ---------- */
   .choices { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); max-width: 900px; }
-  .choice { position: relative; text-align: left; padding: 14px 16px 15px; border-radius: 12px; border: 0; background: var(--panel); box-shadow: var(--shadow); cursor: pointer; display: grid; gap: 3px; align-content: start; transition: box-shadow 160ms var(--ease); }
-  .choice:hover { box-shadow: var(--shadow-hover); }
-  .choice[aria-pressed="true"], .choice[aria-checked="true"] { box-shadow: 0 0 0 1.5px var(--ink), 0 8px 24px -12px rgba(16, 17, 20, 0.16); }
-  .choice b { font-weight: 600; }
+  .choice { position: relative; text-align: left; padding: 14px 16px 15px; border-radius: 16px; border: 0; background: var(--panel); box-shadow: var(--card); cursor: pointer; display: grid; gap: 3px; align-content: start; transition: box-shadow 160ms var(--ease); }
+  .choice:hover { box-shadow: var(--card-hover); }
+  .choice[aria-pressed="true"], .choice[aria-checked="true"] { box-shadow: 0 0 0 1.5px var(--ink); }
+  .choice b { font-weight: 500; }
   .choice span { color: var(--muted); font-size: 13.5px; }
   .choice em { font-style: normal; font-size: 12.5px; color: var(--ok); }
 
   /* ---------- Proofs: options drawn on the person's own system ---------- */
-  .proofs { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--proof-w, 360px)), 1fr)); }
-  .proof { all: unset; box-sizing: border-box; display: flex; flex-direction: column; cursor: pointer; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); outline-offset: 3px; transition: box-shadow 200ms var(--ease), transform 200ms var(--ease); }
-  .proof:hover { box-shadow: var(--shadow-hover); }
+  .proofs { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--proof-w, 340px)), 1fr)); }
+  .proof { all: unset; box-sizing: border-box; display: flex; flex-direction: column; cursor: pointer; border-radius: 22px; padding: 6px; background: var(--panel); box-shadow: var(--card); outline-offset: 3px; transition: box-shadow 200ms var(--ease), transform 200ms var(--ease); }
+  .proof:hover { box-shadow: var(--card-hover); }
   .proof:active { transform: scale(.995); }
   .proof:focus-visible { outline: 2px solid var(--focus); }
-  .proof .view { height: var(--proof-h, 300px); border-radius: 14px 14px 0 0; overflow: hidden; pointer-events: none; position: relative; }
+  .proof .view { height: var(--proof-h, 244px); border-radius: 17px; overflow: hidden; pointer-events: none; position: relative; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .04); }
   .proof .view > .sp { height: 100%; }
-  .proof .view > .sp::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 0%, transparent), color-mix(in oklab, var(--background) 92%, transparent)); pointer-events: none; }
-  .proof .meta { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 12px 14px 14px; border-top: 1px solid var(--line-soft); }
-  .proof .meta b { font-weight: 600; }
-  .proof .meta span { grid-column: 1; color: var(--muted); font-size: 13.5px; }
-  .proof .tick { grid-row: 1 / span 2; grid-column: 2; align-self: center; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: grid; place-items: center; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease); }
-  .proof[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink), 0 8px 24px -12px rgba(16, 17, 20, 0.16); }
+  .proofs.fade .proof .view > .sp::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 0%, transparent), color-mix(in oklab, var(--background) 92%, transparent)); pointer-events: none; }
+  .proof .meta { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 11px 10px 8px; }
+  .proof .meta b { font-weight: 500; font-size: 14px; }
+  .proof .meta span { grid-column: 1; color: var(--muted); font-size: 13px; }
+  .proof .tick { grid-row: 1 / span 2; grid-column: 2; align-self: center; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: grid; place-items: center; transition: background-color 160ms var(--ease), box-shadow 160ms var(--ease); }
+  .proof[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink); }
   .proof[aria-pressed="true"] .tick { background: var(--ink); box-shadow: none; }
-  .proof[aria-pressed="true"] .tick::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--mat); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
+  .proof[aria-pressed="true"] .tick::after { content: ""; width: 8px; height: 4px; border: 2px solid var(--on-ink); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
   .proof .err { padding: 16px; color: var(--err); font-size: 13.5px; }
   .proofs.loading .proof .view { background: var(--hover); animation: breathe 1.4s ease-in-out infinite; }
   @keyframes breathe { 50% { opacity: .55; } }
-  .proofs:not(.loading) .proof { animation: rise 320ms var(--ease) both; }
+  .proofs:not(.loading) .proof { animation: rise 340ms var(--ease) both; }
   .proofs:not(.loading) .proof:nth-child(2) { animation-delay: 30ms; }
   .proofs:not(.loading) .proof:nth-child(3) { animation-delay: 60ms; }
   .proofs:not(.loading) .proof:nth-child(4) { animation-delay: 90ms; }
   .proofs:not(.loading) .proof:nth-child(n+5) { animation-delay: 120ms; }
 
-  .section-label { margin: 34px 0 12px; font-size: 15px; font-weight: 600; }
+  .section-label { margin: 34px 0 12px; font-size: 14px; font-weight: 500; }
   .section-label:first-child { margin-top: 0; }
   .section-label + .note { margin: -6px 0 14px; }
 
   /* ---------- Starting points ---------- */
   .material { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; max-width: 980px; }
-  .panel { background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; }
-  .panel h3 { margin: 0; font-size: 15px; font-weight: 600; }
-  .drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; cursor: pointer; }
+  .panel { background: var(--panel); box-shadow: var(--card); border-radius: 18px; padding: 18px; display: grid; gap: 12px; align-content: start; }
+  .panel h3 { margin: 0; font-size: 14px; font-weight: 500; }
+  .drop { border: 1.5px dashed var(--line); border-radius: 14px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; cursor: pointer; }
   .drop.over { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 6%, transparent); }
   .thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
   .thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; cursor: pointer; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border-radius: 999px; border: 0; background: var(--tint); color: var(--muted); font-size: 13px; cursor: pointer; transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+  .chip:hover { color: var(--ink); }
   .chip i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-  .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
   .chip.text { padding: 0 12px; }
   .type-moods { margin-bottom: 10px; }
   .type-note { margin: 0 0 18px; }
   .own-type { display: grid; gap: 18px; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); align-items: start; }
   .own-type-fields { display: grid; gap: 14px; }
-  .own-type .big-view { min-height: 320px; }
+  .own-type .big-view { min-height: 320px; height: 320px; }
   @media (max-width: 900px) { .own-type { grid-template-columns: 1fr; } }
   .reasons { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 3px; }
   .suggestion { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: start; margin-top: 14px; max-width: 980px; }
-  .suggestion .view { height: 280px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .suggestion .view { height: 280px; border-radius: 17px; overflow: hidden; }
 
   /* ---------- Feel ---------- */
   .feel { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -208,14 +214,14 @@
   .dial .ends span:last-child { color: var(--muted); }
   .dial input { width: 100%; accent-color: var(--ink); }
   .dial small { color: var(--faint); font-size: 12.5px; }
-  .big-view { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .big-view { border-radius: 20px; overflow: hidden; background: var(--panel); box-shadow: 0 0 0 1px var(--line-soft); }
   .big-view .sp { min-height: 100%; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .pair .view { height: 380px; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .pair .view { height: 340px; border-radius: 20px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-soft); }
 
   /* ---------- Color ---------- */
   .color { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: start; }
-  .picker { background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .picker { background: var(--panel); box-shadow: var(--card); border-radius: 20px; padding: 16px; display: grid; gap: 14px; }
   .area-wrap { position: relative; width: 100%; aspect-ratio: 300 / 200; border-radius: 9px; overflow: hidden; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
   .area-wrap canvas, .hue-wrap canvas { display: block; width: 100%; height: 100%; }
   .marker { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25); pointer-events: none; }
@@ -224,8 +230,8 @@
   .hue-wrap canvas { border-radius: 7px; }
   .knob { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 1px 4px rgba(0,0,0,.25); pointer-events: none; }
   .code-row { display: flex; gap: 8px; align-items: center; }
-  .swatch { width: 40px; height: 40px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; flex: none; }
+  .swatch { width: 38px; height: 38px; border-radius: 10px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; border: 0; background: var(--tint); cursor: pointer; flex: none; }
   .icon-btn:hover { background: var(--hover); }
   .scale { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
   .scale div { height: 26px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
@@ -237,14 +243,14 @@
   /* ---------- Review ---------- */
   .review { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
   .frames { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
-  .frame { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .frame { border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-soft); background: var(--panel); }
   .frame.wide { grid-column: 1 / -1; }
 
   .frame-label { font-size: 12.5px; color: var(--muted); margin: 0 0 6px 2px; }
-  .refine { position: sticky; top: 72px; background: var(--panel); box-shadow: var(--shadow); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
-  .refine h3 { margin: 0; font-size: 15px; font-weight: 600; }
-  .refine textarea { width: 100%; min-height: 72px; resize: vertical; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); }
-  .refine textarea:focus { border-color: var(--focus); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+  .refine { position: sticky; top: 76px; background: var(--panel); box-shadow: var(--card); border-radius: 20px; padding: 16px; display: grid; gap: 14px; }
+  .refine h3 { margin: 0; font-size: 14px; font-weight: 500; }
+  .refine textarea { width: 100%; min-height: 72px; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--field); }
+  .refine textarea:focus { outline: none; box-shadow: inset 0 0 0 1px var(--focus), 0 0 0 3px color-mix(in srgb, var(--focus) 20%, transparent); }
   .history { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
   .history div { font-size: 13px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line-soft); }
   .history div b { color: var(--ink); font-weight: 500; display: block; }
@@ -259,7 +265,7 @@
   .steps-out .bad i { background: var(--err); }
   .steps-out .bad i::after { left: 8px; top: 4px; width: 0; height: 8px; border-width: 0 0 0 2px; transform: none; }
   .steps-out small { display: block; color: var(--muted); font-size: 13px; }
-  pre.cmd { margin: 0; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 6%, var(--panel)); border: 1px solid var(--line); font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.cmd { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 0; box-shadow: var(--card); font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
   .copy-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
 
   @media (max-width: 1100px) {
@@ -268,38 +274,38 @@
   }
   @media (max-width: 760px) {
     .shell { grid-template-columns: 1fr; }
-    .rail { border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; overflow-x: auto; }
+    .rail { position: static; height: auto; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--line-soft); padding: 10px 12px; overflow-x: auto; }
+    .mark { margin: 0 12px 0 4px; }
+    .mark span, .rail-foot { display: none; }
     .rail ol { flex-direction: row; }
-    .rail button { grid-template-columns: auto; padding: 6px 10px; }
-    .rail .n, .rail small { display: none; }
-    .rail b { white-space: nowrap; }
-    .step { padding: 24px 16px 28px; }
-    .actions { padding: 12px 16px; }
+    .rail small { display: none; }
+    .actions { padding: 0 16px; height: 56px; }
+    .crumb, .actions .status { display: none; }
+    .actions { justify-content: flex-end; }
+    .step { padding: 16px 16px 32px; }
+    .step-head { flex-direction: column; align-items: flex-start; gap: 14px; }
     .pair { grid-template-columns: 1fr; }
     .suggestion { grid-template-columns: 1fr; }
-    .bar .product { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; animation-delay: 0ms !important; } }
 </style>
 </head>
 <body>
-<header class="bar">
-  <span class="mark"><i aria-hidden="true"></i>auto-design</span>
-  <span class="product" id="bar-product"></span>
-  <span class="spacer"></span>
-  <button class="ghost-btn" id="undo" hidden>Undo</button>
-  <span class="pill" id="model-pill"><i></i><span>No model</span></span>
-</header>
-
 <div class="shell">
-  <nav class="rail" aria-label="Steps"><ol id="rail"></ol></nav>
+  <nav class="rail" aria-label="Steps">
+    <span class="mark"><i aria-hidden="true"></i><span>auto-design</span></span>
+    <ol id="rail"></ol>
+    <div class="rail-foot"><span class="pill" id="model-pill"><i></i><span>No model</span></span></div>
+  </nav>
   <div class="stage">
-    <main class="step" id="step" tabindex="-1"></main>
-    <footer class="actions">
+    <header class="actions">
+      <span class="crumb"><b id="bar-product"></b><span id="step-count"></span></span>
       <span class="status" id="status" role="status" aria-live="polite"></span>
+      <button class="ghost-btn" id="undo" hidden>Undo</button>
       <button class="btn line" id="back">Back</button>
       <button class="btn ink" id="next">Continue</button>
-    </footer>
+    </header>
+    <main class="step" id="step" tabindex="-1"></main>
   </div>
 </div>
 
@@ -318,6 +324,7 @@
     feel: null,           // slider values on the Feel step
     material: { images: [], colors: [], site: null, suggestion: null },
     reviewMode: null,
+    previewMode: null,    // null draws each option as designed; "light" or "dark" draws them all in that mode
     published: null,
     env: null,
   };
@@ -354,7 +361,7 @@
 
   /* ---------- Specimens ---------- */
   function draw(el, specimen, scenes, opts = {}) {
-    S.render(el, specimen, { mode: opts.mode || specimen.defaultMode, copy: app.state.copy, scenes, size: opts.size || "s" });
+    S.render(el, specimen, { mode: opts.mode || app.previewMode || specimen.defaultMode, copy: app.state.copy, scenes, size: opts.size || "s" });
     return el;
   }
 
@@ -422,7 +429,7 @@
       if (m === "own") return renderOwnType(body);
       const g = h("<div></div>");
       body.append(g);
-      proofs(g, "pairing", { scenes: ["type"], height: 300, current: () => app.state.choices.pairing, label: "Type", filter: { mood: m } });
+      proofs(g, "pairing", { scenes: ["typeface"], height: 244, current: () => app.state.choices.pairing, label: "Type", filter: { mood: m } });
     };
     bar.addEventListener("click", (e) => { const b = e.target.closest("[data-mood]"); if (b) show(b.dataset.mood); });
     show(mood);
@@ -448,7 +455,7 @@
         $(`#t-${k}-note`).textContent = id ? (cat.find((f) => f.id === id) || {}).note || "" : "Headlines use the text face.";
       }
     };
-    const paint = () => draw($("#own-view"), app.state.specimen, ["type"], { size: "m" });
+    const paint = () => draw($("#own-view"), app.state.specimen, ["typeface"], { size: "m" });
     const pick = async () => {
       const fonts = { sans: $("#t-sans").value, mono: $("#t-mono").value, display: $("#t-display").value || null };
       notes();
@@ -462,7 +469,7 @@
   const STEPS = [
     {
       id: "product", title: "What are you building?", rail: "Product",
-      help: "Every screen after this shows your product, so each choice is judged on your own headline and data.",
+      help: "Every preview after this uses your product's name and words.",
       value: () => app.state.product.name,
       render(root) {
         const p = app.state.product;
@@ -484,7 +491,7 @@
     },
     {
       id: "model", title: "Connect a model", rail: "Model",
-      help: "Optional. A model reads your site and logo, writes preview copy for your product and takes requests like “warmer” or “less corporate”. It only ever picks from the system’s options, and the compiler checks every value.",
+      help: "Optional. A model can read your site, write preview copy and take requests like “warmer”. It only picks from the system’s options.",
       value: () => (app.state.model ? app.state.model.label : app.visited.has(2) ? "Skipped" : ""),
       render(root) {
         const m = app.state.model;
@@ -533,7 +540,7 @@
     },
     {
       id: "start", title: "Pick a starting point", rail: "Start",
-      help: "Choose the closest of five systems. Every screen after this can change any part of it.",
+      help: "Five systems to start from. You can change any part of it later.", modes: true,
       value: () => (app.state.presets.find((p) => p.id === app.state.preset) || {}).name,
       async render(root) {
         const grid = h(`<div></div>`);
@@ -547,7 +554,7 @@
         root.append(mat);
         root.append(h(`<div id="suggest-area"></div>`));
         proofs(grid, "preset", {
-          scenes: ["hero@xs", "app"], height: 360, current: () => app.state.preset,
+          scenes: ["object"], height: 244, current: () => app.state.preset,
           onPick: async (v) => { try { update(await api("/api/start", { preset: v.value })); return true; } catch (e) { status(e.message, true); return false; } },
         });
         wireMaterial(root);
@@ -555,7 +562,7 @@
     },
     {
       id: "feel", title: "Set the feel", rail: "Feel",
-      help: "Three dials that move several choices at once. The screens after this let you set each part directly.",
+      help: "Three dials that move several choices at once. Later steps set each part directly.",
       value: () => (app.visited.has(4) ? "Set" : ""),
       render(root) {
         const c = app.state.choices;
@@ -571,7 +578,7 @@
           <div class="pair"><div class="view" id="feel-a"></div><div class="view" id="feel-b"></div></div></div>`);
         root.append(wrap);
         const paint = (spec) => {
-          draw($("#feel-a"), spec, ["hero"], { size: "s" });
+          draw($("#feel-a"), spec, ["object"], { size: "s" });
           draw($("#feel-b"), spec, ["motion"], { size: "s" });
           S.play($("#feel-b"));
         };
@@ -591,19 +598,19 @@
     },
     {
       id: "texture", title: "Choose a texture", rail: "Texture",
-      help: "How surfaces are built: borders, shadows and depth. Shown with a menu open over your content, where texture shows most.",
+      help: "How surfaces are built: borders, shadows and depth.", modes: true,
       value: () => (app.state.textures[app.state.choices.texture] || {}).name,
-      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "texture", { scenes: ["surfaces"], height: 300, current: () => app.state.choices.texture, label: "Texture" }); },
+      render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "texture", { scenes: ["object"], height: 244, current: () => app.state.choices.texture, label: "Texture" }); },
     },
     {
       id: "type", title: "Choose type", rail: "Type",
-      help: "Each pairing is set on your headline and your data. Every face is open source and installs from npm.",
+      help: "Every face is open source and installs from npm.", modes: true,
       value: () => app.state.choices.pairing ? PAIRING(app.state.choices.pairing) : ownTypeName(),
       render(root) { renderType(root); },
     },
     {
       id: "color", title: "Choose a brand color", rail: "Color",
-      help: "One color is enough. The system builds the scales, the grays and dark mode from it, and checks every pair for contrast as you go.",
+      help: "One color is enough. Scales, grays and dark mode come from it, checked for contrast as you go.",
       value: () => app.state.specimen.seedHex,
       dot: () => app.state.specimen.seedHex,
       render(root) { renderColor(root); },
@@ -611,31 +618,31 @@
     },
     {
       id: "shape", title: "Choose corners and density", rail: "Shape",
-      help: "How round things are, and how much fits on a screen.",
+      help: "How round things are, and how much fits on a screen.", modes: true,
       value: () => `${app.state.choices.radius}px, ${app.state.choices.density}`,
       render(root) {
         root.append(h(`<p class="section-label">Corners</p>`));
         const a = h("<div></div>"); root.append(a);
-        proofs(a, "radius", { scenes: ["corners"], height: 236, width: 190, current: () => app.state.choices.radius, label: "Corners" });
+        proofs(a, "radius", { scenes: ["object"], height: 250, width: 200, current: () => app.state.choices.radius, label: "Corners" });
         root.append(h(`<p class="section-label">Density</p>`));
         const b = h("<div></div>"); root.append(b);
-        proofs(b, "density", { scenes: ["app"], size: "m", height: 330, width: 460, current: () => app.state.choices.density, label: "Density" });
+        proofs(b, "density", { scenes: ["object"], height: 250, width: 340, current: () => app.state.choices.density, label: "Density" });
       },
     },
     {
       id: "motion", title: "Choose motion", rail: "Motion",
-      help: "Each one plays the same moment: a press, the status changing, and a confirmation arriving. Motion answers what people do; nothing moves on its own.",
+      help: "The same moment in each: a press, a status change and a confirmation.", modes: true,
       value: () => (app.state.motions[app.state.choices.motion] || {}).name,
       render(root) { const g = h("<div></div>"); root.append(g); proofs(g, "motion", { scenes: ["motion"], height: 260, current: () => app.state.choices.motion, label: "Motion", autoplay: true }); },
     },
     {
       id: "surfaces", title: "Where will it live?", rail: "Surfaces",
-      help: "Each surface adds its own components and rules. On surfaces you don’t control, like a text thread, the brand travels through images and words.",
+      help: "Each surface adds its own components and rules.", modes: true,
       value: () => `${app.state.surfaces.length} surface${app.state.surfaces.length === 1 ? "" : "s"}`,
       render(root) {
         const order = ["web-app", "marketing", "chat", "code", "mcp-apps", "messaging"];
         const scene = { "web-app": "app", marketing: "hero", chat: "chat", code: "code", "mcp-apps": "mcp", messaging: "sms" };
-        const grid = h(`<div class="proofs" style="--proof-h:250px"></div>`);
+        const grid = h(`<div class="proofs fade" style="--proof-h:244px"></div>`);
         root.append(grid);
         for (const id of order) {
           const info = app.state.surfacesInfo[id];
@@ -653,13 +660,13 @@
     },
     {
       id: "review", title: "Review everything", rail: "Review",
-      help: "Every surface at once, in light and dark. Ask for changes until it feels right.",
+      help: "Every surface at once. Ask for changes until it feels right.",
       value: () => "",
       render(root) { renderReview(root); },
     },
     {
       id: "publish", title: "Create your design system", rail: "Publish",
-      help: "This writes the repo your team will own, puts it on GitHub and sets up hosting. Nothing has been written to disk yet.",
+      help: "Writes the repo your team will own and sets up hosting. Nothing is on disk yet.",
       value: () => (app.published ? "Done" : ""),
       render(root) { renderPublish(root); },
       nextLabel: () => "Create design system",
@@ -738,7 +745,7 @@
         $("#suggest-msg").textContent = "";
         const out = $("#suggest-out");
         out.innerHTML = `<div class="suggestion"><div class="panel"><h3>Suggested</h3><ul class="reasons">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${r.changes.length ? `<p class="note">${esc(r.changes.join("; "))}</p>` : ""}<div class="row"><button class="btn ink small" id="take">Use this</button></div></div><div class="view" id="sug-view"></div></div>`;
-        draw($("#sug-view"), r.preview, ["hero", "app"], { size: "s" });
+        draw($("#sug-view"), r.preview, ["object"], { size: "s" });
         $("#take").onclick = async () => { if (await choose(r.patch, r.byModel ? "Used the model's suggestion" : "Used your material")) { status("Applied the suggestion."); rerender(); } };
       } catch (e) { $("#suggest-msg").className = "error"; $("#suggest-msg").textContent = e.message; }
     };
@@ -869,8 +876,8 @@
     app.syncPicker = (sp) => { const s = sp.palettes.brand.find((p) => p.step === sp.seedStep); const p = parseOklch(s && s.css); if (p) { app.pick = { ...p, h: p.c < 0.002 ? app.pick.h : p.h }; drawArea(); place(); } };
   }
   function paintColor(sp) {
-    draw($("#c-light"), sp, ["app"], { mode: "light", size: "s" });
-    draw($("#c-dark"), sp, ["app"], { mode: "dark", size: "s" });
+    draw($("#c-light"), sp, ["object"], { mode: "light", size: "s" });
+    draw($("#c-dark"), sp, ["object"], { mode: "dark", size: "s" });
     $("#sw").style.background = sp.palettes.brand.find((p) => p.step === sp.seedStep).css;
     $("#scale").innerHTML = sp.palettes.brand.map((p) => `<div class="${p.step === sp.seedStep ? "seed" : ""}" style="background:${p.css}" title="${p.step}"></div>`).join("");
     const r = sp.report;
@@ -1038,8 +1045,8 @@
       <p class="section-label">Keep refining</p>
       <div class="row"><button class="btn ${hasSite ? "line" : "ink"} small" id="open-studio">Open the studio</button>${r.repoUrl ? `<a class="btn line small" style="display:inline-flex;align-items:center;text-decoration:none" href="${esc(r.repoUrl)}" target="_blank" rel="noreferrer">View on GitHub</a>` : ""}</div>
       <p class="note">Or run <code>npx auto-design dev --cwd ${esc(r.relDir)}</code> any time.</p>
-    </div><div class="big-view" id="done-view"></div></div>`));
-    draw($("#done-view"), s.specimen, ["hero"], { size: "m" });
+    </div><div class="big-view" id="done-view" style="height:360px"></div></div>`));
+    draw($("#done-view"), s.specimen, ["object"], { size: "m" });
     root.querySelectorAll("[data-copy]").forEach((b) => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1400); } catch {} });
     $("#open-studio").onclick = async () => { try { const x = await api("/api/studio", {}); location.href = x.url; } catch (e) { status(e.message, true); } };
   }
@@ -1048,7 +1055,7 @@
   function clear(el) { el.innerHTML = ""; return el; }
   function paintBar() {
     const s = app.state;
-    $("#bar-product").textContent = s.product.name ? `${s.product.name} design system` : "";
+    $("#bar-product").textContent = s.product.name || "";
     const pill = $("#model-pill");
     pill.classList.toggle("on", !!s.model);
     $("span", pill).textContent = s.model ? s.model.label : "No model";
@@ -1061,7 +1068,7 @@
       const value = app.visited.has(i) && i !== app.step ? st.value() : "";
       const done = app.visited.has(i) && i < app.step;
       const dot = st.dot && value ? `<i class="dot" style="background:${esc(st.dot())}"></i>` : "";
-      const li = h(`<li><button class="${done ? "done" : ""}" ${i === app.step ? 'aria-current="step"' : ""}><span class="n">${i + 1}</span><span><b>${esc(st.rail)}</b>${value ? `<small>${dot}${esc(value)}</small>` : ""}</span></button></li>`);
+      const li = h(`<li><button class="${done ? "done" : ""}" ${i === app.step ? 'aria-current="step"' : ""}><b>${esc(st.rail)}</b>${value ? `<small>${dot}${esc(value)}</small>` : ""}</button></li>`);
       $("button", li).onclick = () => go(i);
       ol.append(li);
     });
@@ -1085,7 +1092,14 @@
     stopTimers();
     const st = STEPS[app.step];
     const root = clear($("#step"));
-    root.append(h(`<div class="step-head"><h1>${esc(st.title)}</h1><p>${esc(st.help)}</p></div>`));
+    const head = h(`<div class="step-head"><div class="txt"><h1>${esc(st.title)}</h1><p>${esc(st.help)}</p></div></div>`);
+    if (st.modes && !app.published) {
+      const seg = h(`<div class="seg modes" role="group" aria-label="Preview mode">${[[null, "As designed"], ["light", "Light"], ["dark", "Dark"]].map(([v, l]) => `<button data-v="${v || ""}" aria-pressed="${(app.previewMode || "") === (v || "")}">${l}</button>`).join("")}</div>`);
+      seg.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; app.previewMode = b.dataset.v || null; rerender(); });
+      head.append(seg);
+    }
+    root.append(head);
+    $("#step-count").textContent = `Step ${app.step + 1} of ${STEPS.length}`;
     const body = document.createElement("div");
     root.append(body);
     st.render(body);

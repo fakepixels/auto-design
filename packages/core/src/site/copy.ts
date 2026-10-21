@@ -24,6 +24,8 @@ export interface SpecimenCopy {
   code: { comment: string; command: string };
   sms: { from: "business" | "customer"; text: string }[];
   card: { title: string; body: string; metric: string };
+  /** The one decision onboarding previews draw: a question, a reason and two answers. */
+  decision?: { label: string; title: string; body: string; approve: string; decline: string; command: string };
 }
 
 export function defaultCopy(product = "Northwind", description = ""): SpecimenCopy {
@@ -73,6 +75,14 @@ export function defaultCopy(product = "Northwind", description = ""): SpecimenCo
       { from: "business", text: "Website refresh, Billing migration and Q4 hiring. Reply 1, 2 or 3 to open one." },
     ],
     card: { title: "October report", body: "3 projects need a decision", metric: "92% on track" },
+    decision: {
+      label: "Q4 plan",
+      title: "Approve the Q4 plan?",
+      body: "Three projects need a decision by Friday.",
+      approve: "Approve",
+      decline: "Not now",
+      command: `${slug(name)} approve q4 --notify`,
+    },
   };
 }
 

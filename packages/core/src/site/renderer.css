@@ -340,3 +340,78 @@
 .sp-split > * + * { border-left: 1px solid var(--border); }
 .sp-pane { min-width: 0; }
 .sp-scene-label { position: absolute; left: 10px; top: 8px; font-size: 11px; color: var(--muted-foreground); font-family: var(--sp-sans); }
+
+/* ---------- Object: one decision card on the system's own backdrop ---------- */
+.sp-tile { height: 100%; min-height: 180px; display: grid; place-items: center; padding: 20px; background: var(--background); }
+.sp[data-texture="minimal"] .sp-tile, .sp[data-texture="minimal"] .sp-stage { background: var(--sidebar); }
+.sp[data-mode="dark"][data-texture="minimal"] .sp-tile, .sp[data-mode="dark"][data-texture="minimal"] .sp-stage { background: var(--background); }
+.sp[data-texture="glass"] .sp-tile, .sp[data-texture="glass"] .sp-stage {
+  background:
+    radial-gradient(60% 70% at 18% 12%, color-mix(in oklab, var(--chart-4) 34%, transparent), transparent 70%),
+    radial-gradient(55% 60% at 88% 20%, color-mix(in oklab, var(--chart-2) 26%, transparent), transparent 70%),
+    radial-gradient(70% 60% at 60% 110%, color-mix(in oklab, var(--primary) 30%, transparent), transparent 70%),
+    var(--background);
+}
+.sp[data-mode="dark"][data-texture="glass"] .sp-tile, .sp[data-mode="dark"][data-texture="glass"] .sp-stage {
+  background:
+    radial-gradient(60% 70% at 18% 12%, color-mix(in oklab, var(--chart-4) 18%, transparent), transparent 70%),
+    radial-gradient(55% 60% at 88% 20%, color-mix(in oklab, var(--chart-2) 14%, transparent), transparent 70%),
+    radial-gradient(70% 60% at 60% 110%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
+    var(--background);
+}
+.sp[data-texture="technical"] .sp-tile, .sp[data-texture="technical"] .sp-stage {
+  background-color: var(--background);
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 14%, transparent) 1px, transparent 1.3px);
+  background-size: 14px 14px; background-position: -7px -7px;
+}
+.sp[data-texture="tactile"] .sp-tile, .sp[data-texture="tactile"] .sp-stage { background: radial-gradient(80% 70% at 50% 0%, color-mix(in oklab, var(--primary) 10%, var(--background)), var(--background) 70%); }
+
+.sp-ob { width: min(280px, 100%); background: var(--card); color: var(--card-foreground); border-radius: var(--sp-r); padding: calc(var(--sp-pad) * 0.5 + 8px); display: flex; flex-direction: column; text-align: left; }
+.sp-ob-top { display: flex; align-items: center; gap: 7px; font-size: 12px; line-height: 1; font-weight: var(--sp-w-medium); white-space: nowrap; min-width: 0; }
+.sp-ob-top .sp-mark { width: 18px; height: 18px; font-size: 10px; }
+.sp-ob-top .lb { margin-left: auto; font-weight: var(--sp-w-body); color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; }
+.sp .sp-ob-h { margin-top: 18px; font-family: var(--sp-display, var(--sp-sans)); font-weight: var(--sp-w-display); font-size: 21px; line-height: 1.12; letter-spacing: -0.025em; }
+.sp .sp-ob-p { margin-top: 6px; font-size: 12.5px; line-height: 1.45; color: var(--muted-foreground); }
+.sp-ob-cmd { display: block; margin-top: 12px; padding: 7px 9px; border-radius: var(--sp-r-sm); background: color-mix(in oklab, var(--foreground) 5%, transparent); box-shadow: inset 0 0 0 1px var(--border); font-size: 11px; line-height: 1.4; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-ob-a { display: flex; gap: 6px; margin-top: 16px; }
+.sp .sp-ob-a button { height: var(--sp-ctl-sm); padding: 0 calc(var(--sp-btn-px) - 2px); border: 0; border-radius: var(--sp-r-md); font-size: 12.5px; line-height: 1; font-weight: var(--sp-w-medium); white-space: nowrap; cursor: default; }
+.sp .sp-ob-pri { background: var(--primary); color: var(--primary-foreground); box-shadow: var(--sp-raised); }
+.sp .sp-ob-sec { background: transparent; color: var(--card-foreground); box-shadow: inset 0 0 0 1px var(--input); }
+
+/* How each texture builds the object. */
+.sp[data-texture="minimal"] .sp-ob { box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 7%, transparent), var(--sp-shadow-md); }
+.sp[data-texture="minimal"] .sp-ob-a .sp-ob-sec { background: var(--card); box-shadow: inset 0 0 0 1px var(--border), var(--sp-shadow-xs); }
+.sp[data-texture="editorial"] .sp-ob { background: transparent; padding: 0; width: min(300px, 100%); }
+.sp[data-texture="editorial"] .sp-ob-h { margin-top: 22px; font-size: 26px; line-height: 1.08; letter-spacing: -0.025em; }
+.sp[data-texture="editorial"][data-display-titles] .sp-ob-h { font-size: 34px; line-height: 1.02; letter-spacing: -0.01em; }
+.sp[data-texture="editorial"] .sp-ob-p { font-size: 13px; }
+.sp[data-texture="editorial"] .sp-ob-a { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sp[data-texture="editorial"] .sp-ob-a .sp-ob-sec { box-shadow: none; padding: 0 6px; text-decoration: underline; text-underline-offset: 3px; }
+.sp[data-texture="glass"] .sp-ob {
+  background: color-mix(in oklab, var(--card) 62%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 70%, transparent), 0 0 0 1px color-mix(in oklab, var(--foreground) 6%, transparent), var(--sp-shadow-lg);
+}
+.sp[data-mode="dark"][data-texture="glass"] .sp-ob { background: color-mix(in oklab, var(--card) 58%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, white 9%, transparent), 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent), var(--sp-shadow-lg); }
+.sp[data-texture="glass"] .sp-ob-a .sp-ob-sec { background: color-mix(in oklab, var(--card) 60%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent); }
+.sp[data-texture="technical"] .sp-ob { box-shadow: 0 0 0 1px var(--border), 0 16px 40px -16px oklch(0 0 0 / 0.5); }
+.sp[data-texture="technical"] .sp-ob-top .lb { font-family: var(--sp-mono); font-size: 10.5px; letter-spacing: 0.06em; }
+.sp[data-texture="technical"] .sp-ob-h { font-size: 18px; letter-spacing: -0.015em; }
+.sp[data-texture="tactile"] .sp-ob { box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 12px 32px -10px color-mix(in oklab, var(--primary) 24%, oklch(0 0 0 / 0.18)); }
+.sp[data-mode="dark"][data-texture="tactile"] .sp-ob { box-shadow: 0 0 0 1px var(--border), 0 12px 32px -10px oklch(0 0 0 / 0.5); }
+.sp[data-texture="tactile"] .sp-ob-h { font-size: 22px; letter-spacing: -0.03em; }
+.sp[data-texture="tactile"] .sp-ob-a .sp-ob-sec { background: var(--muted); box-shadow: none; }
+
+/* ---------- Typeface: the type alone ---------- */
+.sp-face { width: min(330px, 100%); text-align: left; }
+.sp .sp-face .h { font-family: var(--sp-display, var(--sp-sans)); font-weight: var(--sp-w-display); font-size: 28px; line-height: 1.08; letter-spacing: -0.028em; text-wrap: balance; }
+.sp .sp-face .h.dsp { font-size: 34px; line-height: 1.02; letter-spacing: -0.012em; }
+.sp .sp-face .b { margin-top: 12px; font-size: 13.5px; line-height: 1.5; color: var(--muted-foreground); }
+.sp .sp-face .m { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; gap: 16px; font-family: var(--sp-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* ---------- Motion beat, drawn like the object ---------- */
+.sp-stage { align-items: center; }
+.sp-stage .sp-beat { width: min(300px, 100%); margin-top: 4px; }
+.sp[data-texture="minimal"] .sp-stage .sp-beat { border-color: transparent; box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 7%, transparent), var(--sp-shadow-md); }
+.sp[data-texture="glass"] .sp-stage .sp-beat { background: color-mix(in oklab, var(--card) 62%, transparent); border-color: color-mix(in oklab, var(--foreground) 6%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); }
+.sp[data-texture="editorial"] .sp-stage .sp-beat { background: transparent; border-color: transparent; padding-left: 0; padding-right: 0; }

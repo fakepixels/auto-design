@@ -82,6 +82,13 @@ user-facing story; this file is how to work on it.
   Quiet is an ink brand; an ink or paper brand flips to the other end of the grays in the other mode.
   Review preset changes with `scripts/preset-sheet.mts` (every preset on the onboarding specimens, light and
   dark, and trial variants through `VARIANTS`).
+- Onboarding gallery (October 21, 2026). Tina saw three mockups of the Start step and picked the dark
+  gallery: near-black page, graphite cards (22px radius, 6px inset) holding a framed preview (17px), name and
+  one short line under it, Back and Continue in a top bar, steps without numbers, and an As designed / Light /
+  Dark switch over every gallery. Light mode is its paper twin. Every option preview is one composed object
+  (the `object` scene: a decision card in the system's type, color, surface and corners) instead of a crowded
+  dashboard, so the only differences on screen are the ones being chosen; type uses the `typeface` scene.
+  The Surfaces and Review steps still use the older full scenes.
 
 ## Layout
 

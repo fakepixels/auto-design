@@ -149,6 +149,15 @@ export function startFrom(session: Session, preset: string) {
   session.preset = preset;
 }
 
+/** One line under each starting point; the preset's full description goes in its DESIGN.md. */
+const PRESET_NOTES: Record<string, string> = {
+  quiet: "Ink, hairlines, quiet depth",
+  editorial: "Serif voice on warm paper",
+  glass: "Frosted chrome over soft light",
+  terminal: "Dark, exact, monospace",
+  tactile: "Soft, raised, warm",
+};
+
 export type VariantField = "preset" | "texture" | "pairing" | "radius" | "density" | "motion" | "neutral" | "defaultMode";
 
 export interface Variant {
@@ -166,7 +175,7 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
   switch (field) {
     case "preset":
       for (const [id, p] of Object.entries(presets)) {
-        list.push({ value: id, name: p.displayName, note: p.description ?? "", config: () => presetFor(id, session.product) });
+        list.push({ value: id, name: p.displayName, note: PRESET_NOTES[id] ?? p.description ?? "", config: () => presetFor(id, session.product) });
       }
       break;
     case "texture":
