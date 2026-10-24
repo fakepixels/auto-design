@@ -27,9 +27,10 @@ user-facing story; this file is how to work on it.
   ambient in `scales.ts` and the CSS emitter) that were already in the tree, of unknown origin.
 - Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
   bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
-  when its process stopped; custom components, examples and docs survive rebuilds. First taste pass on the
-  presets, textures, specimens and onboarding chrome is done (see Design direction); it waits on Tina's
-  reaction. Still to do: visual regression screenshots.
+  when its process stopped; custom components, examples and docs survive rebuilds. The taste pass and the
+  dark-gallery onboarding Tina picked are on main (6d9d7bd, ad91440; see Design direction). Still to do:
+  give the Surfaces and Review steps the same one-object previews, refresh the README screenshots in docs/,
+  and visual regression screenshots.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
   foundation, a page per component with live examples, search, light and dark, phone layouts; team pages
   from `docs/`. Onboarding ends on it (`/site/` in the onboarding server), the studio serves it at
