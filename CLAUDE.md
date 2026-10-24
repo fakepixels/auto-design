@@ -27,8 +27,8 @@ user-facing story; this file is how to work on it.
   ambient in `scales.ts` and the CSS emitter) that were already in the tree, of unknown origin.
 - Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
   bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
-  when its process stopped; custom components, examples and docs survive rebuilds. The taste pass and the
-  dark-gallery onboarding Tina picked are on main (6d9d7bd, ad91440; see Design direction). Still to do:
+  when its process stopped; custom components, examples and docs survive rebuilds. The taste pass, the
+  dark-gallery onboarding Tina picked and its sleek pass are on main (6d9d7bd, ad91440; see Design direction). Still to do:
   give the Surfaces and Review steps the same one-object previews, refresh the README screenshots in docs/,
   and visual regression screenshots.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
@@ -90,6 +90,16 @@ user-facing story; this file is how to work on it.
   (the `object` scene: a decision card in the system's type, color, surface and corners) instead of a crowded
   dashboard, so the only differences on screen are the ones being chosen; type uses the `typeface` scene.
   The Surfaces and Review steps still use the older full scenes.
+- Sleek pass (October 24, 2026). Tina liked the gallery's simplicity but asked for more air, liquid glass on
+  the buttons, softer corners, a more elegant text field and a selection ring that runs white to gray with a
+  little motion: "polished, sleek and metallic, like a high end experience". In `onboard.html` now: the main
+  action is a metal pill (a light gradient with a lit top edge; ink metal in light mode); Back, switches,
+  chips, the current step and the model pill are frosted glass; cards are graphite at 26px with a masked 1px
+  gradient edge, brighter at the top; the chosen card gets a 1.25px conic ring from white to gray that turns
+  once every 8 seconds (still under reduced motion); fields are 46px with 14px corners, a faint gradient
+  fill, a hairline ring and a soft halo on focus; checkboxes and sliders are metal; headings carry a faint
+  metal gradient. The tokens sit at the top of the file (`--metal`, `--glass`, `--edge-*`, `--sel-*`,
+  `--field-*`), with a light twin for each.
 
 ## Layout
 

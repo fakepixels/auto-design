@@ -112,6 +112,8 @@ export function specimen(config: DesignConfig): SpecimenData {
 export function commit(session: Session, next: DesignConfig, label: string): string[] {
   buildSystem(next);
   const changes = describeChanges(session.config, next);
+  // Choosing what's already chosen changes nothing, so it leaves nothing to undo.
+  if (!changes.length && JSON.stringify(session.config) === JSON.stringify(next)) return changes;
   session.history.push({ label, changes, config: session.config });
   if (session.history.length > 50) session.history.shift();
   session.config = next;
