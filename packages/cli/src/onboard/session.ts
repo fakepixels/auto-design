@@ -7,7 +7,9 @@ import {
   SURFACES,
   TEXTURES,
   buildSystem,
+  parseColor,
   specimenData,
+  toHex,
   type DesignConfig,
   type SpecimenCopy,
   type SpecimenData,
@@ -37,6 +39,18 @@ export interface HistoryEntry {
   config: DesignConfig;
 }
 
+/** A starting point made from what the person brought, shown next to the presets. */
+export interface Generated {
+  id: string;
+  name: string;
+  /** Where it came from, shown as a tag on its card. */
+  tag: string;
+  note: string;
+  /** The history line when it's chosen. */
+  label: string;
+  config: DesignConfig;
+}
+
 export interface Session {
   product: { name: string; description: string; url: string };
   config: DesignConfig;
@@ -44,6 +58,9 @@ export interface Session {
   copy: SpecimenCopy;
   model: (ModelConfig & { label: string }) | null;
   site: SiteMaterial | null;
+  /** The main colors of the images the person dropped, read in the browser. */
+  imageColors: string[];
+  generated: Generated[];
   history: HistoryEntry[];
 }
 
@@ -93,6 +110,8 @@ export function createSession(product: Partial<Session["product"]> = {}): Sessio
     copy: defaultCopy(p.name || "Northwind", p.description),
     model: null,
     site: null,
+    imageColors: [],
+    generated: [],
     history: [],
   };
 }
@@ -144,6 +163,14 @@ function pickModelCopy(copy: SpecimenCopy, name: string): Partial<SpecimenCopy> 
 }
 
 export function startFrom(session: Session, preset: string) {
+  const made = session.generated.find((g) => g.id === preset);
+  if (made) {
+    const next = structuredClone(made.config);
+    next.surfaces = session.config.surfaces?.length ? session.config.surfaces : next.surfaces;
+    commit(session, next, made.label);
+    session.preset = preset;
+    return;
+  }
   if (!presets[preset]) throw new Error(`Unknown preset "${preset}"`);
   const next = presetFor(preset, session.product);
   next.surfaces = session.config.surfaces?.length ? session.config.surfaces : next.surfaces;
@@ -160,22 +187,109 @@ const PRESET_NOTES: Record<string, string> = {
   tactile: "Soft, raised, warm",
 };
 
-export type VariantField = "preset" | "texture" | "pairing" | "radius" | "density" | "motion" | "neutral" | "defaultMode";
+export type VariantField = "preset" | "texture" | "pairing" | "radius" | "density" | "motion" | "neutral" | "defaultMode" | "brand";
 
 export interface Variant {
   value: string | number;
   name: string;
   note: string;
+  /** A short tag on the card, for options made from the person's own material. */
+  tag?: string;
+  /** What choosing it changes, when that's more than the field itself. */
+  patch?: Partial<DesignPatch>;
   specimen?: SpecimenData;
   error?: string;
 }
 
+/** Ready palettes for the Color step: a brand color and the grays that suit it. */
+export const PALETTES: { id: string; name: string; brand: string; neutral: "cool" | "neutral" | "warm" }[] = [
+  { id: "ink", name: "Ink", brand: "oklch(0.21 0.006 265)", neutral: "cool" },
+  { id: "cobalt", name: "Cobalt", brand: "oklch(0.55 0.21 262)", neutral: "cool" },
+  { id: "violet", name: "Violet", brand: "oklch(0.55 0.21 292)", neutral: "cool" },
+  { id: "ocean", name: "Ocean", brand: "oklch(0.58 0.12 228)", neutral: "cool" },
+  { id: "lagoon", name: "Lagoon", brand: "oklch(0.64 0.11 190)", neutral: "cool" },
+  { id: "forest", name: "Forest", brand: "oklch(0.46 0.09 158)", neutral: "warm" },
+  { id: "moss", name: "Moss", brand: "oklch(0.62 0.14 130)", neutral: "warm" },
+  { id: "saffron", name: "Saffron", brand: "oklch(0.8 0.15 82)", neutral: "warm" },
+  { id: "ember", name: "Ember", brand: "oklch(0.67 0.19 42)", neutral: "warm" },
+  { id: "rose", name: "Rose", brand: "oklch(0.6 0.2 12)", neutral: "neutral" },
+  { id: "plum", name: "Plum", brand: "oklch(0.48 0.15 330)", neutral: "neutral" },
+];
+
+const TEXTURE_PRESET: Record<(typeof TEXTURES)[number], string> = { minimal: "quiet", editorial: "editorial", glass: "glass", technical: "terminal", tactile: "tactile" };
+
+/**
+ * Starting points made from the person's own material: their site, the images
+ * they dropped, or both. Built without a model, so they appear the moment the
+ * material is read; a model's pick is kept alongside when there is one.
+ */
+export function generateOptions(session: Session, imageColors: string[] = session.imageColors): Generated[] {
+  session.imageColors = imageColors.filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6);
+  const texture = heuristicTexture(session.product.description);
+  const other: (typeof TEXTURES)[number] = texture === "minimal" ? "glass" : "minimal";
+  const base = (t = texture) => presetFor(TEXTURE_PRESET[t]!, session.product);
+  const made: Generated[] = [];
+  const add = (g: Omit<Generated, "config">, make: () => DesignConfig) => {
+    try {
+      const config = make();
+      config.surfaces = session.config.surfaces?.length ? session.config.surfaces : config.surfaces;
+      buildSystem(config);
+      made.push({ ...g, config });
+    } catch {
+      /* an option that doesn't build isn't offered */
+    }
+  };
+  const site = session.site;
+  const sitePatch = site ? patchFromSite(site) : {};
+  const [first, second] = session.imageColors;
+  // In order of how much they say about the person; the first three are shown.
+  if (site && Object.keys(sitePatch).length) {
+    add({ id: "gen:site", name: "Your site", tag: "From your site", note: siteNote(site), label: "Started from your site" }, () => applyPatch(base(), sitePatch));
+  }
+  if (first) {
+    add({ id: "gen:images", name: "Your images", tag: "From your images", note: `${first} on ${TEXTURE_INFO[texture].name.toLowerCase()} surfaces`, label: "Started from your images" }, () => applyPatch(base(), { brand: first }));
+  }
+  if (site && sitePatch.brand) {
+    const flip = site.dark ? "light" : "dark";
+    add({ id: "gen:site-flip", name: site.dark ? "Your site, light" : "Your site, dark", tag: "From your site", note: `The same colors and type, ${flip} first`, label: `Started from your site, ${flip}` }, () => applyPatch(base(), { ...sitePatch, defaultMode: flip }));
+  }
+  if (second) {
+    add({ id: "gen:images-2", name: "Your second color", tag: "From your images", note: `${second} on ${TEXTURE_INFO[other].name.toLowerCase()} surfaces`, label: "Started from your second color" }, () => applyPatch(base(other), { brand: second }));
+  }
+  session.generated = [...made.slice(0, 3), ...session.generated.filter((g) => g.id === "gen:model")];
+  return session.generated;
+}
+
+/** Keep a model's suggestion as one more starting point. */
+export function addModelPick(session: Session, config: DesignConfig, reason: string) {
+  const pick: Generated = { id: "gen:model", name: "The model's pick", tag: "Suggested by the model", note: reason, label: "Started from the model's pick", config };
+  session.generated = [...session.generated.filter((g) => g.id !== "gen:model"), pick];
+}
+
+/** A nearby take on a palette color, the same for the same seed: hue, lightness and strength nudged. */
+function shuffled(brand: string, seed: number, salt: string): string {
+  let x = Math.abs(Math.floor(seed)) + [...salt].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7);
+  const rand = () => ((x = (x * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const c = parseColor(brand);
+  if (c.c < 0.02) return brand;
+  const l = Math.min(0.82, Math.max(0.2, c.l + (rand() - 0.5) * 0.12));
+  const chroma = Math.max(0.04, c.c * (0.8 + rand() * 0.35));
+  const h = ((c.h || 0) + (rand() - 0.5) * 36 + 360) % 360;
+  return `oklch(${l.toFixed(3)} ${chroma.toFixed(3)} ${h.toFixed(1)})`;
+}
+
+function siteNote(site: SiteMaterial): string {
+  const font = site.fonts[0]?.split(",")[0]?.replace(/["']/g, "").trim();
+  return [site.colors[0]?.hex, font, site.radius !== null ? `${site.radius}px corners` : "", site.dark ? "dark first" : ""].filter(Boolean).join(", ") || "What your site shows";
+}
+
 /** The options for a taste question, each drawn on the person's own system. */
-export function variants(session: Session, field: VariantField, opts: { mood?: string } = {}): Variant[] {
-  const list: { value: string | number; name: string; note: string; config: () => DesignConfig }[] = [];
+export function variants(session: Session, field: VariantField, opts: { mood?: string; seed?: number } = {}): Variant[] {
+  const list: { value: string | number; name: string; note: string; tag?: string; patch?: Partial<DesignPatch>; config: () => DesignConfig }[] = [];
   const with_ = (patch: Partial<DesignPatch>) => () => applyPatch(session.config, patch);
   switch (field) {
     case "preset":
+      for (const g of session.generated) list.push({ value: g.id, name: g.name, note: g.note, tag: g.tag, config: () => g.config });
       for (const [id, p] of Object.entries(presets)) {
         list.push({ value: id, name: p.displayName, note: PRESET_NOTES[id] ?? p.description ?? "", config: () => presetFor(id, session.product) });
       }
@@ -209,12 +323,33 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
       list.push({ value: "light", name: "Light first", note: "Loads light; dark mode is a toggle away.", config: with_({ defaultMode: "light" }) });
       list.push({ value: "dark", name: "Dark first", note: "Loads dark; light mode is opt-in.", config: with_({ defaultMode: "dark" }) });
       break;
+    case "brand": {
+      // The current color first, then colors from the person's material, then ready palettes.
+      const current = session.config.color.brand;
+      const seen = new Set<string>();
+      const hexOf = (c: string) => { try { return toHex(parseColor(c)); } catch { return c; } };
+      const push = (value: string, name: string, note: string, patch: Partial<DesignPatch>, tag?: string) => {
+        const hex = hexOf(patch.brand ?? current ?? "");
+        if (seen.has(hex)) return;
+        seen.add(hex);
+        list.push({ value, name, note, tag, patch, config: with_(patch) });
+      };
+      if (current) push("current", "Current", hexOf(current), { brand: current });
+      for (const c of session.site?.colors.slice(0, 2) ?? []) push(`site:${c.hex}`, "Your site", c.hex, { brand: c.hex }, "From your site");
+      for (const c of session.imageColors.slice(0, 2)) push(`image:${c}`, "Your image", c, { brand: c }, "From your images");
+      for (const p of PALETTES) {
+        const brand = opts.seed === undefined ? p.brand : shuffled(p.brand, opts.seed, p.id);
+        push(opts.seed === undefined ? p.id : `${p.id}:${opts.seed}`, p.name, hexOf(brand), { brand, neutral: p.neutral });
+      }
+      break;
+    }
   }
   return list.map((o) => {
+    const extra = { ...(o.tag ? { tag: o.tag } : {}), ...(o.patch ? { patch: o.patch } : {}) };
     try {
-      return { value: o.value, name: o.name, note: o.note, specimen: specimen(o.config()) };
+      return { value: o.value, name: o.name, note: o.note, ...extra, specimen: specimen(o.config()) };
     } catch (err) {
-      return { value: o.value, name: o.name, note: o.note, error: errorText(err) };
+      return { value: o.value, name: o.name, note: o.note, ...extra, error: errorText(err) };
     }
   });
 }

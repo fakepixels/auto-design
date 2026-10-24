@@ -38,10 +38,12 @@ import {
   MOTION_INFO,
   SURFACE_INFO,
   TEXTURE_INFO,
+  addModelPick,
   choices,
   commit,
   createSession,
   errorText,
+  generateOptions,
   heuristicTexture,
   setProduct,
   setSurfaces,
@@ -71,6 +73,17 @@ function page(): string {
     if (existsSync(url)) return readFileSync(url, "utf8");
   }
   throw new Error("onboard.html is missing from the auto-design package");
+}
+
+/** Say what went wrong reading a site in words a person can act on. */
+function siteError(url: string, err: unknown): string {
+  const text = errorText(err);
+  const host = url.replace(/^https?:\/\//i, "").split("/")[0];
+  if (/fetch failed|ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|network/i.test(text) || /fetch failed/i.test(String((err as Error)?.message))) {
+    return `Couldn't reach ${host}. Check the address and your connection, or drop screenshots instead.`;
+  }
+  if (/Invalid URL/i.test(text)) return "That doesn't look like a web address. Try something like northwind.com.";
+  return `Couldn't read ${host}: ${text}`;
 }
 
 function send(res: ServerResponse, status: number, body: unknown, type = "application/json") {
@@ -150,6 +163,7 @@ function view(s: Session) {
     specimen: specimen(s.config),
     copy: s.copy,
     history: s.history.map((h) => ({ label: h.label, changes: h.changes })),
+    generated: s.generated.map((g) => ({ id: g.id, name: g.name, tag: g.tag })),
   };
 }
 
@@ -224,7 +238,7 @@ export async function runOnboard(opts: OnboardOptions) {
       return view(session);
     },
 
-    "POST /api/variants": (b) => variants(session, String(b.field) as VariantField, { mood: b.mood ? String(b.mood) : undefined }),
+    "POST /api/variants": (b) => variants(session, String(b.field) as VariantField, { mood: b.mood ? String(b.mood) : undefined, seed: Number.isFinite(b.seed) ? Number(b.seed) : undefined }),
 
     "POST /api/preview": (b) => specimen(applyPatch(session.config, (b.patch ?? {}) as Partial<DesignPatch>)),
 
@@ -240,17 +254,35 @@ export async function runOnboard(opts: OnboardOptions) {
       return view(session);
     },
 
-    "POST /api/undo": () => {
-      const entry = undo(session);
+    // Undo the last change, or the last few to go back to an earlier point.
+    "POST /api/undo": (b) => {
+      const count = Math.max(1, Math.min(50, Math.floor(Number(b.count) || 1)));
+      let entry = null;
+      for (let i = 0; i < count; i++) entry = undo(session) ?? entry;
       return { undone: entry ? entry.label : null, ...view(session) };
     },
 
     "POST /api/site": async (b) => {
       const url = String(b.url ?? session.product.url ?? "").trim();
       if (!url) throw new Error("Enter your site's address.");
-      const material = await extractFromSite(url);
+      const material = await extractFromSite(url).catch((err) => {
+        throw new Error(siteError(url, err));
+      });
       const s = siteSuggestion(session, material);
-      return { material: { ...material, summary: undefined }, patch: s.patch, changes: s.changes, preview: s.preview };
+      const made = generateOptions(session);
+      return { material: { ...material, summary: undefined }, patch: s.patch, changes: s.changes, preview: s.preview, made: made.map((g) => ({ id: g.id, name: g.name, tag: g.tag })), ...view(session) };
+    },
+
+    // Starting points from the site that was read and the images' colors, next to the presets.
+    "POST /api/generate": (b) => {
+      const colors: string[] = (Array.isArray(b.colors) ? b.colors : []).map(String);
+      // The person can pick which of the site's colors leads.
+      if (session.site && b.siteBrand) {
+        const lead = session.site.colors.find((c) => c.hex === String(b.siteBrand));
+        if (lead) session.site = { ...session.site, colors: [lead, ...session.site.colors.filter((c) => c !== lead)] };
+      }
+      const made = generateOptions(session, colors);
+      return { made: made.map((g) => ({ id: g.id, name: g.name, tag: g.tag })), ...view(session) };
     },
 
     "POST /api/suggest": async (b) => {
@@ -262,7 +294,8 @@ export async function runOnboard(opts: OnboardOptions) {
       const m = modelOrNull();
       if (m) {
         const r = await suggest(m, { product: session.product.name, description: session.product.description, site: session.site, images, imageColors, current: session.config });
-        return { byModel: true, reasons: r.reasons, changes: r.changes, patch: r.patch, preview: specimen(r.config) };
+        addModelPick(session, r.config, r.reasons[0] ?? "");
+        return { byModel: true, reasons: r.reasons, changes: r.changes, patch: r.patch, preview: specimen(r.config), ...view(session) };
       }
       // Without a model: the brand from the images or the site, the texture from the description.
       const patch: Partial<DesignPatch> = {};

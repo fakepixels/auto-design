@@ -64,6 +64,13 @@
     --tick-on: rgb(0 0 0 / .55);
     --knob-shadow: inset 0 1px 0 #ffffff, inset 0 -1px 1px rgb(0 0 0 / .14), 0 0 0 1px rgb(0 0 0 / .12), 0 1px 2px rgb(0 0 0 / .18), 0 6px 14px -4px rgb(0 0 0 / .28);
     --knob-ring: 0 0 0 6px rgb(0 0 0 / .05);
+    /* The drop stage: a dotted canvas the mock screens float on. */
+    --stage: #f4f4f6;
+    --dot: rgb(0 0 0 / .075);
+    --dash: rgb(0 0 0 / .14);
+    --bring-glow: rgb(0 0 0 / 0);
+    --beam: rgb(0 0 0 / .045);
+    --beam-line: rgb(0 0 0 / .35);
     --title: linear-gradient(180deg, #4a4a52 0%, #111113 62%);
     --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
     --seg-thumb: linear-gradient(180deg, #ffffff, #f2f2f4);
@@ -128,6 +135,12 @@
       --tick-on: rgb(255 255 255 / .5);
       --knob-shadow: inset 0 1px 0 rgb(255 255 255 / .95), inset 0 -1px 1px rgb(0 0 0 / .28), 0 0 0 1px rgb(0 0 0 / .6), 0 2px 3px rgb(0 0 0 / .6), 0 10px 18px -6px rgb(0 0 0 / .8);
       --knob-ring: 0 0 0 6px rgb(255 255 255 / .06);
+      --stage: #0b0b0d;
+      --dot: rgb(255 255 255 / .075);
+      --dash: rgb(255 255 255 / .13);
+      --bring-glow: rgb(255 255 255 / .045);
+      --beam: rgb(255 255 255 / .06);
+      --beam-line: rgb(255 255 255 / .55);
       --title: linear-gradient(180deg, #ffffff 30%, #a8a8b0 120%);
       --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%230b0b0c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
       --seg-thumb: linear-gradient(180deg, rgb(255 255 255 / .17), rgb(255 255 255 / .07));
@@ -298,6 +311,138 @@
   .suggestion { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: start; margin-top: 14px; max-width: 980px; }
   .suggestion .view { height: 280px; border-radius: 20px; overflow: hidden; }
 
+  /* ---------- Bring what you have: the first thing on the Start step ---------- */
+  .bring { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px; padding: 28px; margin-bottom: 44px; border-radius: 28px;
+    background: radial-gradient(80% 120% at 100% 0%, var(--bring-glow), transparent 62%), linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: var(--card); }
+  .bring-copy { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 4px 0 0 2px; }
+  .bring-copy h2 { margin: 0; font-size: 21px; line-height: 1.2; font-weight: 600; letter-spacing: -0.026em; padding-bottom: 1px; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bring-copy .lead { margin: -4px 0 4px; color: var(--muted); font-size: 14px; max-width: 46ch; }
+  .site-row { display: flex; gap: 8px; }
+  .site-row .btn { height: 46px; padding: 0 22px; flex: none; }
+  .site-out:empty { display: none; }
+  .inspire { margin: auto 0 0; padding-top: 8px; font-size: 12px; color: var(--faint); }
+  .inspire a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--edge-hi-hover); transition: color 200ms var(--ease), border-color 200ms var(--ease); }
+  .inspire a:hover { color: var(--ink); border-color: currentColor; }
+
+  .drop-stage { position: relative; min-height: 312px; border-radius: 22px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px 18px 20px; outline-offset: 3px;
+    background: radial-gradient(closest-side at 50% 44%, transparent 30%, var(--stage) 100%), radial-gradient(var(--dot) 1px, transparent 1.3px) 0 0 / 14px 14px, var(--stage);
+    box-shadow: inset 0 0 0 1px var(--edge-lo), inset 0 1px 0 var(--sheen); }
+  .drop-stage::before { content: ""; position: absolute; inset: 8px; border-radius: 16px; border: 1px dashed var(--dash); pointer-events: none; transition: border-color 300ms var(--ease), inset 300ms var(--ease); }
+  .drop-stage.over::before { inset: 4px; border-color: transparent; }
+  .drop-stage::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.25px; pointer-events: none; opacity: 0;
+    background: conic-gradient(from var(--sheen-angle), var(--sel-1), var(--sel-2) 22%, var(--sel-3) 48%, var(--sel-2) 74%, var(--sel-1));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; transition: opacity 300ms var(--ease); animation: sheen 3s linear infinite; }
+  .drop-stage.over::after { opacity: 1; }
+  .screens { position: absolute; inset: 0 0 70px; pointer-events: none; }
+  .mock { position: absolute; left: 50%; top: 50%; overflow: hidden; border-radius: 10px; background: var(--bg); transition: transform 600ms var(--ease);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 1px 2px rgb(0 0 0 / .14), 0 20px 40px -18px rgb(0 0 0 / .55); animation: bob 6s ease-in-out infinite; }
+  .mock i { position: absolute; display: block; border-radius: 3px; background: var(--b); }
+  .mock i.a { background: var(--a); }
+  .mock i.s { background: var(--s); border-radius: 0; }
+  .mock i.r { border-radius: 999px; }
+  .m1 { width: 172px; height: 114px; transform: translate(-50%, -50%) translate(-96px, 6px) rotate(-8deg); }
+  .m2 { width: 186px; height: 122px; z-index: 2; transform: translate(-50%, -50%) translate(0, -8px) rotate(2deg); animation-delay: -2s; }
+  .m3 { width: 74px; height: 140px; z-index: 1; border-radius: 15px; transform: translate(-50%, -50%) translate(110px, 10px) rotate(9deg); animation-delay: -4s; }
+  .drop-stage:hover .m1, .drop-stage.over .m1 { transform: translate(-50%, -50%) translate(-118px, 10px) rotate(-12deg); }
+  .drop-stage:hover .m3, .drop-stage.over .m3 { transform: translate(-50%, -50%) translate(134px, 14px) rotate(14deg); }
+  .drop-stage.over .m2 { transform: translate(-50%, -50%) translate(0, -14px) rotate(0) scale(1.05); }
+  @keyframes bob { 50% { translate: 0 -5px; } }
+  /* A screenshot being dragged in, on a loop, until real ones arrive. */
+  .ghost { position: absolute; left: 50%; top: 50%; z-index: 3; animation: ghost 6.4s var(--ease) infinite 1s both; }
+  .ghost .mock { position: relative; left: auto; top: auto; width: 104px; height: 70px; transform: none; animation: none; }
+  .ghost svg { position: absolute; right: -12px; bottom: -16px; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .35)); }
+  @keyframes ghost {
+    0% { opacity: 0; transform: translate(-50%, -50%) translate(170px, 120px) rotate(16deg) scale(.92); }
+    12% { opacity: 1; }
+    48% { opacity: 1; transform: translate(-50%, -50%) translate(30px, 2px) rotate(5deg) scale(1); }
+    56% { opacity: 1; transform: translate(-50%, -50%) translate(28px, 6px) rotate(4deg) scale(.93); }
+    68%, 100% { opacity: 0; transform: translate(-50%, -50%) translate(26px, 8px) rotate(3deg) scale(.88); }
+  }
+  .drop-stage.over .ghost, .drop-stage.has .ghost { display: none; }
+  .shot { position: absolute; left: 50%; top: 50%; width: 44%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; transform: translate(-50%, -50%) translate(var(--x), var(--y)) rotate(var(--r));
+    box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 20px 40px -18px rgb(0 0 0 / .6); animation: land 700ms var(--ease) both; animation-delay: calc(var(--i) * 90ms); }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  @keyframes land { from { opacity: 0; scale: 1.14; translate: 0 -24px; } }
+  .drop-copy { position: relative; z-index: 4; display: grid; justify-items: center; gap: 4px; text-align: center; }
+  .drop-copy b { font-weight: 500; font-size: 14px; }
+  .drop-copy span { color: var(--muted); font-size: 12.5px; }
+  .drop-copy u { text-decoration-color: var(--edge-hi-hover); text-underline-offset: 3px; }
+  .drop-copy button { border: 0; padding: 0; background: none; color: var(--muted); font-size: 12.5px; text-decoration: underline; text-decoration-color: var(--edge-hi-hover); text-underline-offset: 3px; cursor: pointer; }
+  .drop-copy button:hover { color: var(--ink); }
+  .stage-swatches { display: flex; justify-content: center; gap: 6px; margin-bottom: 4px; }
+  .drop-copy .hot, .drop-stage.over .drop-copy .idle { display: none; }
+  .drop-stage.over .drop-copy .hot { display: inline; }
+
+  /* Reading a site: a page being scanned, then what was found. */
+  .scan { border-radius: 16px; overflow: hidden; background: var(--stage); box-shadow: inset 0 0 0 1px var(--edge-lo); animation: rise 400ms var(--ease) both; }
+  .scan-chrome { display: flex; align-items: center; gap: 5px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); }
+  .scan-chrome i { width: 7px; height: 7px; border-radius: 50%; background: var(--edge-hi-hover); flex: none; }
+  .scan-chrome span { margin-left: 8px; min-width: 0; padding: 2px 10px; border-radius: 999px; background: var(--tint); color: var(--muted); font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scan-body { position: relative; height: 84px; padding: 14px; display: grid; gap: 8px; align-content: start; overflow: hidden; }
+  .scan-body i { display: block; height: 8px; border-radius: 4px; background: var(--tint); }
+  .scan-body i.a { height: 14px; width: 26%; border-radius: 999px; background: var(--edge-hi-hover); }
+  .beam { position: absolute; left: 0; right: 0; top: -40px; height: 40px; background: linear-gradient(180deg, transparent, var(--beam)); animation: beam 1.5s var(--ease) infinite; }
+  .beam::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--beam-line); box-shadow: 0 0 14px 1px var(--beam-line); }
+  @keyframes beam { to { top: 100%; } }
+  .scan-steps { list-style: none; margin: 0; padding: 10px 14px 12px; display: grid; gap: 7px; font-size: 12.5px; color: var(--faint); border-top: 1px solid var(--line-soft); }
+  .scan-steps li { display: flex; align-items: center; gap: 9px; transition: color 300ms var(--ease); }
+  .scan-steps li::before { content: ""; width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid var(--edge-hi-hover); flex: none; }
+  .scan-steps li.on { color: var(--ink); }
+  .scan-steps li.on::before { border-top-color: var(--ink); animation: spin 800ms linear infinite; }
+  .scan-steps li.ok { color: var(--muted); }
+  .scan-steps li.ok::before { border: 0; background: var(--check) center / 11px no-repeat, var(--metal); box-shadow: var(--metal-shadow); animation: pop 320ms var(--ease); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .found { display: grid; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--stage); box-shadow: inset 0 0 0 1px var(--edge-lo); animation: rise 400ms var(--ease) both; }
+  .found-row { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; }
+  .found-label { color: var(--faint); font-size: 12px; }
+  .sw-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sw { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 11px 0 4px; border: 0; border-radius: 999px; background: var(--glass); box-shadow: var(--glass-sheen), inset 0 0 0 1px var(--edge-lo); color: var(--muted); font: 500 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; animation: pop 450ms var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); transition: color 200ms var(--ease), box-shadow 200ms var(--ease); }
+  .sw i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .12), inset 0 1px 0 rgb(255 255 255 / .28); }
+  .sw:hover { color: var(--ink); }
+  .sw[aria-pressed="true"] { color: var(--ink); box-shadow: var(--glass-sheen), inset 0 0 0 1px var(--field-focus); }
+  .sw.dot { padding: 0; width: 30px; justify-content: center; }
+  .sw.dot i { width: 22px; height: 22px; }
+  .fact { display: inline-flex; align-items: center; gap: 8px; margin-right: 14px; animation: pop 450ms var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  .fact .aa { font-size: 19px; line-height: 1; font-weight: 500; letter-spacing: -0.02em; }
+  .fact .corner { width: 16px; height: 16px; border: 1.5px solid var(--muted); border-right: 0; border-bottom: 0; }
+  .made-note { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 13px; animation: rise 400ms var(--ease) both; }
+  .made-note .spark { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 10px var(--ink); animation: breathe 1.4s ease-in-out infinite; }
+
+  .made { margin: 0 0 44px; }
+  .made[hidden] { display: none; }
+  .proof .tag { position: absolute; top: 15px; left: 15px; z-index: 3; display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 11.5px; font-weight: 500; color: #18181b;
+    background: rgb(255 255 255 / .8); -webkit-backdrop-filter: blur(12px) saturate(1.6); backdrop-filter: blur(12px) saturate(1.6); box-shadow: 0 0 0 1px rgb(0 0 0 / .06), 0 6px 14px -6px rgb(0 0 0 / .3); }
+  /* New options catch the light once as they arrive. */
+  .proof.fresh .view::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; z-index: 2; pointer-events: none; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .5), transparent); animation: sweep 1100ms 250ms var(--ease) both; }
+  @keyframes sweep { from { transform: translateX(-120%) skewX(-16deg); } to { transform: translateX(260%) skewX(-16deg); } }
+
+  /* ---------- Palettes ---------- */
+  .pal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+  .pal-head .section-label { margin: 0; }
+  .palettes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); margin-bottom: 36px; }
+  .pal { all: unset; box-sizing: border-box; position: relative; display: grid; gap: 9px; padding: 5px 5px 10px; border-radius: 18px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: var(--card); cursor: pointer; transition: transform 260ms var(--ease), box-shadow 300ms var(--ease); animation: rise 420ms var(--ease) both; animation-delay: calc(var(--i, 0) * 25ms); }
+  .pal:hover { transform: translateY(-1px); }
+  .pal:active { transform: scale(.98); }
+  .pal:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .pal-strip { display: flex; height: 60px; border-radius: 13px; overflow: hidden; }
+  .pal-strip i { flex: 1; transition: flex 450ms var(--ease); }
+  .pal-strip i.seed { flex: 2.6; }
+  .pal:hover .pal-strip i.seed, .pal[aria-pressed="true"] .pal-strip i.seed { flex: 3.6; }
+  .pal-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 7px; min-width: 0; }
+  .pal-meta b { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pal-meta small { color: var(--faint); font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .pal[aria-pressed="true"] { box-shadow: var(--card), var(--sel-glow); }
+  .palettes.loading .pal { animation: breathe 1.4s ease-in-out infinite; }
+
+  /* ---------- Undo ---------- */
+  .ghost-btn svg, .undo-btn svg { flex: none; }
+  .ghost-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .undo-btn { position: relative; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px 0 9px; border: 0; border-radius: 999px; background: var(--glass); box-shadow: var(--glass-sheen), inset 0 0 0 1px var(--glass-edge-lo); color: var(--muted); font-size: 12.5px; cursor: pointer; flex: none; transition: color 200ms var(--ease), transform 200ms var(--ease); }
+  .undo-btn:hover { color: var(--ink); }
+  .undo-btn:active { transform: scale(.96); }
+  .undo-btn:hover svg { animation: nudge 500ms var(--ease); }
+  @keyframes nudge { 40% { transform: rotate(-35deg); } }
+
   /* ---------- Feel ---------- */
   .feel { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
   .dial { --knob: 20px; display: grid; gap: 6px; padding: 18px 0 16px; background: linear-gradient(90deg, transparent, var(--line) 14%, var(--line) 86%, transparent) bottom / 100% 1px no-repeat; }
@@ -319,7 +464,7 @@
   .dial input[type="range"]:hover::-webkit-slider-thumb { box-shadow: var(--knob-shadow), var(--knob-ring); }
   .dial input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.1); box-shadow: var(--knob-shadow), var(--knob-ring); }
   /* Brushed steel: a conic sweep of light and shadow under a soft top highlight. */
-  .dial { --knob-face: radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .9), transparent 58%), conic-gradient(from 25deg, #c6c6cc, #f8f8f9 9%, #b8b8bf 21%, #ececef 33%, #c2c2c8 46%, #fdfdfd 58%, #bbbbc2 71%, #e8e8eb 84%, #c6c6cc); }
+  :root { --knob-face: radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .9), transparent 58%), conic-gradient(from 25deg, #c6c6cc, #f8f8f9 9%, #b8b8bf 21%, #ececef 33%, #c2c2c8 46%, #fdfdfd 58%, #bbbbc2 71%, #e8e8eb 84%, #c6c6cc); }
   /* The scale: a tick every 5%, longer at the ends and the middle; ticks behind the knob light up. */
   .dial-ticks { position: relative; display: block; height: 7px; margin: 3px calc(var(--knob) / 2) 0; }
   .dial-ticks::before, .dial-ticks::after { content: ""; position: absolute; inset: 0;
@@ -340,11 +485,12 @@
   .picker { position: relative; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: var(--card); border-radius: 24px; padding: 18px; display: grid; gap: 16px; }
   .area-wrap { position: relative; width: 100%; aspect-ratio: 300 / 200; border-radius: 14px; overflow: hidden; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
   .area-wrap canvas, .hue-wrap canvas { display: block; width: 100%; height: 100%; }
+  .area-wrap::after, .hue-wrap::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px var(--edge-hi), inset 0 1px 2px rgb(0 0 0 / .18); }
   .marker { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25); pointer-events: none; }
   .axis { display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: -6px; }
   .hue-wrap { position: relative; height: 14px; border-radius: 7px; touch-action: none; cursor: ew-resize; }
   .hue-wrap canvas { border-radius: 7px; }
-  .knob { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 1px 4px rgba(0,0,0,.25); pointer-events: none; }
+  .knob { position: absolute; top: 50%; z-index: 1; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; background: var(--knob-face); box-shadow: var(--knob-shadow); pointer-events: none; }
   .code-row { display: flex; gap: 8px; align-items: center; }
   .code-row .input { min-width: 0; padding: 0 12px; font-size: 13px; }
   .swatch { width: 46px; height: 46px; border-radius: 14px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
@@ -369,10 +515,11 @@
   .refine textarea { width: 100%; min-height: 84px; resize: vertical; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--field-bg); box-shadow: inset 0 0 0 1px var(--field-ring), var(--field-inset); caret-color: var(--ink); transition: box-shadow 240ms var(--ease); }
   .refine textarea::placeholder { color: var(--faint); }
   .refine textarea:focus { outline: none; box-shadow: inset 0 0 0 1px var(--field-focus), 0 0 0 4px var(--field-halo), var(--field-inset); }
-  .history { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
-  .history div { font-size: 13px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line-soft); }
-  .history div b { color: var(--ink); font-weight: 500; display: block; }
-  .history div:first-child { border-top: 0; padding-top: 0; }
+  .history { display: grid; max-height: 300px; overflow: auto; }
+  .hist-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--muted); }
+  .hist-item:first-child { border-top: 0; padding-top: 2px; }
+  .hist-item b { display: block; color: var(--ink); font-weight: 500; }
+  .hist-item.flash { animation: rise 420ms var(--ease) both; }
 
   /* ---------- Publish ---------- */
   .publish { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 32px; align-items: start; }
@@ -388,7 +535,7 @@
 
   /* ---------- Material ---------- */
   /* A 1px edge drawn as a masked gradient, lighter at the top, so surfaces read as machined rather than outlined. */
-  .proof::before, .choice::before, .panel::before, .picker::before, .refine::before, pre.cmd::before,
+  .proof::before, .choice::before, .panel::before, .picker::before, .refine::before, pre.cmd::before, .bring::before, .pal::before,
   .btn.line::before, .seg::before, .pill::before, .chip::before, .rail button[aria-current="step"]::before {
     content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
     background: linear-gradient(180deg, var(--edge-hi), var(--edge-lo));
@@ -397,22 +544,22 @@
   .btn.line::before, .seg::before, .pill::before, .chip::before, .rail button[aria-current="step"]::before { background: linear-gradient(180deg, var(--glass-edge-hi), var(--glass-edge-lo)); }
   .seg, .pill, .rail button[aria-current="step"] { position: relative; }
   .chip[aria-pressed="true"]::before { display: none; }
-  .proof:hover::before, .choice:hover::before { background: linear-gradient(180deg, var(--edge-hi-hover), var(--edge-lo-hover)); }
+  .proof:hover::before, .choice:hover::before, .pal:hover::before { background: linear-gradient(180deg, var(--edge-hi-hover), var(--edge-lo-hover)); }
 
   /* What's chosen: a ring from white to gray that turns slowly, like light moving across metal. */
   @property --sheen-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-  .proof::after, .choice::after {
+  .proof::after, .choice::after, .pal::after {
     content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.25px; pointer-events: none; opacity: 0;
     background: conic-gradient(from var(--sheen-angle), var(--sel-1), var(--sel-2) 22%, var(--sel-3) 48%, var(--sel-2) 74%, var(--sel-1));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
     transition: opacity 480ms var(--ease);
   }
-  .proof[aria-pressed="true"]::after, .choice[aria-pressed="true"]::after, .choice[aria-checked="true"]::after { opacity: 1; animation: sheen 8s linear infinite; }
+  .proof[aria-pressed="true"]::after, .choice[aria-pressed="true"]::after, .choice[aria-checked="true"]::after, .pal[aria-pressed="true"]::after { opacity: 1; animation: sheen 8s linear infinite; }
   @keyframes sheen { to { --sheen-angle: 360deg; } }
-  @media (prefers-reduced-motion: reduce) { .proof::after, .choice::after { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .proof::after, .choice::after, .pal::after, .drop-stage::after { animation: none !important; } .ghost { display: none; } }
 
   @media (max-width: 1100px) {
-    .review, .publish, .color, .feel { grid-template-columns: minmax(0, 1fr); }
+    .review, .publish, .color, .feel, .bring { grid-template-columns: minmax(0, 1fr); }
     .refine { position: static; }
   }
   @media (max-width: 760px) {
@@ -429,6 +576,11 @@
     .step-head { flex-direction: column; align-items: flex-start; gap: 14px; }
     .pair { grid-template-columns: 1fr; }
     .suggestion { grid-template-columns: 1fr; }
+    .bring { padding: 18px; gap: 22px; border-radius: 24px; }
+    .drop-stage { min-height: 280px; }
+    .m1 { transform: translate(-50%, -50%) translate(-78px, 6px) rotate(-8deg) scale(.86); }
+    .m3 { transform: translate(-50%, -50%) translate(92px, 10px) rotate(9deg) scale(.86); }
+    .m2 { transform: translate(-50%, -50%) translate(0, -8px) rotate(2deg) scale(.9); }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; animation-delay: 0ms !important; } }
 </style>
@@ -444,7 +596,7 @@
     <header class="actions">
       <span class="crumb"><b id="bar-product"></b><span id="step-count"></span></span>
       <span class="status" id="status" role="status" aria-live="polite"></span>
-      <button class="ghost-btn" id="undo" hidden>Undo</button>
+      <button class="ghost-btn" id="undo" hidden title="Undo the last change (⌘Z)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Undo</button>
       <button class="btn line" id="back">Back</button>
       <button class="btn ink" id="next">Continue</button>
     </header>
@@ -509,14 +661,16 @@
   }
 
   /** A grid of options for one field, each drawn on the current system. */
-  async function proofs(container, field, { scenes, current, label, size = "s", height, width, onPick, autoplay, filter } = {}) {
+  async function proofs(container, field, { scenes, current, label, size = "s", height, width, onPick, autoplay, filter, source, only, count = 3, fresh } = {}) {
     container.classList.add("proofs", "loading");
+    container.dataset.field = field;
     if (height) container.style.setProperty("--proof-h", height + "px");
     if (width) container.style.setProperty("--proof-w", width + "px");
-    container.innerHTML = Array.from({ length: 3 }, () => '<div class="proof"><div class="view"></div><div class="meta"><b>&nbsp;</b><span>&nbsp;</span></div></div>').join("");
+    container.innerHTML = Array.from({ length: count }, () => '<div class="proof"><div class="view"></div><div class="meta"><b>&nbsp;</b><span>&nbsp;</span></div></div>').join("");
     let list;
     try {
-      list = await api("/api/variants", { field, ...(filter || {}) });
+      list = await (source || api("/api/variants", { field, ...(filter || {}) }));
+      if (only) list = list.filter(only);
     } catch (e) {
       container.classList.remove("loading");
       container.innerHTML = `<p class="error">${esc(e.message)}</p>`;
@@ -526,14 +680,16 @@
     container.innerHTML = "";
     const selected = current();
     for (const v of list) {
-      const card = h(`<button class="proof" aria-pressed="${String(v.value) === String(selected)}"><div class="view"></div><div class="meta"><b>${esc(v.name)}</b><span>${esc(v.note)}</span><i class="tick" aria-hidden="true"></i></div></button>`);
+      const card = h(`<button class="proof${fresh ? " fresh" : ""}" data-value="${esc(String(v.value))}" aria-pressed="${String(v.value) === String(selected)}">${v.tag ? `<span class="tag">${esc(v.tag)}</span>` : ""}<div class="view"></div><div class="meta"><b>${esc(v.name)}</b><span>${esc(v.note)}</span><i class="tick" aria-hidden="true"></i></div></button>`);
       if (v.specimen) draw($(".view", card).appendChild(document.createElement("div")), v.specimen, scenes, { size });
       else $(".view", card).innerHTML = `<p class="err">${esc(v.error || "Can't build this option.")}</p>`;
       card.addEventListener("click", async () => {
         if (!v.specimen) return;
-        container.querySelectorAll(".proof").forEach((p) => p.setAttribute("aria-pressed", String(p === card)));
+        // Every grid of this field shares one selection (the Start step shows two).
+        const all = () => document.querySelectorAll(`.proofs[data-field="${field}"] .proof[data-value]`);
+        all().forEach((p) => p.setAttribute("aria-pressed", String(p === card)));
         const ok = onPick ? await onPick(v) : await choose({ [field]: v.value }, `${label}: ${v.name}`);
-        if (ok === false) [...container.querySelectorAll(".proof")].forEach((p, i) => p.setAttribute("aria-pressed", String(String(list[i].value) === String(current()))));
+        if (ok === false) all().forEach((p) => p.setAttribute("aria-pressed", String(p.dataset.value === String(current()))));
       });
       container.appendChild(card);
     }
@@ -683,24 +839,34 @@
     },
     {
       id: "start", title: "Pick a starting point", rail: "Start",
-      help: "Five systems to start from. You can change any part of it later.", modes: true,
-      value: () => (app.state.presets.find((p) => p.id === app.state.preset) || {}).name,
+      help: "Bring what you have and auto-design builds options from it, or begin from one of five systems. You can change any part later.", modes: true,
+      value: () => (app.state.presets.find((p) => p.id === app.state.preset) || (app.state.generated || []).find((g) => g.id === app.state.preset) || {}).name,
       async render(root) {
-        const grid = h(`<div></div>`);
+        const model = !!app.state.model;
+        const links = INSPIRATION.map(([href, name]) => `<a href="${href}" target="_blank" rel="noreferrer">${name}</a>`);
+        root.append(h(`<section class="bring" aria-labelledby="bring-h">
+          <div class="bring-copy">
+            <h2 id="bring-h">Start from what you already have</h2>
+            <p class="lead">Read your site, or drop screenshots you like. auto-design pulls out their colors, type and corners and builds starting points from them${model ? ", and your model suggests one more" : ""}.</p>
+            <div class="site-row"><input class="input" id="site" placeholder="northwind.com" value="${esc(app.state.product.url)}" autocomplete="off" inputmode="url" aria-label="Your site's address"><button class="btn ink" id="read-site">Read site</button></div>
+            <div class="site-out" id="site-out" aria-live="polite"></div>
+            <p class="inspire">Need inspiration? Browse ${links.slice(0, -1).join(", ")} or ${links.at(-1)}, then drop screenshots of what you like.</p>
+          </div>
+          <div class="drop-stage" id="drop" tabindex="0" role="button" aria-label="Drop screenshots or a logo, or choose files">
+            <div class="screens" id="screens" aria-hidden="true"></div>
+            <div class="drop-copy" id="drop-copy"></div>
+            <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple hidden>
+          </div>
+        </section>`));
+        root.append(h(`<section class="made" id="made" hidden><div class="pal-head"><p class="section-label">Made from what you brought</p><span class="made-note" id="made-note"></span></div><div id="made-grid"></div></section>`));
+        root.append(h(`<p class="section-label">Or begin from one of five systems</p>`));
+        const grid = h(`<div id="start-grid"></div>`);
         root.append(grid);
-        root.append(h(`<p class="section-label">Or start from what you already have</p>`));
-        root.append(h(`<p class="note">${app.state.model ? "The model looks at your site and images together and suggests a system." : "Without a model, auto-design reads your site’s colors and fonts and finds the main color in a logo."}</p>`));
-        const mat = h(`<div class="material">
-          <div class="panel"><h3>Your site</h3><div class="row" style="flex-wrap:nowrap"><input class="input" id="site" placeholder="northwind.com" value="${esc(app.state.product.url)}"><button class="btn line small" id="read-site" style="height:40px">Read</button></div><div id="site-out" class="form" style="gap:10px"></div></div>
-          <div class="panel"><h3>Your logo or screens you like</h3><div class="drop" id="drop" tabindex="0" role="button">Drop images here, or choose files<input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple hidden></div><div class="thumbs" id="thumbs"></div><div class="chips" id="img-colors"></div></div>
-        </div>`);
-        root.append(mat);
-        root.append(h(`<div id="suggest-area"></div>`));
-        proofs(grid, "preset", {
-          scenes: ["object"], height: 244, current: () => app.state.preset,
-          onPick: async (v) => { try { update(await api("/api/start", { preset: v.value })); return true; } catch (e) { status(e.message, true); return false; } },
-        });
+        paintStage();
         wireMaterial(root);
+        loadStartGalleries();
+        if (app.material.site) paintSiteFound(app.material.site, false);
+        else if (app.state.product.url && !app.material.autoRead) { app.material.autoRead = true; readSite(app.state.product.url); }
       },
     },
     {
@@ -837,71 +1003,154 @@
   }
 
   /* ---------- Material: site and images ---------- */
+  const INSPIRATION = [["https://minimal.gallery", "minimal.gallery"], ["https://www.affectui.com/components", "affectui.com"], ["https://bencho.dev", "bencho.dev"], ["https://www.runeicons.com", "runeicons.com"]];
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const UNDO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`;
+  /** Little screens drawn in boxes: a landing page, a dashboard and a phone, each with its own accent. */
+  const bars = (list) => list.map(([x, y, w, hh, c = ""]) => `<i class="${c}" style="left:${x}%;top:${y}%;width:${w}%;height:${hh}%"></i>`).join("");
+  const MOCKS = `
+    <div class="mock m1" style="--bg:#fbfaf7;--b:#e4e0d9;--a:#f26b1d;--s:#efe9df">${bars([[7, 10, 11, 6, "a r"], [57, 11, 8, 4], [68, 11, 8, 4], [79, 11, 12, 4], [7, 30, 52, 9], [7, 43, 40, 9], [7, 59, 46, 4], [7, 66, 34, 4], [7, 78, 20, 10, "a r"], [66, 28, 27, 58, "s"]])}</div>
+    <div class="mock m2" style="--bg:#0e1014;--b:#2a303a;--a:#5b8cff;--s:#14171d">${bars([[0, 0, 21, 100, "s"], [5, 9, 11, 5, "a r"], [5, 24, 11, 4], [5, 33, 9, 4], [5, 42, 12, 4], [5, 51, 8, 4], [27, 9, 20, 22], [50, 9, 20, 22], [73, 9, 21, 22], [30, 14, 7, 4, "a"], [53, 14, 9, 4], [76, 14, 6, 4], [30, 23, 11, 4], [53, 23, 8, 4], [76, 23, 12, 4], ...[20, 32, 26, 42, 30, 50, 38, 58, 46].map((v, i) => [29 + i * 7.3, 90 - v, 4.6, v, "a"])])}</div>
+    <div class="mock m3" style="--bg:#f5f8f6;--b:#d6ded9;--a:#16a34a;--s:#e7eee9">${bars([[12, 6, 28, 3], [64, 6, 22, 3], [10, 14, 80, 28, "a"], [10, 49, 54, 4], [10, 56, 36, 3], [10, 65, 58, 4], [10, 72, 30, 3], [10, 85, 80, 8, "a r"]])}</div>
+    <div class="ghost"><div class="mock" style="--bg:#ffffff;--b:#e7e4f0;--a:#7c5cff;--s:#f1eefb">${bars([[8, 12, 26, 9, "a r"], [8, 33, 58, 9], [8, 49, 42, 8], [62, 58, 30, 30, "s"], [8, 70, 26, 13, "a r"]])}</div><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6.2 1.7L10 19z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`;
+
   function wireMaterial(root) {
-    const out = $("#site-out", root);
-    $("#read-site", root).onclick = async () => {
-      const url = $("#site", root).value.trim();
-      if (!url) return;
-      out.innerHTML = `<p class="note">Reading ${esc(url)}…</p>`;
-      try {
-        const r = await api("/api/site", { url });
-        const m = r.material;
-        app.material.site = r;
-        out.innerHTML = `
-          ${m.colors.length ? `<div class="chips">${m.colors.slice(0, 5).map((c, i) => `<button class="chip" data-hex="${esc(c.hex)}" aria-pressed="${i === 0}"><i style="background:${esc(c.hex)}"></i>${esc(c.hex)}</button>`).join("")}</div>` : `<p class="note">No brand color found on that page.</p>`}
-          <p class="note">${[m.fonts.length ? "Fonts: " + esc(m.fonts.slice(0, 3).join(", ")) : "", m.radius ? `Corners around ${m.radius}px` : "", m.dark ? "Dark first" : ""].filter(Boolean).join(". ") || "No fonts or corners found."}</p>
-          ${r.changes.length ? `<div class="row"><button class="btn ink small" id="apply-site">Use these</button><span class="note">${esc(r.changes.join("; "))}</span></div>` : ""}`;
-        out.querySelectorAll(".chip").forEach((chip) => chip.onclick = () => {
-          out.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x === chip)));
-          r.patch.brand = chip.dataset.hex;
-        });
-        if ($("#apply-site", out)) $("#apply-site", out).onclick = async () => { if (await choose(r.patch, "Used your site")) { status("Applied what your site shows."); rerender(); } };
-      } catch (e) { out.innerHTML = `<p class="error">${esc(e.message)}</p>`; }
-    };
-    const drop = $("#drop", root), files = $("#files", root);
-    drop.onclick = () => files.click();
-    drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); files.click(); } };
-    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
-    drop.ondragleave = () => drop.classList.remove("over");
-    drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); addImages([...e.dataTransfer.files]); };
-    files.onchange = () => addImages([...files.files]);
-    if (app.material.images.length) paintImages(root);
+    $("#read-site", root).onclick = () => readSite($("#site", root).value.trim());
+    $("#site", root).addEventListener("keydown", (e) => { if (e.key === "Enter") readSite($("#site", root).value.trim()); });
+    const stage = $("#drop", root), files = $("#files", root), bring = $(".bring", root);
+    stage.addEventListener("click", (e) => {
+      const sw = e.target.closest(".sw.dot");
+      if (sw) { app.material.colors = [sw.dataset.hex, ...app.material.colors.filter((c) => c !== sw.dataset.hex)]; paintStage(); return regenerate(); }
+      if (e.target.closest("#clear-imgs")) { app.material.images = []; app.material.colors = []; paintStage(); return regenerate(); }
+      if (!e.target.closest("button")) files.click();
+    });
+    stage.onkeydown = (e) => { if ((e.key === "Enter" || e.key === " ") && e.target === stage) { e.preventDefault(); files.click(); } };
+    bring.ondragover = (e) => { e.preventDefault(); stage.classList.add("over"); };
+    bring.ondragleave = (e) => { if (!bring.contains(e.relatedTarget)) stage.classList.remove("over"); };
+    bring.ondrop = (e) => { e.preventDefault(); stage.classList.remove("over"); addImages([...e.dataTransfer.files]); };
+    files.onchange = () => { addImages([...files.files]); files.value = ""; };
+  }
+
+  /** Read a site: a page being scanned while it loads, then what was found, then options made from it. */
+  async function readSite(url) {
+    const out = $("#site-out"), btn = $("#read-site");
+    if (!out || !url) return;
+    const host = url.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+    out.innerHTML = `<div class="scan"><div class="scan-chrome"><i></i><i></i><i></i><span>${esc(host)}</span></div>
+      <div class="scan-body"><i style="width:30%"></i><i style="width:74%"></i><i style="width:58%"></i><i class="a"></i><div class="beam"></div></div>
+      <ol class="scan-steps"><li class="on">Fetching the page</li><li>Finding its colors</li><li>Reading type and corners</li></ol></div>`;
+    const steps = [...out.querySelectorAll(".scan-steps li")];
+    const advance = (i) => steps.forEach((li, j) => { li.className = j < i ? "ok" : j === i ? "on" : ""; });
+    const timers = [setTimeout(() => advance(1), 700), setTimeout(() => advance(2), 1500)];
+    if (btn) btn.disabled = true;
+    try {
+      const began = Date.now();
+      const r = await api("/api/site", { url });
+      await wait(Math.max(0, 1700 - (Date.now() - began)));
+      timers.forEach(clearTimeout);
+      advance(3);
+      await wait(380);
+      app.material.site = r.material;
+      update(r);
+      if (!$("#site-out")) return;
+      paintSiteFound(r.material, true);
+      afterMaterial();
+    } catch (e) {
+      timers.forEach(clearTimeout);
+      if ($("#site-out")) $("#site-out").innerHTML = `<p class="error">${esc(e.message)}</p>`;
+    } finally {
+      if ($("#read-site")) $("#read-site").disabled = false;
+    }
+  }
+
+  function paintSiteFound(m, animate) {
+    const out = $("#site-out");
+    if (!out) return;
+    const colors = m.colors.slice(0, 6);
+    const font = (m.fonts[0] || "").split(",")[0].replace(/["']/g, "").trim();
+    const shape = [m.radius !== null ? `<span class="fact" style="--i:${colors.length + 1}"><i class="corner" style="border-top-left-radius:${Math.min(16, m.radius)}px"></i>${m.radius}px corners</span>` : "", m.dark ? `<span class="fact" style="--i:${colors.length + 2}">Dark first</span>` : ""].join("");
+    out.innerHTML = `<div class="found">
+      <div class="found-row"><span class="found-label">Colors</span><div class="sw-row">${colors.length ? colors.map((c, i) => `<button class="sw" style="--c:${esc(c.hex)};--i:${i}" data-hex="${esc(c.hex)}" aria-pressed="${i === 0}" title="Lead with ${esc(c.hex)}"><i></i>${esc(c.hex)}</button>`).join("") : `<span class="note">No brand color on that page</span>`}</div></div>
+      <div class="found-row"><span class="found-label">Type</span><div>${font ? `<span class="fact" style="--i:${colors.length}"><span class="aa" style="font-family:'${esc(font)}', inherit">Aa</span>${esc(font)}</span>` : `<span class="note">No web font found</span>`}</div></div>
+      <div class="found-row"><span class="found-label">Shape</span><div>${shape || `<span class="note">No corners found</span>`}</div></div>
+    </div>`;
+    if (!animate) out.querySelectorAll(".found, .sw, .fact").forEach((el) => (el.style.animation = "none"));
+    out.querySelectorAll(".sw").forEach((sw) => sw.onclick = () => {
+      out.querySelectorAll(".sw").forEach((x) => x.setAttribute("aria-pressed", String(x === sw)));
+      regenerate({ siteBrand: sw.dataset.hex });
+    });
   }
 
   async function addImages(list) {
-    for (const f of list.filter((f) => /^image\//.test(f.type)).slice(0, 4 - app.material.images.length)) {
+    const room = 4 - app.material.images.length;
+    const picked = list.filter((f) => /^image\/(png|jpeg|webp)$/.test(f.type)).slice(0, Math.max(0, room));
+    if (!picked.length) { status(room > 0 ? "Drop PNG, JPG or WebP images." : "Four images is the most it reads at once. Start over to use others.", true); return; }
+    for (const f of picked) {
       const img = await loadImage(f);
       app.material.images.push({ src: img.src, ...shrink(img), colors: dominant(img) });
     }
     app.material.colors = [...new Set(app.material.images.flatMap((i) => i.colors))].slice(0, 6);
-    paintImages(document);
+    status("");
+    paintStage();
+    regenerate();
   }
-  function paintImages(root) {
-    $("#thumbs", root).innerHTML = app.material.images.map((i) => `<img src="${i.src}" alt="">`).join("");
-    $("#img-colors", root).innerHTML = app.material.colors.map((c, i) => `<button class="chip" data-hex="${c}" aria-pressed="${i === 0}"><i style="background:${c}"></i>${c}</button>`).join("");
-    $("#img-colors", root).querySelectorAll(".chip").forEach((chip) => chip.onclick = () => {
-      app.material.colors = [chip.dataset.hex, ...app.material.colors.filter((c) => c !== chip.dataset.hex)];
-      paintImages(document);
-    });
-    suggestArea();
+
+  /** The drop stage: mock screens floating until real images arrive, then the images themselves. */
+  function paintStage() {
+    const stage = $("#drop");
+    if (!stage) return;
+    const imgs = app.material.images, colors = app.material.colors;
+    stage.classList.toggle("has", imgs.length > 0);
+    if (!imgs.length) {
+      $("#screens").innerHTML = MOCKS;
+      $("#drop-copy").innerHTML = `<b><span class="idle">Drop screenshots, a logo or a moodboard</span><span class="hot">Let go to read them</span></b><span>or <u>choose files</u> · PNG, JPG or WebP, up to four</span>`;
+      return;
+    }
+    const spots = [[[0, -4, -3]], [[-62, 0, -7], [64, -6, 6]], [[-86, 8, -9], [0, -10, 2], [88, 4, 9]], [[-98, 12, -10], [-32, -10, -3], [34, -6, 4], [100, 10, 11]]][imgs.length - 1];
+    $("#screens").innerHTML = imgs.map((im, i) => `<div class="shot" style="--x:${spots[i][0]}px;--y:${spots[i][1]}px;--r:${spots[i][2]}deg;--i:${i};z-index:${i + 1}"><img src="${im.src}" alt=""></div>`).join("");
+    $("#drop-copy").innerHTML = `${colors.length ? `<div class="stage-swatches">${colors.map((c, i) => `<button class="sw dot" data-hex="${c}" aria-pressed="${i === 0}" style="--c:${c};--i:${i}" title="Lead with ${c}" aria-label="Lead with ${c}"><i></i></button>`).join("")}</div>` : ""}
+      <b>${imgs.length} image${imgs.length === 1 ? "" : "s"} read</b><span>${colors.length ? "Pick the color that leads. " : "No strong colors in these. "}Drop more, or <button id="clear-imgs" type="button">start over</button></span>`;
   }
-  function suggestArea() {
-    const area = $("#suggest-area");
-    if (!area) return;
-    const any = app.material.images.length || app.material.site;
-    area.innerHTML = any ? `<div class="row" style="margin-top:16px"><button class="btn ink small" id="suggest">${app.state.model ? "Suggest a system from all of this" : "Suggest from my images and description"}</button><span class="note" id="suggest-msg"></span></div><div id="suggest-out"></div>` : "";
-    if (!any) return;
-    $("#suggest").onclick = async () => {
-      $("#suggest-msg").textContent = app.state.model ? "Looking at your material…" : "";
-      try {
-        const r = await api("/api/suggest", { images: app.material.images.map((i) => ({ mediaType: i.mediaType, data: i.data })), colors: app.material.colors });
-        $("#suggest-msg").textContent = "";
-        const out = $("#suggest-out");
-        out.innerHTML = `<div class="suggestion"><div class="panel"><h3>Suggested</h3><ul class="reasons">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${r.changes.length ? `<p class="note">${esc(r.changes.join("; "))}</p>` : ""}<div class="row"><button class="btn ink small" id="take">Use this</button></div></div><div class="view" id="sug-view"></div></div>`;
-        draw($("#sug-view"), r.preview, ["object"], { size: "s" });
-        $("#take").onclick = async () => { if (await choose(r.patch, r.byModel ? "Used the model's suggestion" : "Used your material")) { status("Applied the suggestion."); rerender(); } };
-      } catch (e) { $("#suggest-msg").className = "error"; $("#suggest-msg").textContent = e.message; }
-    };
+
+  /** Make starting points from the site and images, and ask the model for one more when there is one. */
+  async function regenerate(extra = {}) {
+    try {
+      update(await api("/api/generate", { colors: app.material.colors, ...extra }));
+      afterMaterial();
+    } catch (e) { status(e.message, true); }
+  }
+
+  async function afterMaterial() {
+    const n = (app.state.generated || []).length;
+    loadStartGalleries({ madeOnly: true, fresh: true });
+    const note = $("#made-note");
+    if (!note || !n) return;
+    const made = $("#made");
+    setTimeout(() => made && !made.hidden && made.scrollIntoView({ behavior: "smooth", block: "nearest" }), 450);
+    if (!app.state.model || (!app.material.images.length && !app.material.site)) { note.innerHTML = `Pick one, or keep going with a system below.`; return; }
+    const ask = (app.material.ask = (app.material.ask || 0) + 1);
+    note.innerHTML = `<span class="spark"></span>Asking your model for one more…`;
+    try {
+      const r = await api("/api/suggest", { images: app.material.images.map((i) => ({ mediaType: i.mediaType, data: i.data })), colors: app.material.colors });
+      if (ask !== app.material.ask) return;
+      update(r);
+      loadStartGalleries({ madeOnly: true, fresh: true });
+      if ($("#made-note")) $("#made-note").textContent = "Your model added its pick.";
+    } catch (e) { if ($("#made-note")) { $("#made-note").className = "made-note error"; $("#made-note").textContent = e.message; } }
+  }
+
+  /** The Start step's two galleries: options made from the person's material, then the five presets. */
+  function loadStartGalleries({ madeOnly = false, fresh = false } = {}) {
+    const grid = $("#start-grid"), made = $("#made"), mg = $("#made-grid");
+    if (!grid) return;
+    const isMade = (v) => String(v.value).startsWith("gen:");
+    const source = api("/api/variants", { field: "preset" });
+    const opts = { scenes: ["object"], height: 244, current: () => app.state.preset, source,
+      onPick: async (v) => { try { update(await api("/api/start", { preset: v.value })); return true; } catch (e) { status(e.message, true); return false; } } };
+    const n = (app.state.generated || []).length;
+    made.hidden = !n;
+    if (n) proofs(mg, "preset", { ...opts, only: isMade, count: n, fresh });
+    if (!madeOnly) proofs(grid, "preset", { ...opts, only: (v) => !isMade(v), count: 5 });
   }
   function loadImage(file) {
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = r.result; }; r.onerror = rej; r.readAsDataURL(file); });
@@ -948,8 +1197,8 @@
   }
   const inGamut = (rgb) => rgb.every((v) => v >= -0.0008 && v <= 1.0008);
   function maxChroma(l, hh) { let lo = 0, hi = CMAX; for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (inGamut(oklchToRgb(l, mid, hh))) lo = mid; else hi = mid; } return lo; }
-  const spanCache = new Map();
-  function span(hh) { const k = Math.round(hh); if (!spanCache.has(k)) { let m = 0; for (let l = 0.02; l < 1; l += 0.02) m = Math.max(m, maxChroma(l, k)); spanCache.set(k, Math.min(CMAX, Math.max(0.04, m * 1.08))); } return spanCache.get(k); }
+  /** Where a color sits between gray and the strongest color its lightness allows. */
+  const relC = (p) => { const m = maxChroma(p.l, p.h); return m > 0 ? Math.min(1, p.c / m) : 0; };
   const fmtOk = (p) => `oklch(${p.l.toFixed(3)} ${p.c.toFixed(3)} ${p.h.toFixed(1)})`;
   function parseOklch(css) { const m = /oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(css || ""); return m ? { l: +m[1], c: +m[2], h: +m[3] } : null; }
 
@@ -959,6 +1208,10 @@
     app.pick = parseOklch(seed && seed.css) || { l: 0.5, c: 0.12, h: 250 };
     app.colorPatch = {};
     app.colorDirty = false;
+    app.palPick = "current";
+    root.append(h(`<div class="pal-head"><p class="section-label">Start from a palette</p><button class="ghost-btn" id="pal-shuffle" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>Shuffle</button></div>`));
+    root.append(h(`<div class="palettes loading" id="palettes">${Array.from({ length: 12 }, () => `<div class="pal"><span class="pal-strip" style="background:var(--tint)"></span><span class="pal-meta"><b>&nbsp;</b></span></div>`).join("")}</div>`));
+    root.append(h(`<p class="section-label">Or tune your own</p>`));
     root.append(h(`<div class="color">
       <div class="picker">
         <div class="area-wrap" id="area-wrap" tabindex="0" role="slider" aria-label="Lightness and color strength"><canvas id="area"></canvas><div class="marker" id="marker"></div></div>
@@ -975,13 +1228,14 @@
     </div>`));
     const area = $("#area"), hue = $("#hue");
     const size = (cv) => { const r = cv.getBoundingClientRect(); const d = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(r.width * d)); cv.height = Math.max(1, Math.round(r.height * d)); };
+    // Each row runs from gray to the strongest color that lightness allows on screen, so every point is a real color.
     const drawArea = () => {
-      const ctx = area.getContext("2d"), W = area.width, H = area.height, img = ctx.createImageData(W, H), hh = app.pick.h, cm = span(hh);
-      for (let y = 0; y < H; y++) { const l = 1 - y / (H - 1), edge = maxChroma(l, hh);
-        for (let x = 0; x < W; x++) { const c = (x / (W - 1)) * cm, i = (y * W + x) * 4;
-          if (c <= edge) { const rgb = oklchToRgb(l, c, hh); img.data[i] = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255); img.data[i + 1] = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255); img.data[i + 2] = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255); }
-          else { const v = (x + y) % 10 < 1 ? 222 : 238; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; }
-          img.data[i + 3] = 255; } }
+      const ctx = area.getContext("2d"), W = area.width, H = area.height, img = ctx.createImageData(W, H), hh = app.pick.h;
+      // Same mapping as the marker: the edges hold the extremes for half a marker's width.
+      const pad = 9 * (W / Math.max(1, area.getBoundingClientRect().width)), at = (v, n) => Math.min(1, Math.max(0, (v - pad) / (n - 1 - 2 * pad)));
+      for (let y = 0; y < H; y++) { const l = 1 - at(y, H), edge = maxChroma(l, hh);
+        for (let x = 0; x < W; x++) { const rgb = oklchToRgb(l, at(x, W) * edge, hh), i = (y * W + x) * 4;
+          img.data[i] = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255); img.data[i + 1] = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255); img.data[i + 2] = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255); img.data[i + 3] = 255; } }
       ctx.putImageData(img, 0, 0);
     };
     const drawHue = () => {
@@ -990,7 +1244,8 @@
         for (let y = 0; y < H; y++) { const i = (y * W + x) * 4; img.data[i] = rgb[0]; img.data[i + 1] = rgb[1]; img.data[i + 2] = rgb[2]; img.data[i + 3] = 255; } }
       ctx.putImageData(img, 0, 0);
     };
-    const place = () => { const p = app.pick; const m = $("#marker"); m.style.left = `${Math.min(1, p.c / span(p.h)) * 100}%`; m.style.top = `${(1 - p.l) * 100}%`; m.style.background = fmtOk(p); $("#knob").style.left = `${(p.h / 360) * 100}%`; };
+    // The marker stays inside the area: its center travels half a marker in from each edge.
+    const place = () => { const p = app.pick; const m = $("#marker"); m.style.left = `calc(9px + (100% - 18px) * ${relC(p)})`; m.style.top = `calc(9px + (100% - 18px) * ${1 - p.l})`; m.style.background = fmtOk(p); $("#knob").style.left = `${(p.h / 360) * 100}%`; };
     size(area); size(hue); drawArea(); drawHue(); place();
     paintColor(app.state.specimen);
 
@@ -1002,14 +1257,44 @@
       catch (e) { $("#code-err").hidden = false; $("#code-err").textContent = e.message; }
       finally { inflight = false; if (again) { again = false; preview(); } }
     };
-    const setBrand = (v) => { app.colorPatch.brand = v; app.colorDirty = true; preview(); };
+    const setBrand = (v) => { app.colorPatch.brand = v; app.colorDirty = true; app.palPick = null; $("#palettes").querySelectorAll(".pal").forEach((c) => c.setAttribute("aria-pressed", "false")); preview(); };
+    // Ready palettes, drawn from the real scales the compiler makes for each color.
+    let shuffleSeed;
+    const loadPalettes = async () => {
+      const wrap = $("#palettes");
+      try {
+        const list = await api("/api/variants", { field: "brand", ...(shuffleSeed === undefined ? {} : { seed: shuffleSeed }) });
+        if (!$("#palettes")) return;
+        wrap.classList.remove("loading");
+        wrap.innerHTML = "";
+        list.filter((v) => v.specimen).slice(0, 14).forEach((v, i) => {
+          const b = v.specimen.palettes.brand, k = b.findIndex((x) => x.step === v.specimen.seedStep);
+          const at = (j) => b[Math.max(0, Math.min(b.length - 1, j))].css;
+          const card = h(`<button class="pal" type="button" style="--i:${i}" aria-pressed="${v.value === app.palPick}" title="${esc((v.tag ? v.tag + ": " : "") + v.specimen.seedHex)}"><span class="pal-strip">${[k - 4, k - 2, k, k + 2, k + 4].map((j) => `<i${j === k ? ' class="seed"' : ""} style="background:${at(j)}"></i>`).join("")}</span><span class="pal-meta"><b>${esc(v.name)}</b><small>${esc(v.specimen.seedHex)}</small></span></button>`);
+          card.onclick = () => {
+            app.palPick = v.value;
+            wrap.querySelectorAll(".pal").forEach((c) => c.setAttribute("aria-pressed", String(c === card)));
+            const patch = v.value === "current" ? { brand: app.state.choices.brand, neutral: app.state.choices.neutral } : v.patch;
+            Object.assign(app.colorPatch, patch);
+            app.colorDirty = true;
+            $("#code").value = patch.brand;
+            if (patch.neutral) $("#neutral").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === patch.neutral)));
+            app.syncNext = true;
+            preview();
+          };
+          wrap.append(card);
+        });
+      } catch (e) { wrap.classList.remove("loading"); wrap.innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+    };
+    loadPalettes();
+    $("#pal-shuffle").onclick = () => { shuffleSeed = Math.floor(Math.random() * 1e6); loadPalettes(); };
     const drag = (el, fn) => el.addEventListener("pointerdown", (e) => {
       el.setPointerCapture(e.pointerId); fn(e);
       const mv = (ev) => fn(ev), up = () => { el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); };
       el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up);
     });
-    drag($("#area-wrap"), (e) => { const r = $("#area-wrap").getBoundingClientRect(); const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)); const l = 1 - y; app.pick = { ...app.pick, l, c: Math.min(x * span(app.pick.h), maxChroma(l, app.pick.h)) }; place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
-    drag($("#hue-wrap"), (e) => { const r = $("#hue-wrap").getBoundingClientRect(); const hh = Math.min(360, Math.max(0, ((e.clientX - r.left) / r.width) * 360)); app.pick = { ...app.pick, h: hh, c: Math.min(app.pick.c, maxChroma(app.pick.l, hh)) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
+    drag($("#area-wrap"), (e) => { const r = $("#area-wrap").getBoundingClientRect(); const x = Math.min(1, Math.max(0, (e.clientX - r.left - 9) / (r.width - 18))), y = Math.min(1, Math.max(0, (e.clientY - r.top - 9) / (r.height - 18))); const l = 1 - y; app.pick = { ...app.pick, l, c: x * maxChroma(l, app.pick.h) }; place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
+    drag($("#hue-wrap"), (e) => { const r = $("#hue-wrap").getBoundingClientRect(); const hh = Math.min(360, Math.max(0, ((e.clientX - r.left) / r.width) * 360)); app.pick = { ...app.pick, h: hh, c: relC(app.pick) * maxChroma(app.pick.l, hh) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick)); });
     $("#area-wrap").addEventListener("keydown", (e) => {
       const st = e.shiftKey ? 0.05 : 0.01, p = { ...app.pick };
       if (e.key === "ArrowUp") p.l = Math.min(1, p.l + st); else if (e.key === "ArrowDown") p.l = Math.max(0, p.l - st);
@@ -1018,7 +1303,7 @@
     });
     $("#hue-wrap").addEventListener("keydown", (e) => {
       const st = e.shiftKey ? 10 : 2; if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; e.preventDefault();
-      const hh = (app.pick.h + (e.key === "ArrowRight" ? st : -st) + 360) % 360; app.pick = { ...app.pick, h: hh, c: Math.min(app.pick.c, maxChroma(app.pick.l, hh)) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick));
+      const hh = (app.pick.h + (e.key === "ArrowRight" ? st : -st) + 360) % 360; app.pick = { ...app.pick, h: hh, c: relC(app.pick) * maxChroma(app.pick.l, hh) }; drawArea(); place(); $("#code").value = fmtOk(app.pick); setBrand(fmtOk(app.pick));
     });
     const fromCode = () => { app.syncNext = true; setBrand($("#code").value.trim()); };
     $("#code").addEventListener("keydown", (e) => { if (e.key === "Enter") fromCode(); });
@@ -1084,7 +1369,10 @@
         frames.append(box);
         draw($(".frame > div", box), sp, [scene], { mode: m, size: wide ? "l" : "m" });
       }
-      $("#hist", wrap).innerHTML = app.state.history.slice().reverse().slice(0, 12).map((x) => `<div><b>${esc(x.label)}</b>${esc(x.changes.join("; ") || "No change")}</div>`).join("");
+      const hist = app.state.history.slice().reverse().slice(0, 12);
+      $("#hist", wrap).innerHTML = hist.map((x, i) => `<div class="hist-item${i === 0 && app.justChanged ? " flash" : ""}"><div><b>${esc(x.label)}</b><span>${esc(x.changes.join("; ") || "No change")}</span></div>${i === 0 ? `<button class="undo-btn" id="hist-undo" type="button" title="Undo this change">${UNDO_ICON}Undo</button>` : ""}</div>`).join("");
+      app.justChanged = false;
+      if ($("#hist-undo", wrap)) $("#hist-undo", wrap).onclick = () => $("#undo").click();
     };
     paint();
     app.repaintReview = paint;
@@ -1095,7 +1383,9 @@
       try {
         const r = await api("/api/refine", { request, quick });
         update(r);
-        msg.textContent = r.summary || (r.changes.length ? r.changes.join("; ") : "Nothing to change for that.");
+        // A change shows up as the latest history line, with Undo next to it.
+        msg.textContent = r.changes.length ? r.summary || "" : r.summary || "Nothing to change for that.";
+        app.justChanged = r.changes.length > 0;
         paint();
       } catch (e) { msg.className = "error"; msg.textContent = e.message; }
     };

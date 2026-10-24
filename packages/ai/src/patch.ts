@@ -10,6 +10,7 @@ import {
   pairingFonts,
   pairingOf,
   parseColor,
+  toHex,
   type DesignConfig,
   type DesignSystem,
 } from "@auto-design/core";
@@ -176,9 +177,17 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
     }
     if (typeof v === "number") return `${Math.round(v * 100)}%`;
     if (k === "defaultMode") return `${v} mode`;
+    if (k === "brand") {
+      try {
+        return toHex(parseColor(String(v)));
+      } catch {
+        return String(v);
+      }
+    }
     return String(v);
   };
-  return PATCH_FIELDS.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k])).map(
+  // Values that read the same after formatting (a brand nudged within one hex step) aren't a change to show.
+  return PATCH_FIELDS.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]) && fmt(k, a[k]) !== fmt(k, b[k])).map(
     (k) => `${label[k]}: ${fmt(k, a[k])} → ${fmt(k, b[k])}`,
   );
 }

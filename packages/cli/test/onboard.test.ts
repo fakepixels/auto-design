@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   createSession,
+  generateOptions,
   heuristicTexture,
   setProduct,
   setSurfaces,
@@ -33,7 +34,7 @@ describe("onboarding session", () => {
 
   it("draws every option of every question without errors", () => {
     const s = createSession({ name: "Meridian" });
-    for (const field of ["preset", "texture", "pairing", "radius", "density", "motion", "neutral", "defaultMode"] as const) {
+    for (const field of ["preset", "texture", "pairing", "radius", "density", "motion", "neutral", "defaultMode", "brand"] as const) {
       const list = variants(s, field);
       expect(list.length).toBeGreaterThan(1);
       for (const v of list) expect(v.error, `${field}=${v.value}`).toBeUndefined();
@@ -49,6 +50,42 @@ describe("onboarding session", () => {
     undo(s);
     expect(s.config.texture).toBe("minimal");
     expect(() => setSurfaces(s, ["nope"])).toThrow(/at least one/);
+  });
+
+  it("makes starting points from a site and images, offered before the presets", () => {
+    const s = createSession({ name: "Meridian", description: "Observability for API teams" });
+    s.site = {
+      url: "https://meridian.dev/", title: "Meridian", description: "", themeColor: null,
+      colors: [{ css: "#0f62fe", hex: "#0f62fe", score: 9 }], neutral: "cool", fonts: ["Inter"], pairing: null,
+      catalogFonts: null, radius: 6, dark: false, summary: "",
+    };
+    const made = generateOptions(s, ["#e4572e", "#29335c", "not a color"]);
+    expect(made.map((g) => g.id)).toEqual(["gen:site", "gen:images", "gen:site-flip"]);
+    expect(made[0]!.note).toBe("#0f62fe, Inter, 6px corners");
+    expect(made[0]!.config.texture).toBe("technical");
+    expect(s.imageColors).toEqual(["#e4572e", "#29335c"]);
+
+    const list = variants(s, "preset");
+    expect(list.slice(0, 3).map((v) => v.tag)).toEqual(["From your site", "From your images", "From your site"]);
+    expect(list.length).toBe(8);
+
+    startFrom(s, "gen:site-flip");
+    expect(s.config.color.defaultMode).toBe("dark");
+    expect(s.preset).toBe("gen:site-flip");
+    expect(s.history.at(-1)!.label).toBe("Started from your site, dark");
+  });
+
+  it("offers ready palettes with the current color first and no repeats", () => {
+    const s = createSession({ name: "Meridian" });
+    s.imageColors = ["#e4572e"];
+    const list = variants(s, "brand");
+    expect(list[0]!.value).toBe("current");
+    expect(list[1]!.tag).toBe("From your images");
+    const hexes = list.map((v) => v.note);
+    expect(new Set(hexes).size).toBe(hexes.length);
+    // Quiet's ink is the current color, so the Ink palette isn't offered twice.
+    expect(list.some((v) => v.value === "ink")).toBe(false);
+    expect(list.find((v) => v.value === "forest")!.patch).toEqual({ brand: "oklch(0.46 0.09 158)", neutral: "warm" });
   });
 
   it("guesses a texture from the description", () => {

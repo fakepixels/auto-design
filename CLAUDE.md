@@ -28,7 +28,8 @@ user-facing story; this file is how to work on it.
 - Phase 4 (in progress): quality and launch prep. Done: the `auto-design` npm package builds as one
   bundle (`packages/cli`, `npm publish` from there); the studio previews the system's own copy and says
   when its process stopped; custom components, examples and docs survive rebuilds. The taste pass, the
-  dark-gallery onboarding Tina picked and its sleek pass are on main (6d9d7bd, ad91440; see Design direction). Still to do:
+  dark-gallery onboarding Tina picked, its sleek pass and the bring-your-own Start step are on main (see Design
+  direction). Still to do:
   give the Surfaces and Review steps the same one-object previews, refresh the README screenshots in docs/,
   and visual regression screenshots.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
@@ -99,7 +100,19 @@ user-facing story; this file is how to work on it.
   once every 8 seconds (still under reduced motion); fields are 46px with 14px corners, a faint gradient
   fill, a hairline ring and a soft halo on focus; checkboxes and sliders are metal; headings carry a faint
   metal gradient. The tokens sit at the top of the file (`--metal`, `--glass`, `--edge-*`, `--sel-*`,
-  `--field-*`), with a light twin for each.
+  `--field-*`), with a light twin for each. The Feel dials got a groove, a lit trail, a brushed-steel knob and a
+  ticked scale (1d3f185).
+- Bring-your-own pass (October 24, 2026). Tina called the sleek pass "mind-blowingly good", then asked for
+  palettes, a visible undo and a more expressive Start step where bringing your own material is the primary
+  action. Now: Start opens on "Start from what you already have" (site field plus a drop stage with floating
+  mock screens and a screenshot being dragged in on a loop, and small links to minimal.gallery, affectui.com,
+  bencho.dev and runeicons.com). Reading a site shows a page being scanned, then the colors, type and corners
+  it found. Material turns into up to three made-for-you starting points (`generateOptions` in
+  `session.ts`: your site, your images, your site flipped dark or light, a second image color; plus the
+  model's pick when a model is connected), shown above the five presets with a tag on each card. The Color
+  step opens on ready palettes (`PALETTES`, the current color, site and image colors; Shuffle nudges them) above
+  the picker. The picker area runs gray to the strongest in-gamut color per row, so it no longer shows an
+  out-of-gamut hatch. The latest Review change has an Undo button, and the top bar's Undo has an icon.
 
 ## Layout
 
