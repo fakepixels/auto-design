@@ -75,6 +75,7 @@
     --prog-a: rgb(0 0 0 / .08);
     --prog-b: rgb(0 0 0 / .62);
     --prog-tip: rgb(0 0 0 / .28);
+    --art-shadow: rgb(0 0 0 / .12);
     --title: linear-gradient(180deg, #4a4a52 0%, #111113 62%);
     --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
     --seg-thumb: linear-gradient(180deg, #ffffff, #f2f2f4);
@@ -149,6 +150,7 @@
       --prog-a: rgb(255 255 255 / .1);
       --prog-b: rgb(255 255 255 / .78);
       --prog-tip: rgb(255 255 255 / .9);
+      --art-shadow: rgb(0 0 0 / .45);
       --title: linear-gradient(180deg, #ffffff 30%, #a8a8b0 120%);
       --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%230b0b0c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
       --seg-thumb: linear-gradient(180deg, rgb(255 255 255 / .17), rgb(255 255 255 / .07));
@@ -344,32 +346,27 @@
     background: conic-gradient(from var(--sheen-angle), var(--sel-1), var(--sel-2) 22%, var(--sel-3) 48%, var(--sel-2) 74%, var(--sel-1));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; transition: opacity 300ms var(--ease); animation: sheen 3s linear infinite; }
   .drop-stage.over::after { opacity: 1; }
-  .screens { position: absolute; inset: 0 0 70px; pointer-events: none; }
-  .mock { position: absolute; left: 50%; top: 50%; overflow: hidden; border-radius: 10px; background: var(--bg); transition: transform 600ms var(--ease);
-    box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 1px 2px rgb(0 0 0 / .14), 0 20px 40px -18px rgb(0 0 0 / .55); animation: bob 6s ease-in-out infinite; }
-  .mock i { position: absolute; display: block; border-radius: 3px; background: var(--b); }
-  .mock i.a { background: var(--a); }
-  .mock i.s { background: var(--s); border-radius: 0; }
-  .mock i.r { border-radius: 999px; }
-  .m1 { width: 172px; height: 114px; transform: translate(-50%, -50%) translate(-96px, 6px) rotate(-8deg); }
-  .m2 { width: 186px; height: 122px; z-index: 2; transform: translate(-50%, -50%) translate(0, -8px) rotate(2deg); animation-delay: -2s; }
-  .m3 { width: 74px; height: 140px; z-index: 1; border-radius: 15px; transform: translate(-50%, -50%) translate(110px, 10px) rotate(9deg); animation-delay: -4s; }
-  .drop-stage:hover .m1, .drop-stage.over .m1 { transform: translate(-50%, -50%) translate(-118px, 10px) rotate(-12deg); }
-  .drop-stage:hover .m3, .drop-stage.over .m3 { transform: translate(-50%, -50%) translate(134px, 14px) rotate(14deg); }
-  .drop-stage.over .m2 { transform: translate(-50%, -50%) translate(0, -14px) rotate(0) scale(1.05); }
-  @keyframes bob { 50% { translate: 0 -5px; } }
-  /* A screenshot being dragged in, on a loop, until real ones arrive. */
-  .ghost { position: absolute; left: 50%; top: 50%; z-index: 3; animation: ghost 6.4s var(--ease) infinite 1s both; }
-  .ghost .mock { position: relative; left: auto; top: auto; width: 104px; height: 70px; transform: none; animation: none; }
-  .ghost svg { position: absolute; right: -12px; bottom: -16px; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .35)); }
-  @keyframes ghost {
-    0% { opacity: 0; transform: translate(-50%, -50%) translate(170px, 120px) rotate(16deg) scale(.92); }
-    12% { opacity: 1; }
-    48% { opacity: 1; transform: translate(-50%, -50%) translate(30px, 2px) rotate(5deg) scale(1); }
-    56% { opacity: 1; transform: translate(-50%, -50%) translate(28px, 6px) rotate(4deg) scale(.93); }
-    68%, 100% { opacity: 0; transform: translate(-50%, -50%) translate(26px, 8px) rotate(3deg) scale(.88); }
-  }
-  .drop-stage.over .ghost, .drop-stage.has .ghost { display: none; }
+  .screens { position: absolute; inset: 18px 0 72px; display: grid; place-items: center; pointer-events: none; }
+  /* The illustration: each card bobs on its own, the side cards part on hover, and dragging over makes the bars grow and the sparks quicken. */
+  .drop-art { width: min(360px, 78%); height: auto; overflow: visible; filter: drop-shadow(0 22px 28px var(--art-shadow)); }
+  .drop-art g { transform-box: fill-box; transform-origin: center; }
+  .ill-side, .ill-center { transition: transform 600ms var(--ease); }
+  .ill-bob { animation: art-bob 6s ease-in-out infinite; }
+  .ill-side.r .ill-bob { animation-delay: -2s; }
+  .ill-center .ill-bob { animation-delay: -4s; }
+  @keyframes art-bob { 50% { transform: translateY(-1.1px); } }
+  .drop-stage:hover .ill-side.l, .drop-stage.over .ill-side.l { transform: translate(-3px, 1px) rotate(-4deg); }
+  .drop-stage:hover .ill-side.r, .drop-stage.over .ill-side.r { transform: translate(3px, 1px) rotate(4deg); }
+  .drop-stage.over .ill-center { transform: translateY(-2px) scale(1.04); }
+  .ill-bars path { transform-box: fill-box; transform-origin: 50% 100%; animation: bar-grow 800ms var(--ease) both; animation-delay: calc(250ms + var(--i) * 70ms); }
+  .drop-stage.over .ill-bars path { animation-name: bar-regrow; animation-delay: calc(var(--i) * 50ms); }
+  @keyframes bar-grow { from { transform: scaleY(.15); } }
+  @keyframes bar-regrow { from { transform: scaleY(.4); } }
+  .drop-art .ill-rays { transform-origin: 50% 100%; animation: twinkle 2.8s ease-in-out infinite; }
+  .ill-rays.r { animation-delay: -.9s; }
+  .ill-rays.c { animation-delay: -1.8s; }
+  .drop-stage.over .ill-rays { animation-duration: 1s; }
+  @keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.8); } }
   .shot { position: absolute; left: 50%; top: 50%; width: 44%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; transform: translate(-50%, -50%) translate(var(--x), var(--y)) rotate(var(--r));
     box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 20px 40px -18px rgb(0 0 0 / .6); animation: land 700ms var(--ease) both; animation-delay: calc(var(--i) * 90ms); }
   .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -567,7 +564,7 @@
   }
   .proof[aria-pressed="true"]::after, .choice[aria-pressed="true"]::after, .choice[aria-checked="true"]::after, .pal[aria-pressed="true"]::after { opacity: 1; animation: sheen 8s linear infinite; }
   @keyframes sheen { to { --sheen-angle: 360deg; } }
-  @media (prefers-reduced-motion: reduce) { .proof::after, .choice::after, .pal::after, .drop-stage::after { animation: none !important; } .ghost { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .proof::after, .choice::after, .pal::after, .drop-stage::after, .drop-art * { animation: none !important; } }
 
   @media (max-width: 1100px) {
     .review, .publish, .color, .feel, .bring { grid-template-columns: minmax(0, 1fr); }
@@ -589,9 +586,6 @@
     .suggestion { grid-template-columns: 1fr; }
     .bring { padding: 18px; gap: 22px; border-radius: 24px; }
     .drop-stage { min-height: 280px; }
-    .m1 { transform: translate(-50%, -50%) translate(-78px, 6px) rotate(-8deg) scale(.86); }
-    .m3 { transform: translate(-50%, -50%) translate(92px, 10px) rotate(9deg) scale(.86); }
-    .m2 { transform: translate(-50%, -50%) translate(0, -8px) rotate(2deg) scale(.9); }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1ms !important; animation-delay: 0ms !important; } }
 </style>
@@ -1017,13 +1011,8 @@
   const INSPIRATION = [["https://minimal.gallery", "minimal.gallery"], ["https://www.affectui.com/components", "affectui.com"], ["https://bencho.dev", "bencho.dev"], ["https://www.runeicons.com", "runeicons.com"]];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const UNDO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`;
-  /** Little screens drawn in boxes: a landing page, a dashboard and a phone, each with its own accent. */
-  const bars = (list) => list.map(([x, y, w, hh, c = ""]) => `<i class="${c}" style="left:${x}%;top:${y}%;width:${w}%;height:${hh}%"></i>`).join("");
-  const MOCKS = `
-    <div class="mock m1" style="--bg:#fbfaf7;--b:#e4e0d9;--a:#f26b1d;--s:#efe9df">${bars([[7, 10, 11, 6, "a r"], [57, 11, 8, 4], [68, 11, 8, 4], [79, 11, 12, 4], [7, 30, 52, 9], [7, 43, 40, 9], [7, 59, 46, 4], [7, 66, 34, 4], [7, 78, 20, 10, "a r"], [66, 28, 27, 58, "s"]])}</div>
-    <div class="mock m2" style="--bg:#0e1014;--b:#2a303a;--a:#5b8cff;--s:#14171d">${bars([[0, 0, 21, 100, "s"], [5, 9, 11, 5, "a r"], [5, 24, 11, 4], [5, 33, 9, 4], [5, 42, 12, 4], [5, 51, 8, 4], [27, 9, 20, 22], [50, 9, 20, 22], [73, 9, 21, 22], [30, 14, 7, 4, "a"], [53, 14, 9, 4], [76, 14, 6, 4], [30, 23, 11, 4], [53, 23, 8, 4], [76, 23, 12, 4], ...[20, 32, 26, 42, 30, 50, 38, 58, 46].map((v, i) => [29 + i * 7.3, 90 - v, 4.6, v, "a"])])}</div>
-    <div class="mock m3" style="--bg:#f5f8f6;--b:#d6ded9;--a:#16a34a;--s:#e7eee9">${bars([[12, 6, 28, 3], [64, 6, 22, 3], [10, 14, 80, 28, "a"], [10, 49, 54, 4], [10, 56, 36, 3], [10, 65, 58, 4], [10, 72, 30, 3], [10, 85, 80, 8, "a r"]])}</div>
-    <div class="ghost"><div class="mock" style="--bg:#ffffff;--b:#e7e4f0;--a:#7c5cff;--s:#f1eefb">${bars([[8, 12, 26, 9, "a r"], [8, 33, 58, 9], [8, 49, 42, 8], [62, 58, 30, 30, "s"], [8, 70, 26, 13, "a r"]])}</div><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6.2 1.7L10 19z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`;
+  /** The drop stage's illustration: a landing page, a dashboard and a phone screen, each part animated on its own. */
+  const DROP_ART = `<svg class="drop-art" viewBox="0 9 82 49" fill="none" aria-hidden="true"><g class="ill-side l"><g class="ill-bob"><path d="m2.83 29.26c-0.8 0.15-1.14 0.93-0.97 1.81l4.08 19.72c0.3 1.63 1.76 2.55 3.21 2.26l10.15-2.24c0.89-0.19 1.28-0.76 1.19-1.45l-11.13 1.63c-0.88 0.13-1.46-0.5-1.66-1.38l-4.54-20.37-0.33 0.02z" fill="#FA7066"/><path d="M4.57 23.16 22.27 19.15 23.89 20.38 30.6 45.4 28.98 46.47 9.99 50.42 8.23 49.25 3.4 24.83Z" fill="#FBF6E9"/><path d="m22.75 17.89-18.91 4.4c-1.33 0.3-1.93 1.3-1.69 2.58l5.15 25.07c0.25 1.29 1.32 1.9 2.5 1.67l19.69-4.15c1.1-0.23 1.62-0.98 1.6-1.91l-1.07-0.07c-0.03 0.48-0.41 0.86-1.04 0.99l-18.99 3.95c-0.86 0.17-1.59-0.3-1.76-1.17l-4.83-24.42c-0.16-0.86 0.29-1.48 1.17-1.67l17.7-4.01c0.96-0.2 1.54 0.3 1.62 1.23l0.72-0.07 0.07-1.34c-0.09-0.75-0.92-1.25-1.93-1.08z" fill="#4A1A47"/><path d="m21.09 24.73-13.94 3.36c-0.41 0.1-0.59 0.42-0.51 0.83l1.33 6.83c0.08 0.42 0.46 0.64 0.89 0.56l13.94-2.94c0.41-0.09 0.59-0.41 0.52-0.83l-1.36-7.23c-0.08-0.45-0.42-0.67-0.87-0.58z" fill="#34C4BA"/><path d="m23.24 32.19-2.4-1.45c-0.53-0.29-0.99-0.17-1.37 0.2l-1.84 2.05-4.76-2.97c-0.49-0.32-1.03-0.18-1.45 0.31l-3.58 4.52 0.14 0.84c0.11 0.49 0.48 0.68 0.89 0.61l13.95-2.94c0.48-0.13 0.64-0.6 0.42-1.17z" fill="#0EA7A7"/><circle cx="18.05" cy="28.63" r="1.643" fill="#FCCB31"/><path d="m11.37 23.48-4.69 1.08c-0.6 0.14-0.92 0.69-0.79 1.27 0.13 0.63 0.7 0.99 1.32 0.86l4.67-1.1c0.59-0.14 0.91-0.72 0.8-1.28-0.11-0.59-0.69-0.96-1.31-0.83z" fill="#FA7066"/><path d="m16.59 43.79-5.74 1.17c-0.75 0.15-1.12 0.85-0.97 1.58 0.15 0.79 0.82 1.29 1.55 1.15l5.71-1.18c0.74-0.16 1.16-0.88 1.03-1.6-0.12-0.74-0.82-1.25-1.58-1.12z" fill="#FA7066"/><path d="m8.99 38.52 12.76-2.68" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/><path d="m9.4 40.71 11.5-2.34" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/><path d="m9.85 42.91 9.44-1.96" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/></g></g><g class="ill-side r"><g class="ill-bob"><path d="m79.75 28.83c0.75 0.07 1.07 0.88 0.9 1.86l-4.35 22.19c-0.33 1.77-1.82 2.65-3.39 2.34l-12.21-2.7c-1.12-0.25-1.32-1.04-1.03-1.7l12.9 2.37c1.01 0.2 1.77-0.32 1.97-1.4l4.85-22.98 0.36 0.02z" fill="#35C8B9"/><path d="M60.5 21.2 77.91 24.54 79.07 26.19 73.96 51.52 72.15 52.63 57.09 49.25 56.09 47.25 57 46Z" fill="#FBF6E9"/><path d="m78.39 23.51-13.62-2.86c-0.85-0.16-1.28 0.34-1.11 0.93l14.25 2.96c0.9 0.18 1.32 0.78 1.16 1.65l-5.11 25.33c-0.17 0.9-0.92 1.29-1.81 1.11l-15.06-3.38c-0.96-0.21-1.14-1.03-1-2l-0.98-0.06c-0.37 1.55 0.23 2.69 1.63 3l15.78 3.46c1.25 0.28 2.13-0.38 2.37-1.59l5.22-25.92c0.28-1.44-0.4-2.36-1.72-2.63z" fill="#4A1A47"/><path d="m71.5 47.71-7.99-1.75c-0.77-0.16-1.45 0.33-1.61 1.11-0.17 0.78 0.24 1.52 1 1.69l8 1.81c0.77 0.18 1.5-0.32 1.67-1.11 0.18-0.8-0.26-1.59-1.07-1.75z" fill="#10A7A8"/><path d="m76.33 26.93-10.98-2.22c-0.46-0.1-0.78 0.13-0.85 0.58l-1.58 9.62c-0.08 0.43 0.12 0.73 0.53 0.82l10.61 2.18c0.46 0.1 0.77-0.13 0.85-0.58l1.91-9.55c0.11-0.45-0.06-0.77-0.49-0.85z" fill="#FCCB31"/><circle cx="71.68" cy="32.26" r="3.181" fill="#FE6F62"/><ellipse transform="rotate(-47.32 68.44 30.84)" cx="68.44" cy="30.84" rx="3.351" ry="2.832" fill="#3478FA"/><path d="m71.22 29.27c-1.97 0.4-3.11 2.82-2.34 4.57 2.06-0.53 3.16-2.88 2.34-4.57z" fill="#18A1A3"/><path d="m63.76 38.14 9.69 2.05" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/><path d="m63.44 40.51 7.44 1.61" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/><path d="m63.17 42.89 4.93 1.07" stroke="#B299CB" stroke-linecap="round" stroke-width="1.212"/></g></g><g class="ill-center"><g class="ill-bob"><path d="m30.7 45.32-0.12 1.67 21.5 1.87c1.41 0.1 2.09-0.76 1.99-1.87l-23.37-1.67z" fill="#35C8B9"/><path d="m63.34 20.02-2.35 24.99c-0.13 1.46-1.2 2.33-2.58 2.25l-33.93-2.35c-1.1-0.08-1.62-0.85-1.52-1.97l2.25-26.26c0.14-1.55 1.21-2.34 2.71-2.22l33.41 2.96c1.38 0.12 2.11 1.19 2.01 2.6z" fill="#511D4B"/><path d="m47.98 16.38c-0.11-0.53-0.53-0.77-1.23-0.85l-19.52-2.32c-1.65-0.2-2.86 0.72-2.97 2.43l-0.39 4.63c-0.03 0.57 0.44 0.7 0.9 0.55l0.39-4.31c0.13-1.42 1.06-2.11 2.42-2.02l19.96 1.97 0.44-0.08z" fill="#FA7066"/><path d="m32.19 37.13v0.01-0.01z" fill="#4A1A4B"/><g class="ill-bars"><path style="--i:0" d="m34.54 36.86-1.32-0.06c-0.33-0.02-0.53 0.18-0.56 0.51l-0.41 4.5c-0.03 0.32 0.15 0.54 0.47 0.57l1.37 0.1c0.33 0.03 0.55-0.16 0.58-0.49l0.4-4.52c0.03-0.34-0.2-0.59-0.53-0.61z" fill="#3D7DFC"/><path style="--i:1" d="m38.34 35.62-1.2-0.1c-0.35-0.03-0.57 0.17-0.6 0.51l-0.56 6.05c-0.03 0.34 0.14 0.56 0.47 0.59l1.31 0.1c0.34 0.03 0.56-0.16 0.59-0.51l0.56-6.01c0.03-0.36-0.2-0.6-0.57-0.63z" fill="#3D7DFC"/><path style="--i:2" d="m42.15 34.43-1.24-0.12c-0.36-0.03-0.59 0.17-0.62 0.52l-0.57 7.48c-0.03 0.34 0.14 0.56 0.48 0.59l1.34 0.11c0.34 0.03 0.57-0.15 0.6-0.51l0.56-7.43c0.04-0.37-0.18-0.61-0.55-0.64z" fill="#3D7DFC"/><path style="--i:3" d="m45.99 33.12-1.24-0.11c-0.36-0.03-0.58 0.17-0.61 0.53l-0.68 9.1c-0.02 0.34 0.14 0.57 0.48 0.6l1.35 0.11c0.34 0.03 0.56-0.16 0.59-0.52l0.69-9.08c0.04-0.35-0.21-0.6-0.58-0.63z" fill="#3D7DFC"/><path style="--i:4" d="m49.96 31.22-1.27-0.11c-0.38-0.03-0.6 0.17-0.63 0.54l-0.83 11.32c-0.03 0.35 0.14 0.58 0.49 0.61l1.42 0.12c0.36 0.04 0.57-0.16 0.6-0.53l0.79-11.31c0.03-0.35-0.19-0.61-0.57-0.64z" fill="#3D7DFC"/><path style="--i:5" d="m53.99 29.13-1.34-0.1c-0.37-0.03-0.57 0.17-0.6 0.54l-1 13.75c-0.02 0.35 0.15 0.58 0.49 0.61l1.43 0.12c0.36 0.04 0.58-0.16 0.61-0.53l1.07-13.74c0.03-0.36-0.26-0.63-0.66-0.65z" fill="#3D7DFC"/><path style="--i:6" d="m57.9 27.5-1.18-0.12c-0.39-0.04-0.61 0.17-0.64 0.54l-1.13 15.73c-0.02 0.35 0.16 0.58 0.51 0.62l1.34 0.1c0.39 0.04 0.65-0.17 0.68-0.56l1.1-15.62c0.04-0.38-0.24-0.65-0.68-0.69z" fill="#3D7DFC"/></g><path d="m32.24 17.88-3.93-0.25c-0.62-0.04-1.08 0.35-1.13 0.95s0.34 1.07 0.95 1.13l3.92 0.31c0.61 0.06 1.06-0.33 1.12-0.94 0.07-0.61-0.3-1.16-0.93-1.2z" fill="#397BFD"/><path d="m42.98 18.82-6.33-0.5c-0.44-0.04-0.74 0.19-0.78 0.63l-0.32 3.88c-0.03 0.41 0.19 0.68 0.6 0.72l6.37 0.42c0.42 0.03 0.71-0.2 0.74-0.63l0.33-3.76c0.05-0.43-0.18-0.73-0.61-0.76z" fill="#745289"/><path d="m51.62 19.39-6.26-0.41c-0.42-0.03-0.67 0.19-0.7 0.61l-0.27 3.84c-0.03 0.4 0.17 0.65 0.57 0.68l6.27 0.44c0.42 0.04 0.68-0.19 0.71-0.62l0.29-3.81c0.03-0.43-0.16-0.7-0.61-0.73z" fill="#745289"/><path d="m60.24 19.97-6.2-0.37c-0.43-0.03-0.67 0.19-0.7 0.61l-0.26 3.7c-0.03 0.43 0.18 0.69 0.61 0.73l6.17 0.47c0.46 0.04 0.76-0.2 0.79-0.65l0.26-3.72c0.04-0.45-0.19-0.74-0.67-0.77z" fill="#745289"/><path d="m31.82 22.22-4.01-0.28c-0.49-0.04-0.87 0.26-0.91 0.73-0.05 0.47 0.25 0.84 0.74 0.88l4 0.32c0.49 0.04 0.84-0.25 0.89-0.73 0.06-0.48-0.2-0.88-0.71-0.92z" fill="#78588E"/><path d="m31.33 25.43-3.76-0.29c-0.5-0.04-0.88 0.25-0.93 0.73s0.24 0.85 0.75 0.89l3.76 0.32c0.49 0.04 0.83-0.25 0.88-0.73 0.06-0.48-0.2-0.87-0.7-0.92z" fill="#78588E"/><path d="m31.12 28.66-3.85-0.32c-0.51-0.04-0.88 0.25-0.92 0.75-0.04 0.49 0.24 0.86 0.75 0.91l3.84 0.32c0.51 0.04 0.83-0.24 0.88-0.73s-0.2-0.89-0.7-0.93z" fill="#78588E"/><path d="m30.37 31.87-3.46-0.25c-0.5-0.04-0.84 0.24-0.87 0.73-0.04 0.48 0.22 0.82 0.72 0.87l3.46 0.3c0.49 0.05 0.82-0.21 0.87-0.71 0.05-0.49-0.21-0.9-0.72-0.94z" fill="#78588E"/><path d="m39.96 19.78-2.09-0.13c-0.46-0.03-0.79 0.23-0.82 0.67-0.03 0.43 0.23 0.75 0.69 0.79l2.07 0.18c0.46 0.04 0.79-0.21 0.83-0.66 0.04-0.44-0.2-0.82-0.68-0.85z" fill="#5592FB"/><g class="ill-rays c"><path d="m41.9 28.29c-0.19-0.3-0.56-0.36-0.86-0.17-0.29 0.19-0.38 0.53-0.19 0.84l1.13 1.79c0.19 0.3 0.53 0.39 0.8 0.21 0.27-0.17 0.34-0.51 0.16-0.82l-1.04-1.85z" fill="#FCD13A"/><path d="m38.71 30.54c-0.32-0.17-0.71-0.07-0.88 0.25-0.18 0.32-0.07 0.68 0.28 0.85l1.77 0.81c0.32 0.15 0.64 0.07 0.77-0.21 0.14-0.27 0.02-0.57-0.29-0.74l-1.65-0.96z" fill="#FCD13A"/><path d="m45.59 27.43c0-0.38-0.25-0.63-0.6-0.62s-0.57 0.25-0.56 0.64l0.05 1.97c0.01 0.35 0.24 0.57 0.56 0.56s0.53-0.24 0.54-0.6l0.01-1.95z" fill="#FCD13A"/></g></g></g><g class="ill-rays l"><path d="m10.79 12.93c-0.27-0.35-0.76-0.42-1.12-0.17s-0.42 0.74-0.14 1.11l2.37 3.18c0.23 0.32 0.63 0.4 0.91 0.2s0.32-0.6 0.09-0.96l-2.11-3.36z" fill="#FBC633"/><path d="m7.31 16.22c-0.39-0.17-0.8-0.03-0.97 0.34-0.18 0.39-0.03 0.86 0.4 1.03l3.5 1.43c0.39 0.16 0.74 0.04 0.87-0.29 0.14-0.32 0-0.66-0.41-0.87l-3.39-1.64z" fill="#FBC633"/><path d="m15.52 13.72c-0.01-0.43-0.31-0.69-0.72-0.67-0.44 0.02-0.71 0.3-0.67 0.76l0.24 2.53c0.03 0.4 0.3 0.63 0.66 0.6 0.35-0.03 0.56-0.29 0.55-0.7l-0.06-2.52z" fill="#FBC633"/></g><g class="ill-rays r"><path d="m66.13 14.31c-0.14-0.4-0.56-0.57-0.96-0.44-0.44 0.14-0.65 0.52-0.51 0.95l1.08 3.05c0.14 0.41 0.53 0.62 0.9 0.51 0.36-0.11 0.5-0.46 0.37-0.91l-0.88-3.16z" fill="#29BEB6"/><path d="m71.25 13.41c0.14-0.48-0.11-0.94-0.63-1.09-0.54-0.15-1.05 0.09-1.17 0.61l-1.05 4.46c-0.11 0.44 0.08 0.82 0.48 0.93 0.41 0.11 0.77-0.1 0.91-0.57l1.46-4.34z" fill="#29BEB6"/><path d="m74.83 17.57c0.34-0.29 0.36-0.77 0.04-1.12-0.28-0.31-0.72-0.32-1.09-0.02l-2.55 2.28c-0.36 0.31-0.41 0.75-0.14 1.04 0.26 0.29 0.68 0.3 1.05 0.01l2.69-2.19z" fill="#29BEB6"/></g></svg>`;
 
   function wireMaterial(root) {
     $("#read-site", root).onclick = () => readSite($("#site", root).value.trim());
@@ -1113,7 +1102,7 @@
     const imgs = app.material.images, colors = app.material.colors;
     stage.classList.toggle("has", imgs.length > 0);
     if (!imgs.length) {
-      $("#screens").innerHTML = MOCKS;
+      $("#screens").innerHTML = DROP_ART;
       $("#drop-copy").innerHTML = `<b><span class="idle">Drop screenshots, a logo or a moodboard</span><span class="hot">Let go to read them</span></b><span>or <u>choose files</u> · PNG, JPG or WebP, up to four</span>`;
       return;
     }

@@ -104,9 +104,12 @@ user-facing story; this file is how to work on it.
   ticked scale (1d3f185).
 - Bring-your-own pass (October 24, 2026). Tina called the sleek pass "mind-blowingly good", then asked for
   palettes, a visible undo and a more expressive Start step where bringing your own material is the primary
-  action. Now: Start opens on "Start from what you already have" (site field plus a drop stage with floating
-  mock screens and a screenshot being dragged in on a loop, and small links to minimal.gallery, affectui.com,
-  bencho.dev and runeicons.com). Reading a site shows a page being scanned, then the colors, type and corners
+  action. Now: Start opens on "Start from what you already have" (site field plus a drop stage, and small
+  links to minimal.gallery, affectui.com, bencho.dev and runeicons.com). The drop stage shows an illustration
+  Tina supplied (made with QuiverAI's Arrow; `DROP_ART` in `onboard.html`), split into groups so each card
+  bobs on its own, the side cards part on hover, and dragging over makes the bars regrow and the sparks
+  quicken. The side cards got solid cream bodies so the art reads on the dark stage without its own
+  background. Reading a site shows a page being scanned, then the colors, type and corners
   it found. Material turns into up to three made-for-you starting points (`generateOptions` in
   `session.ts`: your site, your images, your site flipped dark or light, a second image color; plus the
   model's pick when a model is connected), shown above the five presets with a tag on each card. The Color
