@@ -161,6 +161,18 @@ user-facing story; this file is how to work on it.
     most vivid color from the site or images in the kind's full direction. The model's suggestion prompt
     is told to take more risk for consumer products, and suggestions and refinements get the kind.
   - The drop art is recolored pastel: pink and blue on a soft indigo screen.
+- Texture pass (October 28, 2026). Tina, on the Texture step: "the differences are not very apparent?" Every
+  option was a white card on a pale ground with the same purple buttons; texture only moved a shadow or a
+  hairline. Now each texture puts its signature where the eye lands first, the ground and how the object is
+  built (one block, "How each texture builds the objects", in `site/renderer.css`): Minimal stays the
+  reference (gray step, white card, hairline, soft shadow); Editorial is a page, not a card (a solid rule
+  under the header, uppercase label, larger type, the tool call as a ruled line, link-style secondary);
+  Glass frosts the object over a stronger aurora in the brand's neighboring hues; Tactile lifts it off a
+  deeper brand-tinted ground, with a lipped primary, a raised secondary and sunken wells; Technical sits on a
+  visible dot grid with corner marks, a dashed header rule, monospace uppercase labels, hairline edges and no
+  shadow (its emitted cards have none), and tighter spacing. Review with `scripts/texture-sheet.mts`. The
+  emitted CSS didn't change: the previews are stronger than a whole page would be, so a later pass could
+  strengthen the emitted tokens to match (the glass `bg-backdrop` and tactile `raised` are the obvious two).
 
 ## Layout
 
@@ -215,6 +227,7 @@ cd examples/next-quiet && npx auto-design add ../quiet-design --components <chan
 node scripts/shot.cjs <url> <out.png> [width] [height] [full] [light|dark]   # screenshot, fonts served locally
 npx tsx scripts/motion-sheet.mts [preset] [ids|all] [format] [mode]          # contact sheet of every animation
 npx tsx scripts/preset-sheet.mts [presets|all] [light|dark|both] [tag]        # every preset on the onboarding specimens
+npx tsx scripts/texture-sheet.mts [light|dark|both] [tag]                     # the five textures on every object, all else held still
 python3 scripts/fonts/curate.py | node scripts/fonts/fetch.mjs                  # look up new families on npm
 python3 scripts/fonts/gen.py                                                    # rewrite core/src/font-catalog.ts
 npx tsx scripts/readme-shots.mts [dir]                                        # the README's dark mode screenshots

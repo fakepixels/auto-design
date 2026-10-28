@@ -343,28 +343,6 @@
 
 /* ---------- Object: one decision card on the system's own backdrop ---------- */
 .sp-tile { height: 100%; min-height: 180px; display: grid; place-items: center; padding: 20px; background: var(--background); }
-.sp[data-texture="minimal"] .sp-tile, .sp[data-texture="minimal"] .sp-stage { background: var(--sidebar); }
-.sp[data-mode="dark"][data-texture="minimal"] .sp-tile, .sp[data-mode="dark"][data-texture="minimal"] .sp-stage { background: var(--background); }
-.sp[data-texture="glass"] .sp-tile, .sp[data-texture="glass"] .sp-stage {
-  background:
-    radial-gradient(60% 70% at 18% 12%, color-mix(in oklab, var(--chart-4) 34%, transparent), transparent 70%),
-    radial-gradient(55% 60% at 88% 20%, color-mix(in oklab, var(--chart-2) 26%, transparent), transparent 70%),
-    radial-gradient(70% 60% at 60% 110%, color-mix(in oklab, var(--primary) 30%, transparent), transparent 70%),
-    var(--background);
-}
-.sp[data-mode="dark"][data-texture="glass"] .sp-tile, .sp[data-mode="dark"][data-texture="glass"] .sp-stage {
-  background:
-    radial-gradient(60% 70% at 18% 12%, color-mix(in oklab, var(--chart-4) 18%, transparent), transparent 70%),
-    radial-gradient(55% 60% at 88% 20%, color-mix(in oklab, var(--chart-2) 14%, transparent), transparent 70%),
-    radial-gradient(70% 60% at 60% 110%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
-    var(--background);
-}
-.sp[data-texture="technical"] .sp-tile, .sp[data-texture="technical"] .sp-stage {
-  background-color: var(--background);
-  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 14%, transparent) 1px, transparent 1.3px);
-  background-size: 14px 14px; background-position: -7px -7px;
-}
-.sp[data-texture="tactile"] .sp-tile, .sp[data-texture="tactile"] .sp-stage { background: radial-gradient(80% 70% at 50% 0%, color-mix(in oklab, var(--primary) 10%, var(--background)), var(--background) 70%); }
 
 .sp-ob { width: min(280px, 100%); background: var(--card); color: var(--card-foreground); border-radius: var(--sp-r); padding: calc(var(--sp-pad) * 0.5 + 8px); display: flex; flex-direction: column; text-align: left; }
 .sp-ob-top { display: flex; align-items: center; gap: 7px; font-size: 12px; line-height: 1; font-weight: var(--sp-w-medium); white-space: nowrap; min-width: 0; }
@@ -377,30 +355,6 @@
 .sp .sp-ob-a button { height: var(--sp-ctl-sm); padding: 0 calc(var(--sp-btn-px) - 2px); border: 0; border-radius: var(--sp-r-md); font-size: 12.5px; line-height: 1; font-weight: var(--sp-w-medium); white-space: nowrap; cursor: default; }
 .sp .sp-ob-pri { background: var(--primary); color: var(--primary-foreground); box-shadow: var(--sp-raised); }
 .sp .sp-ob-sec { background: transparent; color: var(--card-foreground); box-shadow: inset 0 0 0 1px var(--input); }
-
-/* How each texture builds the object. */
-.sp[data-texture="minimal"] .sp-ob { box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 7%, transparent), var(--sp-shadow-md); }
-.sp[data-texture="minimal"] .sp-ob-a .sp-ob-sec { background: var(--card); box-shadow: inset 0 0 0 1px var(--border), var(--sp-shadow-xs); }
-.sp[data-texture="editorial"] .sp-ob { background: transparent; padding: 0; width: min(300px, 100%); }
-.sp[data-texture="editorial"] .sp-ob-h { margin-top: 22px; font-size: 26px; line-height: 1.08; letter-spacing: -0.025em; }
-.sp[data-texture="editorial"][data-display-titles] .sp-ob-h { font-size: 34px; line-height: 1.02; letter-spacing: -0.01em; }
-.sp[data-texture="editorial"] .sp-ob-p { font-size: 13px; }
-.sp[data-texture="editorial"] .sp-ob-a { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
-.sp[data-texture="editorial"] .sp-ob-a .sp-ob-sec { box-shadow: none; padding: 0 6px; text-decoration: underline; text-underline-offset: 3px; }
-.sp[data-texture="glass"] .sp-ob {
-  background: color-mix(in oklab, var(--card) 62%, transparent);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
-  box-shadow: inset 0 1px 0 color-mix(in oklab, white 70%, transparent), 0 0 0 1px color-mix(in oklab, var(--foreground) 6%, transparent), var(--sp-shadow-lg);
-}
-.sp[data-mode="dark"][data-texture="glass"] .sp-ob { background: color-mix(in oklab, var(--card) 58%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, white 9%, transparent), 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent), var(--sp-shadow-lg); }
-.sp[data-texture="glass"] .sp-ob-a .sp-ob-sec { background: color-mix(in oklab, var(--card) 60%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent); }
-.sp[data-texture="technical"] .sp-ob { box-shadow: 0 0 0 1px var(--border), 0 16px 40px -16px oklch(0 0 0 / 0.5); }
-.sp[data-texture="technical"] .sp-ob-top .lb { font-family: var(--sp-mono); font-size: 10.5px; letter-spacing: 0.06em; }
-.sp[data-texture="technical"] .sp-ob-h { font-size: 18px; letter-spacing: -0.015em; }
-.sp[data-texture="tactile"] .sp-ob { box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 12px 32px -10px color-mix(in oklab, var(--primary) 24%, oklch(0 0 0 / 0.18)); }
-.sp[data-mode="dark"][data-texture="tactile"] .sp-ob { box-shadow: 0 0 0 1px var(--border), 0 12px 32px -10px oklch(0 0 0 / 0.5); }
-.sp[data-texture="tactile"] .sp-ob-h { font-size: 22px; letter-spacing: -0.03em; }
-.sp[data-texture="tactile"] .sp-ob-a .sp-ob-sec { background: var(--muted); box-shadow: none; }
 
 /* ---------- The other objects: a store, an agent, a consumer moment ---------- */
 .sp-ob-a.wide button { flex: 1; }
@@ -434,10 +388,136 @@
 .sp-mo-art i:nth-child(2) { right: 14%; top: 30%; width: 48px; height: 48px; border-radius: 50% 50% 0 0; background: color-mix(in oklab, var(--primary) 70%, var(--card)); opacity: .85; }
 .sp-moment .sp-ob-h { margin-top: 12px; }
 .sp-moment .sp-ob-a { margin-top: 14px; }
-.sp[data-texture="editorial"] .sp-moment .sp-ob-h { margin-top: 14px; font-size: 22px; }
-.sp[data-texture="editorial"][data-display-titles] .sp-moment .sp-ob-h { font-size: 28px; }
-.sp[data-texture="editorial"] .sp-moment .sp-ob-a { margin-top: 14px; padding-top: 12px; }
+
+/* ---------- How each texture builds the objects ----------
+   The Texture step holds everything else still, so each texture puts its signature where the eye lands
+   first: the ground the object sits on, and how the object is built. Minimal is the reference: a light
+   step of gray, one white surface, a hairline and a soft shadow. Editorial drops the box for rules and
+   bigger type. Glass frosts the object over colored light. Tactile lifts it off a deeper ground, with
+   buttons that stand up and wells that sink in. Technical draws it on a grid: hairlines, corner marks,
+   monospace labels and no shadow. */
+
+/* Minimal: structure from space. */
+.sp[data-texture="minimal"] .sp-tile, .sp[data-texture="minimal"] .sp-stage { background: var(--sidebar); }
+.sp[data-mode="dark"][data-texture="minimal"] .sp-tile, .sp[data-mode="dark"][data-texture="minimal"] .sp-stage { background: var(--background); }
+.sp[data-texture="minimal"] .sp-ob { box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 7%, transparent), var(--sp-shadow-md); }
+.sp[data-texture="minimal"] .sp-ob-a .sp-ob-sec { background: var(--card); box-shadow: inset 0 0 0 1px var(--border), var(--sp-shadow-xs); }
+
+/* Editorial: a page, not a card. Type sets the hierarchy and rules divide it. */
+.sp[data-texture="editorial"] .sp-ob { background: transparent; padding: 0; width: min(300px, 100%); }
+.sp[data-texture="editorial"] .sp-ob-top { padding-bottom: 9px; border-bottom: 1px solid var(--foreground); }
+.sp[data-texture="editorial"] .sp-ob-top .lb { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.sp[data-texture="editorial"] .sp-ob-h { margin-top: 16px; font-size: 30px; line-height: 1.04; letter-spacing: -0.03em; }
+.sp[data-texture="editorial"][data-display-titles] .sp-ob-h { font-size: 36px; line-height: 1; letter-spacing: -0.01em; }
+.sp[data-texture="editorial"] .sp-ob-p { margin-top: 8px; font-size: 13.5px; }
+.sp[data-texture="editorial"] .sp-ob-a { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.sp[data-texture="editorial"] .sp-ob-a .sp-ob-sec { box-shadow: none; padding: 0 6px; text-decoration: underline; text-underline-offset: 3px; }
+.sp[data-texture="editorial"] .sp-ob-cmd, .sp[data-texture="editorial"] .sp-ag-tool { background: none; box-shadow: none; border-radius: 0; padding: 1px 0 1px 10px; border-left: 2px solid var(--foreground); }
+.sp[data-texture="editorial"] .sp-ag-say { margin-top: 12px; font-family: var(--sp-display, var(--sp-sans)); font-size: 19px; line-height: 1.25; letter-spacing: -0.02em; }
+.sp[data-texture="editorial"] .sp-shop-txt b { font-size: 16px; letter-spacing: -0.015em; }
+.sp[data-texture="editorial"] .sp-shop-sum { border-top-color: var(--foreground); }
+.sp[data-texture="editorial"] .sp-shop-sum b { font-size: 16px; }
+.sp[data-texture="editorial"] .sp-shop-img { border-radius: 0; }
 .sp[data-texture="editorial"] .sp-mo-art { border-radius: 0; }
+.sp[data-texture="editorial"] .sp-moment .sp-ob-h { margin-top: 14px; font-size: 26px; }
+.sp[data-texture="editorial"][data-display-titles] .sp-moment .sp-ob-h { font-size: 32px; }
+.sp[data-texture="editorial"] .sp-moment .sp-ob-a { margin-top: 14px; padding-top: 12px; }
+
+/* Glass: frosted over light in the brand's neighboring hues, so the frosting has color to catch. */
+.sp[data-texture="glass"] .sp-tile, .sp[data-texture="glass"] .sp-stage {
+  background:
+    radial-gradient(62% 72% at 12% 8%, color-mix(in oklab, var(--chart-4) 62%, transparent), transparent 70%),
+    radial-gradient(58% 64% at 92% 18%, color-mix(in oklab, var(--chart-2) 50%, transparent), transparent 70%),
+    radial-gradient(76% 64% at 58% 112%, color-mix(in oklab, var(--primary) 52%, transparent), transparent 72%),
+    var(--background);
+}
+.sp[data-mode="dark"][data-texture="glass"] .sp-tile, .sp[data-mode="dark"][data-texture="glass"] .sp-stage {
+  background:
+    radial-gradient(62% 72% at 12% 8%, color-mix(in oklab, var(--chart-4) 34%, transparent), transparent 70%),
+    radial-gradient(58% 64% at 92% 18%, color-mix(in oklab, var(--chart-2) 28%, transparent), transparent 70%),
+    radial-gradient(76% 64% at 58% 112%, color-mix(in oklab, var(--primary) 40%, transparent), transparent 72%),
+    var(--background);
+}
+.sp[data-texture="glass"] .sp-ob {
+  background: color-mix(in oklab, var(--card) 52%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 80%, transparent), 0 0 0 1px color-mix(in oklab, white 45%, transparent), var(--sp-shadow-lg);
+}
+.sp[data-mode="dark"][data-texture="glass"] .sp-ob { background: color-mix(in oklab, var(--card) 46%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, white 12%, transparent), 0 0 0 1px color-mix(in oklab, white 9%, transparent), var(--sp-shadow-lg); }
+.sp[data-texture="glass"] .sp-ob-a .sp-ob-sec, .sp[data-texture="glass"] .sp-ag-tool, .sp[data-texture="glass"] .sp-ob-cmd {
+  background: color-mix(in oklab, white 34%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, white 60%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+.sp[data-mode="dark"][data-texture="glass"] .sp-ob-a .sp-ob-sec, .sp[data-mode="dark"][data-texture="glass"] .sp-ag-tool, .sp[data-mode="dark"][data-texture="glass"] .sp-ob-cmd {
+  background: color-mix(in oklab, white 7%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, white 10%, transparent), inset 0 0 0 1px color-mix(in oklab, white 8%, transparent);
+}
+.sp[data-texture="glass"] .sp-shop-sum { border-top-color: color-mix(in oklab, var(--foreground) 10%, transparent); }
+
+/* Tactile: an object lifted off a deeper ground; buttons stand up, wells sink in. */
+.sp[data-texture="tactile"] .sp-tile, .sp[data-texture="tactile"] .sp-stage {
+  background: radial-gradient(90% 80% at 50% 0%, color-mix(in oklab, var(--primary) 7%, var(--muted)), color-mix(in oklab, var(--primary) 12%, color-mix(in oklab, var(--muted), var(--foreground) 6%)));
+}
+.sp[data-mode="dark"][data-texture="tactile"] .sp-tile, .sp[data-mode="dark"][data-texture="tactile"] .sp-stage {
+  background: radial-gradient(90% 80% at 50% 0%, color-mix(in oklab, var(--primary) 10%, var(--muted)), color-mix(in oklab, var(--primary) 6%, var(--background)));
+}
+.sp[data-texture="tactile"] .sp-ob {
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 90%, transparent), inset 0 -2px 0 color-mix(in oklab, black 5%, transparent),
+    0 1px 2px oklch(0 0 0 / 0.06), 0 6px 12px -6px oklch(0 0 0 / 0.12), 0 22px 40px -14px color-mix(in oklab, var(--primary) 34%, oklch(0 0 0 / 0.3));
+}
+.sp[data-mode="dark"][data-texture="tactile"] .sp-ob {
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 9%, transparent), inset 0 -2px 0 oklch(0 0 0 / 0.3), 0 0 0 1px oklch(0 0 0 / 0.4), 0 22px 40px -14px oklch(0 0 0 / 0.7);
+}
+.sp[data-texture="tactile"] .sp-ob-h { font-size: 22px; letter-spacing: -0.03em; }
+.sp[data-texture="tactile"] .sp-ob-a .sp-ob-pri {
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 30%, transparent), inset 0 -2px 0 oklch(0 0 0 / 0.22), 0 1px 2px oklch(0 0 0 / 0.14), 0 6px 12px -4px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+.sp[data-texture="tactile"] .sp-ob-a .sp-ob-sec {
+  background: var(--card);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 90%, transparent), inset 0 -2px 0 oklch(0 0 0 / 0.07), 0 0 0 1px oklch(0 0 0 / 0.05), 0 2px 5px -1px oklch(0 0 0 / 0.14);
+}
+.sp[data-mode="dark"][data-texture="tactile"] .sp-ob-a .sp-ob-sec {
+  background: color-mix(in oklab, var(--card), white 6%);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 10%, transparent), inset 0 -2px 0 oklch(0 0 0 / 0.3), 0 2px 5px -1px oklch(0 0 0 / 0.5);
+}
+.sp[data-texture="tactile"] .sp-ag-tool, .sp[data-texture="tactile"] .sp-ob-cmd {
+  background: color-mix(in oklab, var(--muted), var(--foreground) 3%);
+  box-shadow: inset 0 1px 3px oklch(0 0 0 / 0.14), inset 0 0 0 1px oklch(0 0 0 / 0.03), 0 1px 0 color-mix(in oklab, white 80%, transparent);
+}
+.sp[data-mode="dark"][data-texture="tactile"] .sp-ag-tool, .sp[data-mode="dark"][data-texture="tactile"] .sp-ob-cmd {
+  background: var(--background);
+  box-shadow: inset 0 1px 3px oklch(0 0 0 / 0.6), 0 1px 0 color-mix(in oklab, white 6%, transparent);
+}
+.sp[data-texture="tactile"] .sp-shop-img { box-shadow: inset 0 1px 0 color-mix(in oklab, white 40%, transparent), 0 4px 10px -4px color-mix(in oklab, var(--primary) 50%, transparent); }
+
+/* Technical: drawn on a grid. Hairline edges with corner marks, no shadow, monospace labels. */
+.sp[data-texture="technical"] .sp-tile, .sp[data-texture="technical"] .sp-stage {
+  background-color: var(--background);
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 24%, transparent) 1px, transparent 1.4px);
+  background-size: 12px 12px; background-position: -6px -6px;
+}
+.sp[data-mode="dark"][data-texture="technical"] .sp-tile, .sp[data-mode="dark"][data-texture="technical"] .sp-stage {
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 20%, transparent) 1px, transparent 1.4px);
+}
+.sp[data-texture="technical"] .sp-ob { position: relative; padding: calc(var(--sp-pad) * 0.5 + 4px); box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent); }
+.sp[data-texture="technical"] .sp-ag-you, .sp[data-texture="technical"] .sp-ag-tool, .sp[data-texture="technical"] .sp-ag-say { margin-top: 8px; }
+.sp[data-texture="technical"] .sp-agent .sp-ob-a { margin-top: 10px; }
+.sp[data-texture="technical"] .sp-ob::before {
+  --tk: color-mix(in oklab, var(--foreground) 55%, transparent);
+  content: ""; position: absolute; inset: -6px; pointer-events: none;
+  background:
+    linear-gradient(var(--tk), var(--tk)) left top / 9px 1px no-repeat, linear-gradient(var(--tk), var(--tk)) left top / 1px 9px no-repeat,
+    linear-gradient(var(--tk), var(--tk)) right top / 9px 1px no-repeat, linear-gradient(var(--tk), var(--tk)) right top / 1px 9px no-repeat,
+    linear-gradient(var(--tk), var(--tk)) left bottom / 9px 1px no-repeat, linear-gradient(var(--tk), var(--tk)) left bottom / 1px 9px no-repeat,
+    linear-gradient(var(--tk), var(--tk)) right bottom / 9px 1px no-repeat, linear-gradient(var(--tk), var(--tk)) right bottom / 1px 9px no-repeat;
+}
+.sp[data-texture="technical"] .sp-ob-top { padding-bottom: 8px; border-bottom: 1px dashed color-mix(in oklab, var(--foreground) 22%, transparent); }
+.sp[data-texture="technical"] .sp-ob-top .lb { font-family: var(--sp-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.sp[data-texture="technical"] .sp-ob-h { margin-top: 12px; font-size: 18px; letter-spacing: -0.015em; }
+.sp[data-texture="technical"] .sp-ob-a .sp-ob-sec { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent); }
+.sp[data-texture="technical"] .sp-ag-tool, .sp[data-texture="technical"] .sp-ob-cmd { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent); border-radius: max(2px, calc(var(--sp-r-sm) - 2px)); }
+.sp[data-texture="technical"] .sp-ag-tool i { border-radius: 1px; box-shadow: none; }
+.sp[data-texture="technical"] .sp-shop-txt span, .sp[data-texture="technical"] .sp-shop-price, .sp[data-texture="technical"] .sp-shop-sum { font-family: var(--sp-mono); }
+.sp[data-texture="technical"] .sp-shop-txt span, .sp[data-texture="technical"] .sp-shop-sum span { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+.sp[data-texture="technical"] .sp-shop-sum { border-top-style: dashed; }
 .sp[data-texture="technical"] .sp-mo-art { background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--primary) 16%, var(--card)) 0 1px, transparent 1px 10px), linear-gradient(135deg, color-mix(in oklab, var(--primary) 10%, var(--card)), color-mix(in oklab, var(--primary) 34%, var(--card))); }
 
 /* ---------- Typeface: the type alone ---------- */
