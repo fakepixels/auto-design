@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-28",
+  "title": "Textures you can tell apart",
+  "line": "Each texture now shows its signature at a glance: rules and big type, frosted color, raised surfaces, a drafting grid.",
+  "shots": [
+    { "step": "texture", "click": ".proofs[data-field=\"texture\"] .proof[data-value=\"technical\"]", "focus": ".proofs[data-field=\"texture\"]" }
+  ]
+}

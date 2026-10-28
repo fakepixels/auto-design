@@ -9,7 +9,7 @@ drifts, a design site and its own brand animations.
 <!-- product-film:start -->
 <a href="docs/media/product-film.mp4"><img src="docs/media/product-film.webp" width="100%" alt="auto-design in 34 seconds: a gray card becomes Moonbeam's invitation as you pick a kind, a vibe, a color, type and motion, then splits into the whole system: its app, site, chat and messages, its design site and its own launch animation."></a>
 
-<sub>Recorded from the real onboarding on October 28, 2026 (14401ef). It re-renders when the product's look changes: <code>npm run video</code>. <a href="docs/media/product-film.mp4">Watch the full-size film</a>.</sub>
+<sub>Recorded from the real onboarding on October 28, 2026 (e7ef07d). It re-renders when the product's look changes: <code>npm run video</code>. <a href="docs/media/product-film.mp4">Watch the full-size film</a>.</sub>
 <!-- product-film:end -->
 
 ## Quick start
@@ -25,8 +25,9 @@ npx auto-design init      # opens onboarding at http://localhost:4400
 ## What's new
 
 <!-- whats-new:start -->
-<a href="docs/media/whats-new/2026-10-28-kind-step.mp4"><img src="docs/media/whats-new/2026-10-28-kind-step.webp" width="640" alt="A Kind step: Say what you're making, from a store to an AI agent to a consumer app with a vibe, and every preview follows."></a>
+<a href="docs/media/whats-new/2026-10-28-textures.mp4"><img src="docs/media/whats-new/2026-10-28-textures.webp" width="640" alt="Textures you can tell apart: Each texture now shows its signature at a glance: rules and big type, frosted color, raised surfaces, a drafting grid."></a>
 
+- **October 28, 2026: Textures you can tell apart.** Each texture now shows its signature at a glance: rules and big type, frosted color, raised surfaces, a drafting grid. [Watch](docs/media/whats-new/2026-10-28-textures.mp4)
 - **October 28, 2026: A Kind step.** Say what you're making, from a store to an AI agent to a consumer app with a vibe, and every preview follows. [Watch](docs/media/whats-new/2026-10-28-kind-step.mp4)
 <!-- whats-new:end -->
 

@@ -32,6 +32,9 @@ function main() {
     ...["compositions", "lib"].flatMap((d) => readdirSync(path.join(PROJECT, d)).sort().map((f) => path.join(PROJECT, d, f))),
     // Not site.png: its live player lands on a different frame each run. capture.json has the site's hash.
     path.join(CAPTURE, "brand.mp4"),
+    // The film draws every card with the product's renderer, so a change to how it draws is a change to the film.
+    path.join(CAPTURE, "renderer.css"),
+    path.join(CAPTURE, "renderer.js"),
   ];
   const print = fingerprint([JSON.stringify(shown), ...sources.map((file) => ({ file }))]);
   const last = existsSync(STAMP) ? JSON.parse(readFileSync(STAMP, "utf8")) : null;
