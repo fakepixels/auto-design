@@ -119,6 +119,22 @@ user-facing story; this file is how to work on it.
   Tina then called "Step 1 of 12" tacky; the top bar shows a 168px hairline instead that fills toward the
   current step with a faint gradient and a soft glow at its tip (the step number stays in its title and
   aria attributes).
+- Kind pass (October 28, 2026). Tina, testing with a Hello Kitty product and sanrio.com, asked for calmer
+  pastel pink and blue art, for options that take more risk than the site does, and for a step about the
+  nature of the product. Now:
+  - A Kind step follows Product (`KINDS` in `session.ts`): Consumer app (with a vibe: Luxury, Dreamy, Sci-fi,
+    Playful; `VIBES`), SaaS, E-commerce, AI agent, Developer tool. Each has a direction (`DIRECTIONS`:
+    texture, pairing, corners, density, motion, grays, mode and surfaces). Its brand color only replaces a
+    stock one, never a color the person chose or read from their site. Choosing a kind commits the
+    direction and adds it as a "Made for you" starting point (`gen:kind`).
+  - Every preview's object follows the kind: the decision card for SaaS and developer tools, `shop` (an
+    item in the bag, a subtotal and a checkout button) for e-commerce, `agent` (the ask, a tool call, an
+    approval) for AI agents, and `moment` (brand art, an invitation, one action) for consumer apps. These
+    are new scenes in `site/renderer.js`, with copy in `site/copy.ts`.
+  - Made options include a bolder take (`gen:bold`, named after the vibe, like "Your site, playful"): the
+    most vivid color from the site or images in the kind's full direction. The model's suggestion prompt
+    is told to take more risk for consumer products, and suggestions and refinements get the kind.
+  - The drop art is recolored pastel: pink and blue on a soft indigo screen.
 
 ## Layout
 

@@ -402,6 +402,44 @@
 .sp[data-texture="tactile"] .sp-ob-h { font-size: 22px; letter-spacing: -0.03em; }
 .sp[data-texture="tactile"] .sp-ob-a .sp-ob-sec { background: var(--muted); box-shadow: none; }
 
+/* ---------- The other objects: a store, an agent, a consumer moment ---------- */
+.sp-ob-a.wide button { flex: 1; }
+.sp-shop-item { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-top: 14px; }
+.sp-shop-img { position: relative; display: block; width: 46px; height: 46px; border-radius: calc(var(--sp-r) * 0.7 + 2px); overflow: hidden;
+  background: linear-gradient(140deg, color-mix(in oklab, var(--primary) 22%, var(--card)), color-mix(in oklab, var(--primary) 55%, var(--card))); }
+.sp-shop-img i { position: absolute; left: 12px; top: 11px; width: 22px; height: 25px; border-radius: 6px 6px 8px 8px; background: color-mix(in oklab, var(--primary) 78%, var(--card)); box-shadow: inset 0 -6px 0 color-mix(in oklab, black 10%, transparent); }
+.sp-shop-img i::before { content: ""; position: absolute; left: 5px; top: -7px; width: 12px; height: 10px; border: 2px solid color-mix(in oklab, var(--primary) 78%, var(--card)); border-bottom: 0; border-radius: 8px 8px 0 0; }
+.sp-shop-txt { display: grid; gap: 2px; min-width: 0; font-size: 13px; line-height: 1.3; }
+.sp-shop-txt b { font-weight: var(--sp-w-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-shop-txt span { font-size: 11.5px; color: var(--muted-foreground); }
+.sp-shop-price { font-size: 13px; font-weight: var(--sp-w-medium); font-variant-numeric: tabular-nums; }
+.sp-shop-sum { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted-foreground); }
+.sp-shop-sum b { color: var(--card-foreground); font-weight: var(--sp-w-strong); font-variant-numeric: tabular-nums; }
+.sp-shop .sp-ob-a { margin-top: 10px; }
+.sp .sp-shop .sp-ob-a button { height: var(--sp-ctl-md); }
+.sp .sp-shop-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 7px; font-size: 11px; color: var(--muted-foreground); }
+.sp-shop-note i { width: 12px; height: 12px; border-radius: 50%; background: color-mix(in oklab, var(--success, var(--primary)) 85%, transparent); position: relative; }
+.sp-shop-note i::after { content: ""; position: absolute; left: 3.5px; top: 3px; width: 4px; height: 2.5px; border: 1.5px solid var(--background); border-top: 0; border-right: 0; transform: rotate(-45deg); }
+.sp .sp-ag-you { align-self: flex-end; max-width: 82%; margin-top: 12px; padding: 7px 11px; border-radius: calc(var(--sp-r) * 0.8 + 4px); border-bottom-right-radius: max(3px, calc(var(--sp-r) * 0.25)); background: var(--primary); color: var(--primary-foreground); font-size: 12.5px; line-height: 1.35; }
+.sp-ag-tool { display: flex; align-items: center; gap: 7px; margin-top: 10px; padding: 6px 9px; border-radius: var(--sp-r-sm); background: color-mix(in oklab, var(--foreground) 5%, transparent); box-shadow: inset 0 0 0 1px var(--border); font-size: 11px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; }
+.sp-ag-tool code { font-family: var(--sp-mono); color: var(--card-foreground); }
+.sp-ag-tool i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--success, var(--primary)); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success, var(--primary)) 20%, transparent); }
+.sp .sp-ag-say { margin-top: 10px; font-size: 13px; line-height: 1.45; }
+.sp-agent .sp-ob-a { margin-top: 12px; }
+.sp-mo-art { position: relative; display: block; height: 64px; margin-bottom: 2px; border-radius: calc(var(--sp-r) * 0.8 + 2px); overflow: hidden;
+  background: radial-gradient(120% 120% at 100% 100%, color-mix(in oklab, var(--primary) 62%, var(--card)), transparent 62%), linear-gradient(135deg, color-mix(in oklab, var(--primary) 14%, var(--card)), color-mix(in oklab, var(--primary) 34%, var(--card))); }
+.sp-mo-art > i:not(.sp-mark) { position: absolute; border-radius: 50%; }
+.sp-mo-art .sp-mark { position: absolute; left: 10px; bottom: 10px; }
+.sp-mo-art i:first-child { left: 22%; top: 20%; width: 28px; height: 28px; background: color-mix(in oklab, var(--primary) 40%, white); box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--primary) 60%, transparent); }
+.sp-mo-art i:nth-child(2) { right: 14%; top: 30%; width: 48px; height: 48px; border-radius: 50% 50% 0 0; background: color-mix(in oklab, var(--primary) 70%, var(--card)); opacity: .85; }
+.sp-moment .sp-ob-h { margin-top: 12px; }
+.sp-moment .sp-ob-a { margin-top: 14px; }
+.sp[data-texture="editorial"] .sp-moment .sp-ob-h { margin-top: 14px; font-size: 22px; }
+.sp[data-texture="editorial"][data-display-titles] .sp-moment .sp-ob-h { font-size: 28px; }
+.sp[data-texture="editorial"] .sp-moment .sp-ob-a { margin-top: 14px; padding-top: 12px; }
+.sp[data-texture="editorial"] .sp-mo-art { border-radius: 0; }
+.sp[data-texture="technical"] .sp-mo-art { background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--primary) 16%, var(--card)) 0 1px, transparent 1px 10px), linear-gradient(135deg, color-mix(in oklab, var(--primary) 10%, var(--card)), color-mix(in oklab, var(--primary) 34%, var(--card))); }
+
 /* ---------- Typeface: the type alone ---------- */
 .sp-face { width: min(330px, 100%); text-align: left; }
 .sp .sp-face .h { font-family: var(--sp-display, var(--sp-sans)); font-weight: var(--sp-w-display); font-size: 28px; line-height: 1.08; letter-spacing: -0.028em; text-wrap: balance; }

@@ -124,6 +124,7 @@ export async function suggest(model: ModelConfig, input: SuggestInput): Promise<
     input.images?.length && `${input.images.length} image(s) attached: their logo or screens they like. Use them for color, texture and type hints.`,
     `Current choices: ${JSON.stringify(currentChoices(input.current))}`,
     "Suggest the design system that fits this product best. Keep their existing brand color if they clearly have one.",
+    "If it's a consumer product, take more risk than their site does: lead with the brand's most characterful color, and let type, corners and motion carry its personality instead of a generic template.",
   ].filter(Boolean);
   const content: Part[] = [{ type: "text", text: lines.join("\n\n") }, ...(input.images ?? []).slice(0, 4)];
   const { raw, config, patch } = await patchCall(model, input.current, system, content, suggestionSchema(), "design_suggestion", input.signal);

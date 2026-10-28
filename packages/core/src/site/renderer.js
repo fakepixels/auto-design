@@ -82,6 +82,17 @@
     return out;
   }
 
+  /** Copy for the other objects, merged over defaults so older copy (and a model's) still draws. */
+  var SHOP = { item: "Canvas tote", variant: "Natural · One size", price: "$48", count: "2", subtotal: "$96.00", checkout: "Check out", note: "Free shipping on this order" };
+  var AGENT = { ask: "Send the October invoices", tool: "send_invoices", args: "3 clients", say: "Ready to send 3 invoices: $18,400.", approve: "Send them", decline: "Edit first" };
+  var MOMENT = { title: "Something new is here", body: "A small collection, picked for you.", cta: "Take a look", later: "Later" };
+  function merged(base, over) {
+    var out = {};
+    over = over || {};
+    for (var k in base) out[k] = over[k] || base[k];
+    return out;
+  }
+
   function badge(status, copy) {
     return status === "ok"
       ? '<span class="sp-badge ok">' + e(copy.okLabel || "On track") + "</span>"
@@ -114,6 +125,45 @@
         e(tech ? dc.label.toUpperCase() : dc.label) + '</span></div><p class="sp-ob-h">' + e(dc.title) + '</p><p class="sp-ob-p">' + e(dc.body) + "</p>" +
         (tech ? '<code class="sp-ob-cmd">$ ' + e(dc.command) + "</code>" : "") +
         '<div class="sp-ob-a"><button class="sp-ob-pri" tabindex="-1">' + e(dc.approve) + '</button><button class="sp-ob-sec" tabindex="-1">' + e(dc.decline) + "</button></div></div></div>"
+      );
+    },
+
+    /** The decision card by name, for galleries that mix objects. */
+    decision: function (d, copy, o) {
+      return scenes.object(d, copy, o);
+    },
+
+    /** A store's object: an item in the bag, the subtotal, and one clear way to check out. */
+    shop: function (d, copy) {
+      var s = merged(SHOP, copy.shop);
+      return (
+        '<div class="sp-tile"><div class="sp-ob sp-shop"><div class="sp-ob-top">' + mark(copy) + "<span>" + e(copy.product) + '</span><span class="lb">Bag · ' + e(s.count) + "</span></div>" +
+        '<div class="sp-shop-item"><i class="sp-shop-img" aria-hidden="true"><i></i></i><div class="sp-shop-txt"><b>' + e(s.item) + "</b><span>" + e(s.variant) + '</span></div><span class="sp-shop-price">' + e(s.price) + "</span></div>" +
+        '<div class="sp-shop-sum"><span>Subtotal</span><b>' + e(s.subtotal) + "</b></div>" +
+        '<div class="sp-ob-a wide"><button class="sp-ob-pri" tabindex="-1">' + e(s.checkout) + " · " + e(s.subtotal) + "</button></div>" +
+        '<p class="sp-shop-note"><i aria-hidden="true"></i>' + e(s.note) + "</p></div></div>"
+      );
+    },
+
+    /** An agent's object: the ask, the tool it ran, and the approval it needs. */
+    agent: function (d, copy) {
+      var a = merged(AGENT, copy.agent);
+      return (
+        '<div class="sp-tile"><div class="sp-ob sp-agent"><div class="sp-ob-top">' + mark(copy) + "<span>" + e(copy.product) + '</span><span class="lb">Agent</span></div>' +
+        '<p class="sp-ag-you">' + e(a.ask) + "</p>" +
+        '<div class="sp-ag-tool"><i aria-hidden="true"></i><code>' + e(a.tool) + "</code><span>" + e(a.args) + "</span></div>" +
+        '<p class="sp-ag-say">' + e(a.say) + "</p>" +
+        '<div class="sp-ob-a"><button class="sp-ob-pri" tabindex="-1">' + e(a.approve) + '</button><button class="sp-ob-sec" tabindex="-1">' + e(a.decline) + "</button></div></div></div>"
+      );
+    },
+
+    /** A consumer app's object: a piece of art in the brand's hues, a line of invitation, one action. */
+    moment: function (d, copy) {
+      var m = merged(MOMENT, copy.moment);
+      return (
+        '<div class="sp-tile"><div class="sp-ob sp-moment"><i class="sp-mo-art" aria-hidden="true"><i></i><i></i>' + mark(copy) + "</i>" +
+        '<p class="sp-ob-h">' + e(m.title) + '</p><p class="sp-ob-p">' + e(m.body) + "</p>" +
+        '<div class="sp-ob-a"><button class="sp-ob-pri" tabindex="-1">' + e(m.cta) + '</button><button class="sp-ob-sec" tabindex="-1">' + e(m.later) + "</button></div></div></div>"
       );
     },
 

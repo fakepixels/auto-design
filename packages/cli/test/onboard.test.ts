@@ -6,6 +6,7 @@ import {
   createSession,
   generateOptions,
   heuristicTexture,
+  setKind,
   setProduct,
   setSurfaces,
   slug,
@@ -34,7 +35,7 @@ describe("onboarding session", () => {
 
   it("draws every option of every question without errors", () => {
     const s = createSession({ name: "Meridian" });
-    for (const field of ["preset", "texture", "pairing", "radius", "density", "motion", "neutral", "defaultMode", "brand"] as const) {
+    for (const field of ["preset", "texture", "pairing", "radius", "density", "motion", "neutral", "defaultMode", "brand", "kind", "vibe"] as const) {
       const list = variants(s, field);
       expect(list.length).toBeGreaterThan(1);
       for (const v of list) expect(v.error, `${field}=${v.value}`).toBeUndefined();
@@ -60,19 +61,45 @@ describe("onboarding session", () => {
       catalogFonts: null, radius: 6, dark: false, summary: "",
     };
     const made = generateOptions(s, ["#e4572e", "#29335c", "not a color"]);
-    expect(made.map((g) => g.id)).toEqual(["gen:site", "gen:images", "gen:site-flip"]);
+    expect(made.map((g) => g.id)).toEqual(["gen:site", "gen:bold", "gen:images"]);
     expect(made[0]!.note).toBe("#0f62fe, Inter, 6px corners");
     expect(made[0]!.config.texture).toBe("technical");
     expect(s.imageColors).toEqual(["#e4572e", "#29335c"]);
 
     const list = variants(s, "preset");
-    expect(list.slice(0, 3).map((v) => v.tag)).toEqual(["From your site", "From your images", "From your site"]);
+    expect(list.slice(0, 3).map((v) => v.tag)).toEqual(["From your site", "From your site", "From your images"]);
     expect(list.length).toBe(8);
 
-    startFrom(s, "gen:site-flip");
-    expect(s.config.color.defaultMode).toBe("dark");
-    expect(s.preset).toBe("gen:site-flip");
-    expect(s.history.at(-1)!.label).toBe("Started from your site, dark");
+    startFrom(s, "gen:images");
+    expect(s.config.color.brand).toBe("#e4572e");
+    expect(s.preset).toBe("gen:images");
+    expect(s.history.at(-1)!.label).toBe("Started from your images");
+  });
+
+  it("takes a kind's direction, and a bolder take leads with the site's strongest color", () => {
+    const s = createSession({ name: "Hello Kitty", description: "Characters and gifts" });
+    setKind(s, "consumer", "playful");
+    expect(s.config.texture).toBe("tactile");
+    expect(s.config.shape?.radius).toBe(16);
+    expect(s.history.at(-1)!.label).toBe("Kind: Consumer app, playful");
+    s.site = {
+      url: "https://sanrio.com/", title: "Sanrio", description: "", themeColor: null,
+      colors: [{ css: "#007ace", hex: "#007ace", score: 9 }, { css: "#c70000", hex: "#c70000", score: 4 }], neutral: null, fonts: ["Jost"], pairing: null,
+      catalogFonts: null, radius: 3, dark: false, summary: "",
+    };
+    const made = generateOptions(s, []);
+    const bold = made.find((g) => g.id === "gen:bold")!;
+    expect(bold.name).toBe("Your site, playful");
+    expect(bold.config.color.brand).toBe("#c70000");
+    expect(bold.config.texture).toBe("tactile");
+    // The faithful option keeps the site's own color and corners.
+    expect(made[0]!.config.color.brand).toBe("#007ace");
+    expect(made[0]!.config.shape?.radius).toBe(3);
+
+    setKind(s, "agent");
+    expect(s.vibe).toBeNull();
+    expect(s.config.surfaces).toContain("chat");
+    expect(variants(s, "kind").find((v) => v.value === "ecommerce")!.scene).toBe("shop");
   });
 
   it("offers ready palettes with the current color first and no repeats", () => {

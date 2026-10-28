@@ -7,6 +7,7 @@ import {
   SURFACES,
   TEXTURES,
   buildSystem,
+  fontsOf,
   parseColor,
   specimenData,
   toHex,
@@ -61,6 +62,9 @@ export interface Session {
   /** The main colors of the images the person dropped, read in the browser. */
   imageColors: string[];
   generated: Generated[];
+  /** What kind of product it is, and for a consumer app, its vibe. */
+  kind: string | null;
+  vibe: string | null;
   history: HistoryEntry[];
 }
 
@@ -112,6 +116,8 @@ export function createSession(product: Partial<Session["product"]> = {}): Sessio
     site: null,
     imageColors: [],
     generated: [],
+    kind: null,
+    vibe: null,
     history: [],
   };
 }
@@ -187,7 +193,87 @@ const PRESET_NOTES: Record<string, string> = {
   tactile: "Soft, raised, warm",
 };
 
-export type VariantField = "preset" | "texture" | "pairing" | "radius" | "density" | "motion" | "neutral" | "defaultMode" | "brand";
+export type VariantField = "preset" | "texture" | "pairing" | "radius" | "density" | "motion" | "neutral" | "defaultMode" | "brand" | "kind" | "vibe";
+
+/** What a product is sets its starting direction and the object its previews show. */
+export const KINDS: { id: string; name: string; note: string; scene: string }[] = [
+  { id: "consumer", name: "Consumer app", note: "Something people choose to spend time in. Beautiful first.", scene: "moment" },
+  { id: "saas", name: "SaaS", note: "Software teams use all day. Sleek, clean and exact.", scene: "decision" },
+  { id: "ecommerce", name: "E-commerce", note: "Products, a bag and a checkout that converts.", scene: "shop" },
+  { id: "agent", name: "AI agent", note: "Conversations, tool calls and approvals.", scene: "agent" },
+  { id: "devtool", name: "Developer tool", note: "Docs, terminals and code. Dense and precise.", scene: "decision" },
+];
+
+export const VIBES: { id: string; name: string; note: string }[] = [
+  { id: "luxury", name: "Luxury", note: "Serif, near-black and gold. Quiet and expensive." },
+  { id: "dreamy", name: "Dreamy", note: "Soft glass, pastel light and round corners." },
+  { id: "scifi", name: "Sci-fi", note: "Dark, sharp and lit like a cockpit." },
+  { id: "playful", name: "Playful", note: "Round, bouncy and bright. Cute is welcome." },
+];
+
+interface Direction { patch: Partial<DesignPatch>; brand: string; surfaces?: Surface[] }
+
+const DIRECTIONS: Record<string, Direction> = {
+  saas: { patch: { texture: "minimal", pairing: "geist", radius: 8, density: "compact", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.3, warmth: 0.3, novelty: 0.2 }, brand: "oklch(0.55 0.21 262)" },
+  ecommerce: { patch: { texture: "minimal", pairing: "jakarta", radius: 12, density: "comfortable", motion: "subtle", neutral: "warm", defaultMode: "light", energy: 0.5, warmth: 0.6, novelty: 0.4 }, brand: "oklch(0.67 0.19 42)", surfaces: ["web-app", "marketing"] },
+  agent: { patch: { texture: "glass", pairing: "inter", radius: 12, density: "comfortable", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.4, warmth: 0.4, novelty: 0.4 }, brand: "oklch(0.55 0.21 292)", surfaces: ["web-app", "chat"] },
+  devtool: { patch: { texture: "technical", pairing: "plex", radius: 4, density: "compact", motion: "still", neutral: "cool", defaultMode: "dark", energy: 0.2, warmth: 0.2, novelty: 0.3 }, brand: "oklch(0.82 0.13 200)", surfaces: ["web-app", "code"] },
+  "consumer:luxury": { patch: { texture: "editorial", pairing: "bodoni", radius: 0, density: "comfortable", motion: "still", neutral: "warm", defaultMode: "dark", energy: 0.15, warmth: 0.6, novelty: 0.5 }, brand: "oklch(0.78 0.09 82)" },
+  "consumer:dreamy": { patch: { texture: "glass", pairing: "fraunces", radius: 16, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "light", energy: 0.6, warmth: 0.6, novelty: 0.6 }, brand: "oklch(0.7 0.13 320)" },
+  "consumer:scifi": { patch: { texture: "technical", pairing: "chakra", radius: 2, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "dark", energy: 0.8, warmth: 0.2, novelty: 0.8 }, brand: "oklch(0.84 0.14 195)" },
+  "consumer:playful": { patch: { texture: "tactile", pairing: "fredoka", radius: 16, density: "comfortable", motion: "expressive", neutral: "warm", defaultMode: "light", energy: 0.85, warmth: 0.85, novelty: 0.8 }, brand: "oklch(0.72 0.16 355)" },
+};
+/** Without a kind, a bolder take still leans expressive. */
+const BOLD: Direction = { patch: { texture: "glass", pairing: "bricolage", radius: 16, density: "comfortable", motion: "expressive", energy: 0.75, novelty: 0.75 }, brand: "oklch(0.62 0.2 300)" };
+
+function directionFor(kind: string | null, vibe: string | null): Direction | null {
+  if (!kind) return null;
+  return DIRECTIONS[kind === "consumer" ? `consumer:${vibe ?? "dreamy"}` : kind] ?? null;
+}
+
+/** A brand color nobody chose: a preset's or a direction's own. Those give way to a direction's color. */
+function stockBrand(brand: string | undefined): boolean {
+  if (!brand) return true;
+  return Object.values(presets).some((p) => p.color.brand === brand) || Object.values(DIRECTIONS).some((d) => d.brand === brand);
+}
+
+function withDirection(config: DesignConfig, dir: Direction): DesignConfig {
+  const patch: Partial<DesignPatch> = { ...dir.patch };
+  if (stockBrand(config.color.brand)) patch.brand = dir.brand;
+  const next = applyPatch(config, patch);
+  if (dir.surfaces) next.surfaces = [...new Set([...(config.surfaces ?? []), ...dir.surfaces])];
+  return next;
+}
+
+export function kindLabel(kind: string | null, vibe: string | null): string {
+  const k = KINDS.find((x) => x.id === kind);
+  if (!k) return "";
+  const v = kind === "consumer" ? VIBES.find((x) => x.id === vibe) : undefined;
+  return v ? `${k.name}, ${v.name.toLowerCase()}` : k.name;
+}
+
+/** Choose what kind of product it is: the system takes that kind's direction. */
+export function setKind(session: Session, kind: string, vibe?: string | null) {
+  if (!KINDS.some((k) => k.id === kind)) throw new Error(`Unknown kind "${kind}"`);
+  session.kind = kind;
+  session.vibe = kind === "consumer" ? (vibe && VIBES.some((v) => v.id === vibe) ? vibe : session.vibe ?? "dreamy") : null;
+  commit(session, withDirection(session.config, directionFor(session.kind, session.vibe)!), `Kind: ${kindLabel(session.kind, session.vibe)}`);
+  // The kind is a starting point of its own, shown with the ones made from material.
+  const label = kindLabel(session.kind, session.vibe);
+  const c = session.config;
+  const face = FONTS[fontsOf(c).sans ?? ""]?.google;
+  const pairing = PAIRINGS.find((p) => p.id === currentChoices(c).pairing);
+  const faces = pairing ? [pairing.display?.font, pairing.sans.font].filter(Boolean).map((f) => FONTS[f!]!.google)[0] : face;
+  const made: Generated = { id: "gen:kind", name: label, tag: "From the kind you picked", note: [faces, `${TEXTURE_INFO[c.texture].name.toLowerCase()} surfaces`, `${c.shape?.radius ?? 8}px corners`].filter(Boolean).join(", "), label: `Started from ${label.toLowerCase()}`, config: structuredClone(c) };
+  session.generated = [...session.generated.filter((g) => g.id !== "gen:kind"), made];
+  session.preset = "gen:kind";
+}
+
+/** The description with the kind folded in, for the model. */
+export function productBrief(session: Session): string {
+  const label = kindLabel(session.kind, session.vibe);
+  return [session.product.description.trim(), label && `It's a ${label.toLowerCase()} product.`].filter(Boolean).join(" ");
+}
 
 export interface Variant {
   value: string | number;
@@ -197,6 +283,8 @@ export interface Variant {
   tag?: string;
   /** What choosing it changes, when that's more than the field itself. */
   patch?: Partial<DesignPatch>;
+  /** The object its preview shows, when it isn't the gallery's own. */
+  scene?: string;
   specimen?: SpecimenData;
   error?: string;
 }
@@ -225,9 +313,16 @@ const TEXTURE_PRESET: Record<(typeof TEXTURES)[number], string> = { minimal: "qu
  */
 export function generateOptions(session: Session, imageColors: string[] = session.imageColors): Generated[] {
   session.imageColors = imageColors.filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6);
-  const texture = heuristicTexture(session.product.description);
+  const dir = directionFor(session.kind, session.vibe);
+  const texture = (dir?.patch.texture as (typeof TEXTURES)[number] | undefined) ?? heuristicTexture(session.product.description);
   const other: (typeof TEXTURES)[number] = texture === "minimal" ? "glass" : "minimal";
-  const base = (t = texture) => presetFor(TEXTURE_PRESET[t]!, session.product);
+  // The kind's direction under the material, so a store reads as a store even in its site's colors.
+  const base = (t = texture) => {
+    const preset = presetFor(TEXTURE_PRESET[t]!, session.product);
+    if (!dir) return preset;
+    const { brand: _brand, ...rest } = dir.patch;
+    return applyPatch(preset, { ...rest, texture: t });
+  };
   const made: Generated[] = [];
   const add = (g: Omit<Generated, "config">, make: () => DesignConfig) => {
     try {
@@ -246,6 +341,19 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   if (site && Object.keys(sitePatch).length) {
     add({ id: "gen:site", name: "Your site", tag: "From your site", note: siteNote(site), label: "Started from your site" }, () => applyPatch(base(), sitePatch));
   }
+  // A bolder take: the material's most characterful color in the kind's full direction, the risk the site doesn't take.
+  const signature = mostVivid([...(site?.colors.map((c) => c.hex) ?? []), ...session.imageColors]);
+  if (signature) {
+    const bold = dir ?? BOLD;
+    const mood = (session.kind === "consumer" ? VIBES.find((v) => v.id === session.vibe)?.name ?? "bolder" : "bolder").toLowerCase();
+    const from = site ? "site" : "images";
+    const pairing = PAIRINGS.find((p) => p.id === bold.patch.pairing);
+    const faces = pairing ? [pairing.display?.font, pairing.sans.font].filter(Boolean).map((f) => FONTS[f!]!.google)[0] : "";
+    add(
+      { id: "gen:bold", name: `Your ${from}, ${mood}`, tag: site ? "From your site" : "From your images", note: [signature, faces, `${bold.patch.radius ?? 12}px corners`].filter(Boolean).join(", "), label: `Started from your ${from}, ${mood}` },
+      () => applyPatch(presetFor(TEXTURE_PRESET[(bold.patch.texture as (typeof TEXTURES)[number]) ?? "glass"]!, session.product), { ...bold.patch, brand: signature }),
+    );
+  }
   if (first) {
     add({ id: "gen:images", name: "Your images", tag: "From your images", note: `${first} on ${TEXTURE_INFO[texture].name.toLowerCase()} surfaces`, label: "Started from your images" }, () => applyPatch(base(), { brand: first }));
   }
@@ -256,7 +364,7 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   if (second) {
     add({ id: "gen:images-2", name: "Your second color", tag: "From your images", note: `${second} on ${TEXTURE_INFO[other].name.toLowerCase()} surfaces`, label: "Started from your second color" }, () => applyPatch(base(other), { brand: second }));
   }
-  session.generated = [...made.slice(0, 3), ...session.generated.filter((g) => g.id === "gen:model")];
+  session.generated = [...made.slice(0, 3), ...session.generated.filter((g) => g.id === "gen:model" || g.id === "gen:kind")];
   return session.generated;
 }
 
@@ -278,6 +386,23 @@ function shuffled(brand: string, seed: number, salt: string): string {
   return `oklch(${l.toFixed(3)} ${chroma.toFixed(3)} ${h.toFixed(1)})`;
 }
 
+/** The strongest color in a list: the one that says the most about a brand. */
+function mostVivid(colors: string[]): string | null {
+  let best: string | null = null;
+  let score = -1;
+  for (const c of colors.slice(0, 8)) {
+    try {
+      const o = parseColor(c);
+      // Strong color first; very dark and very light colors read as gray on screen.
+      const s = o.c * (o.l < 0.25 || o.l > 0.92 ? 0.3 : 1);
+      if (s > score) { score = s; best = c; }
+    } catch {
+      /* skip what doesn't parse */
+    }
+  }
+  return score > 0.04 ? best : null;
+}
+
 function siteNote(site: SiteMaterial): string {
   const font = site.fonts[0]?.split(",")[0]?.replace(/["']/g, "").trim();
   return [site.colors[0]?.hex, font, site.radius !== null ? `${site.radius}px corners` : "", site.dark ? "dark first" : ""].filter(Boolean).join(", ") || "What your site shows";
@@ -285,7 +410,7 @@ function siteNote(site: SiteMaterial): string {
 
 /** The options for a taste question, each drawn on the person's own system. */
 export function variants(session: Session, field: VariantField, opts: { mood?: string; seed?: number } = {}): Variant[] {
-  const list: { value: string | number; name: string; note: string; tag?: string; patch?: Partial<DesignPatch>; config: () => DesignConfig }[] = [];
+  const list: { value: string | number; name: string; note: string; tag?: string; scene?: string; patch?: Partial<DesignPatch>; config: () => DesignConfig }[] = [];
   const with_ = (patch: Partial<DesignPatch>) => () => applyPatch(session.config, patch);
   switch (field) {
     case "preset":
@@ -323,6 +448,14 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
       list.push({ value: "light", name: "Light first", note: "Loads light; dark mode is a toggle away.", config: with_({ defaultMode: "light" }) });
       list.push({ value: "dark", name: "Dark first", note: "Loads dark; light mode is opt-in.", config: with_({ defaultMode: "dark" }) });
       break;
+    case "kind":
+      for (const k of KINDS) {
+        list.push({ value: k.id, name: k.name, note: k.note, scene: k.scene, config: () => withDirection(session.config, directionFor(k.id, k.id === "consumer" ? session.vibe ?? "dreamy" : null)!) });
+      }
+      break;
+    case "vibe":
+      for (const v of VIBES) list.push({ value: v.id, name: v.name, note: v.note, scene: "moment", config: () => withDirection(session.config, directionFor("consumer", v.id)!) });
+      break;
     case "brand": {
       // The current color first, then colors from the person's material, then ready palettes.
       const current = session.config.color.brand;
@@ -345,7 +478,7 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
     }
   }
   return list.map((o) => {
-    const extra = { ...(o.tag ? { tag: o.tag } : {}), ...(o.patch ? { patch: o.patch } : {}) };
+    const extra = { ...(o.tag ? { tag: o.tag } : {}), ...(o.scene ? { scene: o.scene } : {}), ...(o.patch ? { patch: o.patch } : {}) };
     try {
       return { value: o.value, name: o.name, note: o.note, ...extra, specimen: specimen(o.config()) };
     } catch (err) {

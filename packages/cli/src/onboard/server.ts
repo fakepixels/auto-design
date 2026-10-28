@@ -43,8 +43,12 @@ import {
   commit,
   createSession,
   errorText,
+  KINDS,
+  VIBES,
   generateOptions,
   heuristicTexture,
+  productBrief,
+  setKind,
   setProduct,
   setSurfaces,
   siteSuggestion,
@@ -164,6 +168,8 @@ function view(s: Session) {
     copy: s.copy,
     history: s.history.map((h) => ({ label: h.label, changes: h.changes })),
     generated: s.generated.map((g) => ({ id: g.id, name: g.name, tag: g.tag })),
+    kind: s.kind,
+    vibe: s.vibe,
   };
 }
 
@@ -197,6 +203,8 @@ export async function runOnboard(opts: OnboardOptions) {
         mock ? [{ id: "mock", name: "Mock model", defaultModel: "mock", models: [{ id: "mock", label: "Mock model (offline)" }], keyHint: "anything", keyUrl: "", envVar: "", fromEnv: false, recommended: false }] as never[] : [],
       ),
       presets: Object.entries(presets).map(([id, p]) => ({ id, name: p.displayName, description: p.description })),
+      kinds: KINDS,
+      vibes: VIBES,
       textures: TEXTURE_INFO,
       motions: MOTION_INFO,
       surfacesInfo: Object.fromEntries(SURFACES.map((s) => [s, SURFACE_INFO[s]])),
@@ -230,6 +238,13 @@ export async function runOnboard(opts: OnboardOptions) {
 
     "POST /api/model/clear": () => {
       session.model = null;
+      return view(session);
+    },
+
+    "POST /api/kind": (b) => {
+      setKind(session, String(b.kind), b.vibe ? String(b.vibe) : null);
+      // Options made from the material follow the kind.
+      if (session.site || session.imageColors.length) generateOptions(session);
       return view(session);
     },
 
@@ -293,7 +308,7 @@ export async function runOnboard(opts: OnboardOptions) {
       const imageColors: string[] = (Array.isArray(b.colors) ? b.colors : []).map(String).filter((c: string) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6);
       const m = modelOrNull();
       if (m) {
-        const r = await suggest(m, { product: session.product.name, description: session.product.description, site: session.site, images, imageColors, current: session.config });
+        const r = await suggest(m, { product: session.product.name, description: productBrief(session), site: session.site, images, imageColors, current: session.config });
         addModelPick(session, r.config, r.reasons[0] ?? "");
         return { byModel: true, reasons: r.reasons, changes: r.changes, patch: r.patch, preview: specimen(r.config), ...view(session) };
       }
@@ -322,7 +337,7 @@ export async function runOnboard(opts: OnboardOptions) {
       const m = modelOrNull();
       if (m && !b.quick) {
         const earlier = session.history.filter((h) => h.label.startsWith("Asked: ")).map((h) => h.label.slice(7)).slice(-5);
-        const r = await refine(m, session.config, request, { product: session.product.name, description: session.product.description, earlier });
+        const r = await refine(m, session.config, request, { product: session.product.name, description: productBrief(session), earlier });
         commit(session, r.config, `Asked: ${request}`);
         return { summary: r.summary, changes: r.changes, ...view(session) };
       }

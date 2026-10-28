@@ -26,6 +26,12 @@ export interface SpecimenCopy {
   card: { title: string; body: string; metric: string };
   /** The one decision onboarding previews draw: a question, a reason and two answers. */
   decision?: { label: string; title: string; body: string; approve: string; decline: string; command: string };
+  /** A store's preview: one item in the bag and the way to check out. */
+  shop?: { item: string; variant: string; price: string; count: string; subtotal: string; checkout: string; note: string };
+  /** An agent's preview: the ask, the tool it ran and the approval it needs. */
+  agent?: { ask: string; tool: string; args: string; say: string; approve: string; decline: string };
+  /** A consumer app's preview: a line of invitation and one action. */
+  moment?: { title: string; body: string; cta: string; later: string };
 }
 
 export function defaultCopy(product = "Northwind", description = ""): SpecimenCopy {
@@ -83,6 +89,9 @@ export function defaultCopy(product = "Northwind", description = ""): SpecimenCo
       decline: "Not now",
       command: `${slug(name)} approve q4 --notify`,
     },
+    shop: { item: "Canvas tote", variant: "Natural · One size", price: "$48", count: "2", subtotal: "$96.00", checkout: "Check out", note: "Free shipping on this order" },
+    agent: { ask: "Send the October invoices", tool: "send_invoices", args: "3 clients", say: "Ready to send 3 invoices: $18,400.", approve: "Send them", decline: "Edit first" },
+    moment: { title: `New from ${name}`, body: "A small collection, picked for you.", cta: "Take a look", later: "Later" },
   };
 }
 
