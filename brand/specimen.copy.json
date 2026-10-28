@@ -1,0 +1,129 @@
+{
+  "product": "auto-design",
+  "headline": "Everything your team ships, in one place.",
+  "subhead": "auto-design gives your team one place to plan, track and share the work, so nothing slips between tools.",
+  "cta": "Start free trial",
+  "secondaryCta": "See how it works",
+  "note": "Free for 14 days. No card needed.",
+  "nav": [
+    "Overview",
+    "Projects",
+    "Reports",
+    "Team",
+    "Settings"
+  ],
+  "pageTitle": "October review",
+  "pageSummary": "38 projects updated this month. Three need a decision before Friday.",
+  "primaryAction": "Approve plan",
+  "done": "Plan approved",
+  "statusLabel": "In review",
+  "metrics": [
+    {
+      "label": "Active projects",
+      "value": "38"
+    },
+    {
+      "label": "On track",
+      "value": "92%"
+    },
+    {
+      "label": "Needs a decision",
+      "value": "3"
+    }
+  ],
+  "table": {
+    "columns": [
+      "Project",
+      "Owner",
+      "Budget",
+      "Status"
+    ],
+    "rows": [
+      {
+        "name": "Website refresh",
+        "detail": "Maya Chen",
+        "value": "$48,200",
+        "status": "review"
+      },
+      {
+        "name": "Mobile onboarding",
+        "detail": "Jonas Weber",
+        "value": "$31,750",
+        "status": "ok"
+      },
+      {
+        "name": "Billing migration",
+        "detail": "Priya Nair",
+        "value": "$92,400",
+        "status": "review"
+      },
+      {
+        "name": "Support playbooks",
+        "detail": "Leo Martins",
+        "value": "$12,900",
+        "status": "ok"
+      }
+    ]
+  },
+  "chat": {
+    "question": "Why is the billing migration over budget?",
+    "tool": "query_spend",
+    "toolArgs": "project: billing-migration, period: 2026-10",
+    "answer": "Most of the overage is one line item. Contractor hours rose from 120 to 210 after the data audit found two legacy systems nobody had listed.",
+    "followUp": "Everything else is within 4% of plan."
+  },
+  "code": {
+    "comment": "# Create a project from the command line",
+    "command": "auto-design projects create --name \"Website refresh\" --owner maya"
+  },
+  "sms": [
+    {
+      "from": "business",
+      "text": "auto-design: Your October report is ready. 3 projects need a decision this week."
+    },
+    {
+      "from": "customer",
+      "text": "Which ones?"
+    },
+    {
+      "from": "business",
+      "text": "Website refresh, Billing migration and Q4 hiring. Reply 1, 2 or 3 to open one."
+    }
+  ],
+  "card": {
+    "title": "October report",
+    "body": "3 projects need a decision",
+    "metric": "92% on track"
+  },
+  "decision": {
+    "label": "Q4 plan",
+    "title": "Approve the Q4 plan?",
+    "body": "Three projects need a decision by Friday.",
+    "approve": "Approve",
+    "decline": "Not now",
+    "command": "auto-design approve q4 --notify"
+  },
+  "shop": {
+    "item": "Canvas tote",
+    "variant": "Natural · One size",
+    "price": "$48",
+    "count": "2",
+    "subtotal": "$96.00",
+    "checkout": "Check out",
+    "note": "Free shipping on this order"
+  },
+  "agent": {
+    "ask": "Send the October invoices",
+    "tool": "send_invoices",
+    "args": "3 clients",
+    "say": "Ready to send 3 invoices: $18,400.",
+    "approve": "Send them",
+    "decline": "Edit first"
+  },
+  "moment": {
+    "title": "New from auto-design",
+    "body": "A small collection, picked for you.",
+    "cta": "Take a look",
+    "later": "Later"
+  }
+}

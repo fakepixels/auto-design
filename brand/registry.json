@@ -1,0 +1,287 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "auto-design",
+  "homepage": "",
+  "items": [
+    {
+      "name": "base",
+      "type": "registry:base",
+      "title": "auto-design base",
+      "description": "auto-design: tokens, locked Tailwind theme, DESIGN.md for agents and the guardrail config.",
+      "dependencies": [
+        "@fontsource-variable/inter",
+        "@fontsource-variable/jetbrains-mono",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "files": [
+        {
+          "path": "css/auto-design.css",
+          "type": "registry:file",
+          "target": "app/auto-design.css"
+        },
+        {
+          "path": "DESIGN.md",
+          "type": "registry:file",
+          "target": "DESIGN.md"
+        },
+        {
+          "path": "rules/guardrails.json",
+          "type": "registry:file",
+          "target": "auto-design.json"
+        }
+      ],
+      "css": {
+        "@import \"./auto-design.css\"": {}
+      },
+      "docs": "Import the fonts once in your root layout: import \"@fontsource-variable/inter\"; import \"@fontsource-variable/jetbrains-mono\";\nRemove any :root/.dark color variables and @theme keys left in your CSS from a template; `npx auto-design check` lists them.\nIf your Tailwind entry is not app/globals.css, move app/auto-design.css next to it."
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Buttons with one primary variant per view.",
+      "dependencies": [
+        "radix-ui",
+        "class-variance-authority"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Grouped content on the page.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Text input sized to match buttons.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Status and labels, always with text.",
+      "dependencies": [
+        "class-variance-authority"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "toaster",
+      "type": "registry:ui",
+      "title": "Toaster",
+      "description": "Toasts by Sonner, styled with system tokens.",
+      "dependencies": [
+        "sonner"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/toaster.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "message",
+      "type": "registry:ui",
+      "title": "Message",
+      "description": "Chat messages and tool-call rows for agent UI.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/message.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "title": "Label",
+      "description": "Form labels.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea",
+      "description": "Multi-line text input.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:ui",
+      "title": "Separator",
+      "description": "A hairline between groups.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:ui",
+      "title": "Skeleton",
+      "description": "Loading placeholders.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Data tables with tabular numbers.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Switch between views of the same thing.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "Modal dialogs that enter from the system's enter scale.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "title": "Switch",
+      "description": "On and off settings.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "People and workspaces.",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/avatar.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "code-block",
+      "type": "registry:ui",
+      "title": "Code block",
+      "description": "Syntax-highlighted code in the system's colors (Shiki, server-rendered).",
+      "dependencies": [
+        "shiki"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/code-block.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/lib/code-theme.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "motion",
+      "type": "registry:lib",
+      "title": "Motion",
+      "description": "Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/motion.ts",
+          "type": "registry:lib"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "toaster",
+  "type": "registry:ui",
+  "title": "Toaster",
+  "description": "Toasts by Sonner, styled with system tokens.",
+  "dependencies": [
+    "sonner"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/toaster.tsx",
+      "type": "registry:ui",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Toaster as Sonner, type ToasterProps } from \"sonner\";\n\n/** Toasts by Sonner (MIT, Emil Kowalski), styled with this system's tokens. */\nfunction Toaster(props: ToasterProps) {\n  return (\n    <Sonner\n      className=\"toaster group\"\n      style={\n        {\n          \"--normal-bg\": \"var(--popover)\",\n          \"--normal-text\": \"var(--popover-foreground)\",\n          \"--normal-border\": \"var(--border)\",\n          \"--border-radius\": \"var(--radius)\",\n        } as React.CSSProperties\n      }\n      toastOptions={{\n        classNames: {\n          toast: \"font-sans text-sm shadow-md\",\n          // Sonner colors descriptions for its own light theme; the system's role has to win in both modes.\n          description: \"text-muted-foreground!\",\n        },\n      }}\n      {...props}\n    />\n  );\n}\n\nexport { Toaster };\n"
+    }
+  ]
+}

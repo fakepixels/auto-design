@@ -1,0 +1,31 @@
+# auto-design design system
+
+> Turns a few taste choices into a design system repo with hard guardrails, so agents never go off-brand.
+
+Read DESIGN.md before writing any UI for this product. Install the system with `npx auto-design add <this site>/r/`
+and check work with `npx auto-design check`.
+
+## Docs
+
+- [DESIGN.md](DESIGN.md): every rule, role, scale and component, written for coding agents
+- [Registry](r/registry.json): shadcn registry items, installable one at a time
+
+## Components
+
+- [Button](r/button.json): Buttons with one primary variant per view.
+- [Card](r/card.json): Grouped content on the page.
+- [Input](r/input.json): Text input sized to match buttons.
+- [Badge](r/badge.json): Status and labels, always with text.
+- [Toaster](r/toaster.json): Toasts by Sonner, styled with system tokens.
+- [Message](r/message.json): Chat messages and tool-call rows for agent UI.
+- [Label](r/label.json): Form labels.
+- [Textarea](r/textarea.json): Multi-line text input.
+- [Separator](r/separator.json): A hairline between groups.
+- [Skeleton](r/skeleton.json): Loading placeholders.
+- [Table](r/table.json): Data tables with tabular numbers.
+- [Tabs](r/tabs.json): Switch between views of the same thing.
+- [Dialog](r/dialog.json): Modal dialogs that enter from the system's enter scale.
+- [Switch](r/switch.json): On and off settings.
+- [Avatar](r/avatar.json): People and workspaces.
+- [Code block](r/code-block.json): Syntax-highlighted code in the system's colors (Shiki, server-rendered).
+- [Motion](r/motion.json): Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.

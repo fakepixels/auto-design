@@ -13,7 +13,9 @@
     "dev": "auto-design dev --cwd examples/quiet-design --app examples/next-quiet",
     "video": "tsx scripts/video/make.mts",
     "video:capture": "tsx scripts/video/capture.mts",
-    "video:new": "tsx scripts/video/whats-new.mts"
+    "video:new": "tsx scripts/video/whats-new.mts",
+    "brand": "tsx scripts/brand.mts",
+    "landing": "tsx landing/build.mts"
   },
   "devDependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

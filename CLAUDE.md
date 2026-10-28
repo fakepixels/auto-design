@@ -36,6 +36,21 @@ user-facing story; this file is how to work on it.
   What's new, then short sections with two dark screenshots (`docs/onboarding.png`, the Kind step;
   `docs/site.png`, the Quiet site). `scripts/readme-shots.mts` re-shoots them. Keep it short: detail belongs
   on the design site and in this file, not in the README.
+- Landing page and auto-design's own system (October 28, 2026). Tina asked for an extremely minimal landing
+  page made with auto-design's own design system, from onboarding. `brand/` is that system: `npm run brand`
+  drives the real onboarding through its API (Developer tool, then the onboarding's own look: a paper brand
+  so the main action is the light pill on near-black, cool grays, minimal texture, Inter, 12px corners,
+  comfortable, subtle motion, dark first) and publishes without GitHub. `landing/` installed it with
+  `auto-design add` and is one TSX page (`src/page.tsx`): header, headline, one line, two buttons, the
+  product film in a frame, three commands in a terminal block, footer. `npm run landing` prerenders it into
+  `landing/dist/` with self-hosted fonts; `npx auto-design check --cwd landing` passes with 0 warnings (the
+  checker turned down the onboarding's gradient headings, so the headline is solid). Its og image comes from
+  `auto-design card`. Not hosted yet: Tina to choose where (GitHub Pages, Vercel or a domain); then set
+  `LANDING_URL` for an absolute og:image. Next for dogfooding: build the onboarding's chrome from `brand/`.
+- Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
+  so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
+  sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
+  of the grays in whichever mode it can't be seen.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
   foundation, a page per component with live examples, search, light and dark, phone layouts; team pages
   from `docs/`. Onboarding ends on it (`/site/` in the onboarding server), the studio serves it at
@@ -160,6 +175,8 @@ user-facing story; this file is how to work on it.
 | `packages/eslint-plugin`, `packages/stylelint-plugin` | The checker inside editors |
 | `examples/quiet-design` | A generated system repo (Quiet preset) |
 | `examples/next-quiet` | A Next.js app with that system installed. Not a workspace: it has its own `npm install` |
+| `brand/` | auto-design's own design system, made through onboarding by `scripts/brand.mts`. Edit the choices there (`BRAND`) and re-run, not the folder |
+| `landing/` | auto-design's landing page, with `brand/` installed by `add`: `src/page.tsx` is the page, `build.mts` writes `dist/` (ignored) |
 | `video/` | The README's product film, a HyperFrames project: `index.html` mounts `compositions/rebuild.html`, `proof.html` and `end.html`; `lib/` holds the chrome and helpers; `SPEC.md`, `STORYLINES.md` and `REVIEW.md` are its brief, options and last review. `video/whats-new/` is the per-update clip, with one JSON per update in `entries/`. `assets/capture/` and `renders/` are made by the scripts and ignored |
 
 ## Invariants
@@ -204,6 +221,8 @@ npx tsx scripts/readme-shots.mts [dir]                                        # 
 npm run video                    # capture, render and put the product film in the README (skips when unchanged)
 npm run video -- --force         # render the film even when nothing it shows changed
 npm run video:new -- video/whats-new/entries/<date>-<name>.json   # a What's new clip and the README list
+npm run brand                    # remake brand/ through onboarding, then: npx auto-design add brand --cwd landing --components button,code-block --no-install --no-mcp
+npm run landing                  # build the landing page into landing/dist/; check it with npx auto-design check --cwd landing
 ```
 
 To add a typeface, add a line to `scripts/fonts/curate.py` (style, roles, a one-line note), fetch, then gen.

@@ -1,0 +1,9 @@
+{
+  "name": "auto-design-landing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx build.mts",
+    "check": "auto-design check"
+  }
+}
