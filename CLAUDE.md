@@ -113,6 +113,9 @@ user-facing story; this file is how to work on it.
   step opens on ready palettes (`PALETTES`, the current color, site and image colors; Shuffle nudges them) above
   the picker. The picker area runs gray to the strongest in-gamut color per row, so it no longer shows an
   out-of-gamut hatch. The latest Review change has an Undo button, and the top bar's Undo has an icon.
+  Tina then called "Step 1 of 12" tacky; the top bar shows a 168px hairline instead that fills toward the
+  current step with a faint gradient and a soft glow at its tip (the step number stays in its title and
+  aria attributes).
 
 ## Layout
 

@@ -71,6 +71,10 @@
     --bring-glow: rgb(0 0 0 / 0);
     --beam: rgb(0 0 0 / .045);
     --beam-line: rgb(0 0 0 / .35);
+    --prog-track: rgb(0 0 0 / .07);
+    --prog-a: rgb(0 0 0 / .08);
+    --prog-b: rgb(0 0 0 / .62);
+    --prog-tip: rgb(0 0 0 / .28);
     --title: linear-gradient(180deg, #4a4a52 0%, #111113 62%);
     --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
     --seg-thumb: linear-gradient(180deg, #ffffff, #f2f2f4);
@@ -141,6 +145,10 @@
       --bring-glow: rgb(255 255 255 / .045);
       --beam: rgb(255 255 255 / .06);
       --beam-line: rgb(255 255 255 / .55);
+      --prog-track: rgb(255 255 255 / .07);
+      --prog-a: rgb(255 255 255 / .1);
+      --prog-b: rgb(255 255 255 / .78);
+      --prog-tip: rgb(255 255 255 / .9);
       --title: linear-gradient(180deg, #ffffff 30%, #a8a8b0 120%);
       --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%230b0b0c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 8.2 2.3 2.3 4.7-5'/%3E%3C/svg%3E");
       --seg-thumb: linear-gradient(180deg, rgb(255 255 255 / .17), rgb(255 255 255 / .07));
@@ -190,10 +198,13 @@
     background: linear-gradient(180deg, color-mix(in srgb, var(--mat) 92%, transparent), color-mix(in srgb, var(--mat) 70%, transparent));
     -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
   }
-  .crumb { color: var(--faint); white-space: nowrap; }
+  .crumb { display: flex; align-items: center; gap: 16px; color: var(--faint); white-space: nowrap; }
   .crumb b { color: var(--muted); font-weight: 500; }
   .crumb b:empty { display: none; }
-  .crumb b:not(:empty) + span::before { content: " · "; }
+  /* Progress: a hairline that fills toward the current step, brightening at its leading edge. */
+  .progress { position: relative; width: 168px; height: 2px; border-radius: 999px; background: var(--prog-track); }
+  .progress i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); border-radius: inherit; background: linear-gradient(90deg, var(--prog-a), var(--prog-b)); transition: width 700ms var(--ease); }
+  .progress i::after { content: ""; position: absolute; right: -3px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--prog-tip); filter: blur(2.5px); }
   .actions .status { color: var(--muted); font-size: 13px; margin: 0 8px 0 auto; text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .actions .status.err { color: var(--err); }
   .step { flex: 1; padding: 28px 56px 88px 48px; max-width: 1360px; width: 100%; }
@@ -594,7 +605,7 @@
   </nav>
   <div class="stage">
     <header class="actions">
-      <span class="crumb"><b id="bar-product"></b><span id="step-count"></span></span>
+      <span class="crumb"><b id="bar-product"></b><span class="progress" id="progress" role="progressbar" aria-valuemin="1"><i></i></span></span>
       <span class="status" id="status" role="status" aria-live="polite"></span>
       <button class="ghost-btn" id="undo" hidden title="Undo the last change (⌘Z)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Undo</button>
       <button class="btn line" id="back">Back</button>
@@ -1542,7 +1553,12 @@
       head.append(seg);
     }
     root.append(head);
-    $("#step-count").textContent = `Step ${app.step + 1} of ${STEPS.length}`;
+    const prog = $("#progress");
+    prog.style.setProperty("--p", String((app.step + 1) / STEPS.length));
+    prog.setAttribute("aria-valuenow", String(app.step + 1));
+    prog.setAttribute("aria-valuemax", String(STEPS.length));
+    prog.setAttribute("aria-valuetext", `Step ${app.step + 1} of ${STEPS.length}: ${st.rail}`);
+    prog.title = `Step ${app.step + 1} of ${STEPS.length}`;
     const body = document.createElement("div");
     root.append(body);
     st.render(body);
