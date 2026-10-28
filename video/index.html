@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <!-- Made fresh by scripts/video/capture.mts: the product's renderer, its specimens, fonts and footage. -->
+    <script src="assets/capture/gsap.min.js"></script>
+    <link rel="stylesheet" href="assets/capture/fonts.css" />
+    <link rel="stylesheet" href="assets/capture/renderer.css" />
+    <link rel="stylesheet" href="lib/film.css" />
+    <script src="assets/capture/renderer.js"></script>
+    <script src="assets/capture/data.js"></script>
+    <script src="lib/film.js"></script>
+    <style>
+      @font-face { font-family: "Inter Variable"; font-style: normal; font-weight: 100 900; font-display: block; src: url("assets/capture/fonts/inter-latin-wght-normal.woff2") format("woff2-variations"); }
+      @font-face { font-family: "Geist Mono Variable"; font-style: normal; font-weight: 100 900; font-display: block; src: url("assets/capture/fonts/geist-mono-latin-wght-normal.woff2") format("woff2-variations"); }
+      #root { position: relative; width: 1920px; height: 1080px; background: #08080a; }
+      /* Each scene is its own stacking context, so a z-index inside one never paints over the next. */
+      #rebuild, #proof, #end { isolation: isolate; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34" data-width="1920" data-height="1080" data-motion-blur="on">
+      <!-- 0 to 18.5 s: one card re-skinned by each choice, then split into the whole system. -->
+      <div id="rebuild" data-composition-id="rebuild" data-composition-src="compositions/rebuild.html" data-start="0" data-duration="18.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 1"></div>
+      <!-- 17.8 to 28.5 s: the published system's design site, then its own brand animation. -->
+      <div id="proof" data-composition-id="proof" data-composition-src="compositions/proof.html" data-start="17.8" data-duration="10.7" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 2"></div>
+      <!-- 28.5 to 34 s: the claim, the mark and the command. -->
+      <div id="end" data-composition-id="end" data-composition-src="compositions/end.html" data-start="28.5" data-duration="5.5" data-track-index="3" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+    </div>
+    <script>
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-28",
+  "title": "A Kind step",
+  "line": "Say what you're making, from a store to an AI agent to a consumer app with a vibe, and every preview follows.",
+  "shots": [
+    { "step": "kind", "click": ".proofs[data-field=\"kind\"] .proof[data-value=\"consumer\"]", "focus": "#vibe-grid" },
+    { "step": "start", "focus": "#start-grid" }
+  ]
+}

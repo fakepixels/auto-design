@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <!-- A 14.6 s "What's new" clip. scripts/video/whats-new.mts fills assets/capture/ with real onboarding
+         screenshots (before and after a click) and the entry's words, then renders this. -->
+    <script src="assets/capture/gsap.min.js"></script>
+    <link rel="stylesheet" href="assets/capture/film.css" />
+    <script src="assets/capture/new.js"></script>
+    <style>
+      @font-face { font-family: "Inter Variable"; font-style: normal; font-weight: 100 900; font-display: block; src: url("assets/capture/fonts/inter-latin-wght-normal.woff2") format("woff2-variations"); }
+      @font-face { font-family: "Geist Mono Variable"; font-style: normal; font-weight: 100 900; font-display: block; src: url("assets/capture/fonts/geist-mono-latin-wght-normal.woff2") format("woff2-variations"); }
+      #root { position: relative; width: 1920px; height: 1080px; background: #08080a; overflow: hidden; }
+      #wn-stage { position: absolute; inset: 0; }
+
+      /* The title card: what changed, in the gallery's title treatment. */
+      #wn-title { position: absolute; left: 200px; top: 0; width: 1520px; height: 1080px; display: flex; flex-direction: column; justify-content: center; }
+      #wn-kicker { font-size: 30px; font-weight: 500; color: var(--muted); letter-spacing: -0.01em; }
+      #wn-h { margin-top: 18px; font-size: 104px; line-height: 1.04; font-weight: 600; letter-spacing: -0.045em; }
+      #wn-line { margin-top: 26px; max-width: 1240px; font-size: 38px; line-height: 1.32; color: var(--muted); letter-spacing: -0.012em; }
+      #wn-title span { display: inline-block; }
+      #wn-h span { background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 8px; }
+      #wn-kicker span, #wn-h span, #wn-line span { opacity: 0; }
+
+      /* The screens: real onboarding at 0.75, in the gallery's graphite frame. */
+      #wn-label { position: absolute; left: 236px; top: 74px; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; opacity: 0; }
+      #wn-label span { background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      #wn-frame { left: 226px; top: 150px; width: 1468px; height: 838px; padding: 14px; border-radius: 40px; opacity: 0; }
+      #wn-frame .view { border-radius: 27px; background: #08080a; }
+      .wn-cam { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; opacity: 0; }
+      .wn-cam img { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; display: block; }
+      .wn-cam img + img { opacity: 0; }
+
+      /* The end: the mark, the name and the command. */
+      #wn-lockup { position: absolute; left: 0; top: 404px; width: 1920px; display: flex; justify-content: center; align-items: center; gap: 30px; }
+      #wn-mark { position: relative; width: 104px; height: 104px; border-radius: 26px; flex: none; opacity: 0; background: #17181a; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .12), inset 0 1px 0 rgb(255 255 255 / .1), 0 18px 44px -26px rgb(0 0 0 / .9); }
+      #wn-dot { position: absolute; left: 29.25px; top: 29.25px; width: 45.5px; height: 45.5px; border-radius: 50%; background: #fff; opacity: 0; }
+      #wn-word { clip-path: inset(0% 100% 0% 0%); font-size: 92px; line-height: 1; font-weight: 600; letter-spacing: -0.045em; padding-bottom: 10px; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      #wn-cmd { position: absolute; left: 0; top: 590px; width: 1920px; display: flex; justify-content: center; opacity: 0; }
+      #wn-cmd code { display: inline-flex; align-items: center; gap: 18px; height: 84px; padding: 0 40px; border-radius: 999px; font: 500 36px/1 var(--mono); color: var(--ink);
+        background: linear-gradient(180deg, rgb(255 255 255 / .07), rgb(255 255 255 / .025)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .1), 0 18px 44px -26px rgb(0 0 0 / .9); }
+      #wn-cmd code i { font-style: normal; color: var(--faint); }
+      #wn-cursor { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="14.6" data-width="1920" data-height="1080">
+      <div id="wn-ground" class="ground clip" data-start="0" data-duration="14.6" data-track-index="0"></div>
+      <div id="wn-stage" class="clip" data-start="0" data-duration="14.6" data-track-index="1" data-layout-allow-overlap>
+        <div id="wn-title"><p id="wn-kicker"></p><h1 id="wn-h"></h1><p id="wn-line"></p></div>
+        <p id="wn-label"></p>
+        <div id="wn-frame" class="frame">
+          <div class="view">
+            <div id="wn-cam0" class="wn-cam">
+              <img id="wn-s0a" class="clip" data-start="0" data-duration="14.6" data-track-index="2" src="assets/capture/shot-0a.png" alt="" />
+              <img id="wn-s0b" class="clip" data-start="0" data-duration="14.6" data-track-index="3" src="assets/capture/shot-0b.png" alt="" />
+            </div>
+            <div id="wn-cam1" class="wn-cam">
+              <img id="wn-s1a" class="clip" data-start="0" data-duration="14.6" data-track-index="4" src="assets/capture/shot-1a.png" alt="" />
+              <img id="wn-s1b" class="clip" data-start="0" data-duration="14.6" data-track-index="5" src="assets/capture/shot-1b.png" alt="" />
+            </div>
+          </div>
+        </div>
+        <div id="wn-lockup"><div id="wn-mark"><i id="wn-dot"></i></div><span id="wn-word">auto-design</span></div>
+        <div id="wn-cmd"><code><i>$</i>npx auto-design init</code></div>
+        <div id="wn-cursor" class="cursor"></div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const N = window.__NEW;
+        const $ = (s) => document.querySelector(s);
+        const spans = (el, text) => { el.innerHTML = text.split(/\s+/).map((w) => "<span>" + w.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]) + "</span>").join(" "); return [...el.querySelectorAll("span")]; };
+        const kicker = spans($("#wn-kicker"), "What's new · " + N.dateLabel);
+        const head = spans($("#wn-h"), N.title);
+        const line = spans($("#wn-line"), N.line);
+        spans($("#wn-label"), N.title);
+        $("#wn-cursor").innerHTML = '<svg viewBox="0 0 46 58" aria-hidden="true"><path d="M3 2.5 L3 46 L14.5 35.2 L22.2 53 L30.6 49.4 L23 31.9 L39 31.6 Z" fill="#fff" stroke="#0b0b0c" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+
+        const tl = gsap.timeline({ paused: true });
+        const ft = (el, from, to, t) => tl.fromTo(el, from, Object.assign({ immediateRender: false }, to), t);
+        const K = 1440 / 1920, VX = 240, VY = 164; // screen pixels to view pixels, and the view's place on stage
+
+        // 0 to 2.8: the title card, word by word.
+        kicker.forEach((w, i) => ft(w, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 0.05 + i * 0.05));
+        head.forEach((w, i) => ft(w, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power2.out" }, 0.25 + i * 0.08));
+        line.forEach((w, i) => ft(w, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "power2.out" }, 0.6 + i * 0.03));
+        [...kicker, ...head, ...line].forEach((w, i) => ft(w, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(6px)", duration: 0.14, ease: "power2.in" }, 2.5 + Math.min(i, 12) * 0.012));
+
+        // 2.8 to 12.0: the screens. Each one: the click (when there is one), then a push to what changed.
+        const shots = N.shots.slice(0, 2);
+        const D = 9.2 / shots.length;
+        ft($("#wn-frame"), { opacity: 0, scale: 0.97 }, { opacity: 1, scale: 1, duration: 0.6, ease: "expo.out" }, 2.84);
+        ft($("#wn-label"), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" }, 3.0);
+        const cur = $("#wn-cursor"), arrow = cur.querySelector("svg");
+        let cx = 1990, cy = 1120, shown = false;
+        shots.forEach((s, i) => {
+          const T = 2.8 + i * D, cam = $("#wn-cam" + i), a = $(`#wn-s${i}a`), b = $(`#wn-s${i}b`);
+          if (i === 0) ft(cam, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 2.84);
+          else {
+            const prev = $("#wn-cam" + (i - 1));
+            ft(prev, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.16, ease: "power2.in" }, T - 0.1);
+            ft(cam, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power2.out" }, T);
+          }
+          let pushAt = T + 0.6;
+          if (s.click) {
+            const x = VX + s.click.cx * K, y = VY + s.click.cy * K;
+            if (!shown) { ft(cur, { opacity: 0 }, { opacity: 1, duration: 0.01 }, T + 0.3); shown = true; }
+            ft(cur, { x: cx, y: cy }, { x, y, duration: 0.6, ease: "power2.inOut" }, T + 0.3); cx = x; cy = y;
+            ft(arrow, { scale: 1 }, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "3px 3px" }, T + 0.92);
+            ft(arrow, { scale: 0.86 }, { scale: 1, duration: 0.14, ease: "power2.out", transformOrigin: "3px 3px" }, T + 1.0);
+            ft(a, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(6px)", duration: 0.14, ease: "power2.in" }, T + 0.94);
+            ft(b, { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power2.out" }, T + 1.02);
+            ft(cur, { x: cx, y: cy }, { x: 2000, y: 1180, duration: 0.5, ease: "power2.in" }, T + 1.4); cx = 2000; cy = 1180;
+            pushAt = T + 1.7;
+          }
+          if (s.focus) {
+            const fx = s.focus.x * K, fy = s.focus.y * K, fw = s.focus.w * K, fh = s.focus.h * K;
+            const k = Math.max(1, Math.min(2, (0.84 * 1440) / fw, (0.84 * 810) / fh));
+            const tx = Math.min(0, Math.max(1440 - 1440 * k, 720 - (fx + fw / 2) * k));
+            const ty = Math.min(0, Math.max(810 - 810 * k, 405 - (fy + fh / 2) * k));
+            ft(cam, { x: 0, y: 0, scale: 1 }, { x: tx, y: ty, scale: k, transformOrigin: "0 0", duration: 0.8, ease: "power2.inOut" }, pushAt);
+          }
+        });
+
+        // 12.0 to 14.6: the mark, the name and the command, held 2 s.
+        ft($("#wn-frame"), { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in" }, 11.95);
+        ft($("#wn-label"), { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power2.in" }, 11.95);
+        ft($("#wn-mark"), { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 12.25);
+        ft($("#wn-dot"), { opacity: 1, scale: 0 }, { opacity: 1, scale: 1, duration: 0.42, ease: "expo.out" }, 12.4);
+        ft($("#wn-word"), { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.46, ease: "power2.inOut" }, 12.42);
+        ft($("#wn-cmd"), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, 12.58);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

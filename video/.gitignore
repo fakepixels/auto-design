@@ -1,0 +1,7 @@
+# Made by the scripts on every run; the outputs that matter land in docs/media/.
+assets/capture/
+renders/
+.hyperframes/
+whats-new/assets/capture/
+whats-new/renders/
+whats-new/.hyperframes/

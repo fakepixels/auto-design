@@ -1,0 +1,64 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+    /* The camera: the site at 1:1 in film pixels; it pans and zooms, the media inside never moves itself. */
+    #pf-world { position: absolute; inset: 0; }
+    #pf-cam { position: absolute; left: 0; top: 0; width: 1920px; }
+    #pf-site { position: absolute; left: 0; top: 0; width: 1920px; display: block; }
+    #pf-player { position: absolute; overflow: hidden; border-radius: 12px; opacity: 0; }
+    #pf-brand { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+    #pf-flood { position: absolute; inset: 0; background: #08080a; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="proof" data-width="1920" data-height="1080">
+    <div id="pf-world" data-layout-ignore data-motion-blur="off">
+      <div id="pf-cam">
+        <img id="pf-site" class="clip" decoding="sync" src="assets/capture/site.png" alt="The Moonbeam design site" data-start="0" data-duration="10.7" data-track-index="0" />
+        <div id="pf-player">
+          <video id="pf-brand" class="clip" src="assets/capture/brand.mp4" data-start="3.9" data-duration="6.8" data-media-start="0" data-hf-media-start-basis="local" data-track-index="1" muted playsinline></video>
+        </div>
+      </div>
+    </div>
+    <div id="pf-flood" class="clip" data-start="0" data-duration="10.7" data-track-index="2"></div>
+  </div>
+  <script>
+    (function () {
+      const C = window.FILM.C;
+      const $ = (s) => document.querySelector(s);
+      const p = C.site.player || { x: 344, y: 1612, w: 880, h: 496 };
+      Object.assign($("#pf-player").style, { left: p.x + "px", top: p.y + "px", width: p.w + "px", height: p.h + "px" });
+      $("#pf-site").style.height = C.site.height + "px";
+      // Decode the large screenshot before the first frame, so no frame catches it half-decoded.
+      const ready = $("#pf-site").decode ? $("#pf-site").decode().catch(() => {}) : Promise.resolve();
+      ready.then(build);
+
+      function build() {
+      const tl = gsap.timeline({ paused: true });
+      const ft = (el, from, to, t) => tl.fromTo(el, from, Object.assign({ immediateRender: false }, to), t);
+      const cam = $("#pf-cam");
+
+      // The site at 1.5x: its content column fills the frame (the screenshot is 2x, so it stays sharp).
+      const S0 = 1.5, X0 = -320 * S0;
+      const comps = Math.min(C.site.height - 1080 / S0, 560);
+      const pcx = p.x + p.w / 2, pcy = p.y + p.h / 2;
+      // Arrive: the site sharpens in while the card behind it is still growing.
+      // Fade the image itself, not its wrapper: Chrome drops a translucent group this large for a few
+      // frames, and the site would blink out mid-fade. No blur for the same reason.
+      ft($("#pf-site"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0);
+      ft(cam, { scale: S0 * 1.06, x: X0 * 1.06 - 40, y: -20 }, { scale: S0, x: X0, y: 0, transformOrigin: "0 0", duration: 0.7, ease: "expo.out" }, 0);
+      // Down to the components, hold, then over to the player.
+      ft(cam, { y: 0 }, { y: -comps * S0, duration: 0.85, ease: "power2.inOut" }, 1.75);
+      ft(cam, { x: X0, y: -comps * S0 }, { x: 960 - pcx * S0, y: 540 - pcy * S0, duration: 0.8, ease: "power2.inOut" }, 3.3);
+      // The player starts playing in place, then the camera goes through it until the film fills the frame.
+      ft($("#pf-player"), { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 3.9);
+      const s = 1920 / p.w;
+      ft(cam, { x: 960 - pcx * S0, y: 540 - pcy * S0, scale: S0 }, { x: 960 - pcx * s, y: 540 - pcy * s, scale: s, transformOrigin: "0 0", duration: 0.7, ease: "power3.inOut" }, 4.35);
+      ft($("#pf-player"), { borderRadius: "12px" }, { borderRadius: "0px", duration: 0.7, ease: "power3.inOut" }, 4.35);
+      // Out: the ground floods back to the gallery's near black while the film blurs away.
+      ft(cam, { opacity: 1 }, { opacity: 0.6, duration: 0.42, ease: "power2.in" }, 10.24);
+      ft($("#pf-flood"), { opacity: 0 }, { opacity: 1, duration: 0.42, ease: "power2.inOut" }, 10.25);
+
+      window.__timelines["proof"] = tl;
+      }
+    })();
+  </script>
+</template>

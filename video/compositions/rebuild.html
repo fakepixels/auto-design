@@ -1,0 +1,280 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+    #rb-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+
+    /* Questions sit over the options; the motion question is centered over the card. */
+    #rb-q1, #rb-q2, #rb-q3, #rb-q4 { left: 1072px; top: 190px; }
+    #rb-q5 { left: 0; top: 104px; width: 1920px; text-align: center; }
+    #rb-q2, #rb-q3, #rb-q4, #rb-q5 { opacity: 0; }
+
+    /* The hero: the chosen preview at 2.45x, a 350 x 276 tile drawn 858 x 676. */
+    #rb-hero { left: 110px; top: 190px; width: 882px; height: 700px; z-index: 5; }
+    #rb-hero .layer + .layer { opacity: 0; }
+
+    /* Option grids. Cards are placed by the script from the grid's columns. */
+    #rb-vibes .opt, #rb-palettes .pal, #rb-types .opt { opacity: 0; }
+
+    /* The system's surfaces, around the card once it splits. */
+    #rb-surfaces .frame { opacity: 0; border-radius: 30px; padding: 8px; }
+    #rb-surfaces .frame .view { border-radius: 23px; }
+
+    #rb-cursor { z-index: 60; }
+    #rb-types .opt .meta b { font-size: 21px; }
+  </style>
+  <div id="root" data-composition-id="rebuild" data-width="1920" data-height="1080">
+    <div id="rb-ground" class="ground clip" data-start="0" data-duration="18.5" data-track-index="0"></div>
+    <div id="rb-stage" class="clip" data-start="0" data-duration="18.5" data-track-index="1" data-layout-allow-overlap>
+      <h2 id="rb-q1" class="q">What kind of product is it?</h2>
+      <h2 id="rb-q2" class="q">Pick a vibe</h2>
+      <h2 id="rb-q3" class="q">Choose a brand color</h2>
+      <h2 id="rb-q4" class="q">Choose type</h2>
+      <h2 id="rb-q5" class="q">Choose motion</h2>
+
+      <div id="rb-kinds"></div>
+      <div id="rb-vibes"></div>
+      <div id="rb-palettes"></div>
+      <div id="rb-types"></div>
+
+      <div id="rb-surfaces">
+        <div id="rb-s-app" class="frame"><div class="view"></div></div>
+        <div id="rb-s-chat" class="frame"><div class="view"></div></div>
+        <div id="rb-s-code" class="frame"><div class="view"></div></div>
+        <div id="rb-s-hero" class="frame"><div class="view"></div></div>
+        <div id="rb-s-mcp" class="frame"><div class="view"></div></div>
+        <div id="rb-s-sms" class="frame"><div class="view"></div></div>
+      </div>
+
+      <!-- Out of the motion-blur pass: blurred movers are composited on top, which would hide the site arriving over this card. -->
+      <div id="rb-hero" class="frame" data-motion-blur="off">
+        <div class="view">
+          <div id="rb-l-start" class="layer"></div>
+          <div id="rb-l-kind" class="layer"></div>
+          <div id="rb-l-v0" class="layer"></div>
+          <div id="rb-l-v1" class="layer"></div>
+          <div id="rb-l-v2" class="layer"></div>
+          <div id="rb-l-v3" class="layer"></div>
+          <div id="rb-l-color" class="layer"></div>
+          <div id="rb-l-type" class="layer"></div>
+        </div>
+      </div>
+
+      <div id="rb-cursor" class="cursor"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const F = window.FILM, C = F.C;
+      const $ = (s) => document.querySelector(s);
+      const stage = $("#rb-stage");
+      const ui = C.final.copy;
+
+      // ---- Draw: every preview is the product's renderer on a captured specimen. ----
+      const HERO_ZOOM = 2.45;
+      const layers = { "rb-l-start": [C.start.specimen, "object"], "rb-l-kind": [C.kinded.specimen, "moment"], "rb-l-color": [C.colored.specimen, "moment"], "rb-l-type": [C.typed.specimen, "moment"] };
+      C.vibeStates.forEach((v, i) => (layers["rb-l-v" + i] = [v.specimen, "moment"]));
+      for (const id in layers) F.tile($("#" + id), layers[id][0], layers[id][1], { zoom: HERO_ZOOM, copy: ui });
+
+      /** Lay out cards in a grid in the right column and draw each option's preview. */
+      const COL_X = 1072, COL_W = 740, TOP = 290, GAP = 16;
+      function grid(parent, list, cols, viewH, zoom, scene, prefix) {
+        const w = (COL_W - GAP * (cols - 1)) / cols;
+        return list.map((v, i) => {
+          const card = document.createElement("div");
+          card.className = "opt";
+          card.id = prefix + i;
+          card.style.left = COL_X + (i % cols) * (w + GAP) + "px";
+          card.style.top = TOP + Math.floor(i / cols) * (viewH + 14 + 51 + GAP) + "px";
+          card.style.width = w + "px";
+          card.innerHTML = '<div class="view" style="height:' + viewH + 'px"></div><div class="meta"><b></b><span class="tick"><i></i></span></div><i class="ring"></i>';
+          card.querySelector("b").textContent = v.name;
+          parent.appendChild(card);
+          F.tile(card.querySelector(".view"), v.specimen, v.scene || scene, { zoom, copy: ui });
+          return card;
+        });
+      }
+      const kinds = grid($("#rb-kinds"), C.kinds, 3, 170, 0.653, "object", "rb-k");
+      const vibes = grid($("#rb-vibes"), C.vibeRow, 2, 230, 1.024, "moment", "rb-v");
+      const types = grid($("#rb-types"), C.pairingRow, 2, 200, 1.0, "typeface", "rb-t");
+
+      const pals = C.palettes.map((p, i) => {
+        const el = document.createElement("div");
+        el.className = "pal";
+        el.id = "rb-p" + i;
+        const w = (COL_W - GAP * 2) / 3;
+        el.style.left = COL_X + (i % 3) * (w + GAP) + "px";
+        el.style.top = TOP + Math.floor(i / 3) * (128 + GAP) + "px";
+        el.style.width = w + "px";
+        el.innerHTML = '<span class="strip">' + p.strip.map((c, j) => '<i' + (j === 2 ? ' class="seed"' : "") + ' style="background:' + c + '"></i>').join("") + '</span><span class="pm"><b></b><small></small></span><i class="ring"></i>';
+        el.querySelector("b").textContent = p.name;
+        el.querySelector("small").textContent = p.hex;
+        $("#rb-palettes").appendChild(el);
+        return el;
+      });
+
+      // The six surfaces, around the card's slot in the middle.
+      const SURF = [
+        ["#rb-s-app", "app", "m", 96, 72, 560, 540],
+        ["#rb-s-chat", "chat", "m", 96, 632, 560, 376],
+        ["#rb-s-code", "code", "s", 696, 72, 528, 238],
+        ["#rb-s-hero", "hero", "s", 1264, 72, 560, 540],
+        ["#rb-s-mcp", "mcp", "s", 1264, 632, 560, 376],
+        ["#rb-s-sms", "sms", "s", 696, 770, 528, 238],
+      ];
+      const surfs = SURF.map(([sel, scene, size, x, y, w, h]) => {
+        const el = $(sel);
+        Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
+        F.tile(el.querySelector(".view"), C.final.specimen, scene, { size, copy: ui });
+        return el;
+      });
+
+      $("#rb-cursor").innerHTML = F.CURSOR;
+
+      // ---- Measure once, before any tween. ----
+      const idx = (list, value) => Math.max(0, list.findIndex((v) => v.value === value));
+      const kPick = kinds[idx(C.kinds, C.film.kind)];
+      const vIdx = C.film.vibes.map((v) => idx(C.vibeRow, v));
+      const pPick = pals[idx(C.palettes, C.film.palette)];
+      const tFrom = types[idx(C.pairingRow, C.film.pairings[0])];
+      const tPick = types[idx(C.pairingRow, C.film.pairing)];
+      const B = (el) => F.box(el, stage);
+      const heroBox = B($("#rb-hero"));
+      const colorLayer = B($("#rb-l-color"));
+      const btn = B($("#rb-l-type .sp-ob-pri"));
+      const motion = C.typed.specimen.motion;
+
+      const tl = gsap.timeline({ paused: true });
+      const ft = (el, from, to, t) => tl.fromTo(el, from, Object.assign({ immediateRender: false }, to), t);
+      const words = {};
+      ["#rb-q1", "#rb-q2", "#rb-q3", "#rb-q4", "#rb-q5"].forEach((s) => (words[s] = F.words($(s))));
+
+      // The cursor: travels with a long ease, presses on the click.
+      const cur = $("#rb-cursor"), arrow = cur.querySelector("svg");
+      let cx = 1990, cy = 1120;
+      const move = (x, y, t, d) => { ft(cur, { x: cx, y: cy }, { x, y, duration: d, ease: "power2.inOut" }, t); cx = x; cy = y; };
+      const to = (el, t, d, dx = 0, dy = 0) => { const b = B(el); move(b.cx + dx, b.cy + dy, t, d); };
+      const press = (t) => {
+        ft(arrow, { scale: 1 }, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "3px 3px" }, t);
+        ft(arrow, { scale: 0.86 }, { scale: 1, duration: 0.14, ease: "power2.out", transformOrigin: "3px 3px" }, t + 0.08);
+      };
+      // A card answers a click the way the onboarding does: a small press, then its ring and tick.
+      const pick = (card, t) => {
+        ft(card, { scale: 1 }, { scale: 0.985, duration: 0.08, ease: "power2.out" }, t);
+        ft(card, { scale: 0.985 }, { scale: 1, duration: 0.26, ease: "expo.out" }, t + 0.08);
+        ring(card, t, true);
+      };
+      const ring = (card, t, on, d) => {
+        const r = card.querySelector(".ring"), tick = card.querySelector(".tick i");
+        ft(r, { opacity: on ? 0 : 1 }, { opacity: on ? 1 : 0, duration: d ?? (on ? 0.48 : 0.2), ease: "power2.out" }, t);
+        if (tick) ft(tick, on ? { opacity: 0, scale: 0.6 } : { opacity: 1, scale: 1 }, on ? { opacity: 1, scale: 1, duration: d ?? 0.36, ease: "expo.out" } : { opacity: 0, scale: 1, duration: d ?? 0.2 }, t);
+      };
+      // The hero changes in place: a blur swap, or an iris from the click.
+      const swap = (a, b, t, d = 0.16) => {
+        ft(a, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: d, ease: "power2.in" }, t);
+        ft(b, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: d, ease: "power2.out" }, t + d * 0.6);
+      };
+      const wordsIn = (s, t, kind) => words[s].forEach((w, i) => {
+        if (kind === "ink") ft(w, { opacity: 0.18 }, { opacity: 1, duration: 0.22, ease: "power2.out" }, t + i * 0.085);
+        else ft(w, { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, ease: "power2.out" }, t + i * 0.067);
+      });
+      const wordsOut = (s, t) => words[s].forEach((w, i) => ft(w, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(6px)", duration: 0.13, ease: "power2.in" }, t + i * 0.04));
+      const show = (s, t) => ft($(s), { opacity: 0 }, { opacity: 1, duration: 0.01 }, t);
+
+      // The rings turn the whole time, once every 8 seconds, as in the app.
+      ft(document.querySelectorAll("#rb-stage .ring"), { "--sheen-angle": "0deg" }, { "--sheen-angle": (360 * 18.5 / 8) + "deg", duration: 18.5, ease: "none" }, 0);
+
+      // ---- 0.0 to 2.8: Kind. The gray card becomes Moonbeam's invitation on the click. ----
+      to(kPick, 0.0, 0.78, 10, 6);
+      press(0.8);
+      pick(kPick, 0.82);
+      swap($("#rb-l-start"), $("#rb-l-kind"), 0.82);
+
+      // ---- 2.45 to 6.0: Vibe. Four clicks; the card follows each one. ----
+      wordsOut("#rb-q1", 2.45);
+      kinds.forEach((k, i) => ft(k, { opacity: 1, scale: 1, filter: "blur(0px)" }, { opacity: 0, scale: 0.97, filter: "blur(8px)", duration: 0.22, ease: "power3.in" }, 2.45 + i * 0.03));
+      show("#rb-q2", 2.82); wordsIn("#rb-q2", 2.82);
+      vibes.forEach((v, i) => ft(v, { opacity: 0, y: 14, filter: "blur(2px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.44, ease: F.bezier("cubic-bezier(.22,1,.36,1)") }, 2.68 + i * 0.05));
+      const dreamy = vibes[vIdx[vIdx.length - 1]];
+      ring(dreamy, 2.68, true, 0.01);
+      const vibeLayers = ["#rb-l-v0", "#rb-l-v1", "#rb-l-v2", "#rb-l-v3"].map($);
+      let prevCard = dreamy, prevLayer = $("#rb-l-kind");
+      vIdx.forEach((vi, n) => {
+        const t = 3.4 + n * 0.6;
+        to(vibes[vi], t - 0.38, 0.36, 30, -20);
+        press(t - 0.02);
+        ring(prevCard, t, false);
+        pick(vibes[vi], t);
+        swap(prevLayer, vibeLayers[n], t, 0.11);
+        prevCard = vibes[vi]; prevLayer = vibeLayers[n];
+      });
+
+      // ---- 5.95 to 8.6: Color. The palette whips in; the click recolors the card from where it landed. ----
+      ft($("#rb-q2"), { x: 0, opacity: 1 }, { x: -160, opacity: 0, duration: 0.25, ease: "power3.in" }, 5.95);
+      vibes.forEach((v, i) => ft(v, { x: 0, opacity: 1 }, { x: -200, opacity: 0, duration: 0.26, ease: "power3.in" }, 5.95 + i * 0.02));
+      ft($("#rb-q3"), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" }, 6.18);
+      pals.forEach((p, i) => ft(p, { opacity: 0, x: 220 }, { opacity: 1, x: 0, duration: 0.42, ease: "expo.out" }, 6.12 + i * 0.025));
+      to(pPick, 6.4, 0.5, 0, -6);
+      press(6.88);
+      pick(pPick, 6.9);
+      ft(pPick.querySelector(".seed"), { flexGrow: 2.6 }, { flexGrow: 3.6, duration: 0.45, ease: "power3.out" }, 6.9);
+      {
+        const p = B(pPick), X = p.cx - colorLayer.x, Y = p.cy - 6 - colorLayer.y;
+        const R = Math.max(Math.hypot(X, Y), Math.hypot(X, Y - colorLayer.h), Math.hypot(X - colorLayer.w, Y), Math.hypot(X - colorLayer.w, Y - colorLayer.h)) + 10;
+        ft($("#rb-l-color"), { opacity: 1, clipPath: `circle(${Math.max(0, X - colorLayer.w)}px at ${X}px ${Y}px)` }, { opacity: 1, clipPath: `circle(${R}px at ${X}px ${Y}px)`, duration: 0.48, ease: "power2.inOut" }, 6.92);
+        ft($("#rb-l-v3"), { opacity: 1 }, { opacity: 0, duration: 0.01 }, 7.42);
+      }
+
+      // ---- 8.6 to 11.0: Type. The headline re-sets in the chosen pairing. ----
+      wordsOut("#rb-q3", 8.6);
+      pals.slice().reverse().forEach((p, i) => ft(p, { opacity: 1, y: 0 }, { opacity: 0, y: 40, duration: 0.24, ease: "power3.in" }, 8.6 + i * 0.018));
+      show("#rb-q4", 8.92); wordsIn("#rb-q4", 8.92, "ink");
+      types.forEach((t, i) => ft(t, { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, 8.82 + i * 0.06));
+      ring(tFrom, 8.82, true, 0.01);
+      to(tPick, 9.1, 0.48, 40, -30);
+      press(9.6);
+      ring(tFrom, 9.62, false);
+      pick(tPick, 9.62);
+      swap($("#rb-l-color"), $("#rb-l-type"), 9.62);
+
+      // ---- 11.0 to 13.6: Motion. The card takes the middle and answers a press with its own motion. ----
+      wordsOut("#rb-q4", 11.0);
+      types.forEach((t, i) => ft(t, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 11.0 + i * 0.03));
+      const DX = 960 - heroBox.w / 2 - heroBox.x, DY = 230 - heroBox.y;
+      ft($("#rb-hero"), { x: 0, y: 0 }, { x: DX, y: DY, duration: 0.6, ease: "power2.inOut" }, 11.15);
+      ft($("#rb-q5"), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, 11.5);
+      move(btn.cx + DX + 18, btn.cy + DY + 10, 11.75, 0.55);
+      press(12.32);
+      {
+        const b = $("#rb-l-type .sp-ob-pri"), slow = 1.6;
+        ft(b, { scale: 1 }, { scale: motion.enterScale, duration: (motion.fast / 1000) * slow, ease: F.bezier(motion.easeOut) }, 12.34);
+        ft(b, { scale: motion.enterScale }, { scale: 1, duration: (motion.base / 1000) * slow, ease: F.bezier(motion.easeOut) }, 12.34 + (motion.fast / 1000) * slow);
+      }
+      move(2000, 1180, 12.85, 0.55);
+      wordsOut("#rb-q5", 13.15);
+
+      // ---- 13.6 to 17.4: the card splits into the system: six surfaces build around it. ----
+      const SX = 696, SY = 330, SCALE = 528 / heroBox.w;
+      ft($("#rb-hero"), { x: DX, y: DY, scale: 1 }, { x: SX - heroBox.x, y: SY - heroBox.y, scale: SCALE, transformOrigin: "0 0", duration: 0.62, ease: "power2.inOut" }, 13.6);
+      surfs.forEach((s, i) => {
+        const b = B(s), t = 13.72 + i * 0.07;
+        ft(s, { x: 960 - b.cx, y: 540 - b.cy, scale: 0.35 }, { x: 0, y: 0, scale: 1, duration: 0.62, ease: "expo.out" }, t);
+        ft(s, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" }, t);
+      });
+      // Then the surfaces work: rows land, bars grow, messages arrive.
+      const q = (sel) => [...document.querySelectorAll(sel)];
+      q("#rb-s-app tbody tr").forEach((r, i) => ft(r, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 14.5 + i * 0.08));
+      q("#rb-s-mcp .sp-bars i").forEach((b, i) => ft(b, { scaleY: 0 }, { scaleY: 1, transformOrigin: "50% 100%", duration: 0.5, ease: "expo.out" }, 14.55 + i * 0.06));
+      q("#rb-s-chat .sp-tool, #rb-s-chat .sp-msg-ai, #rb-s-chat .sp-composer").forEach((m, i) => ft(m, { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.24, ease: "power2.out" }, 14.6 + i * 0.4));
+      q("#rb-s-sms .b, #rb-s-sms .img, #rb-s-sms .link").forEach((m, i) => ft(m, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: "power2.out" }, 14.75 + i * 0.32));
+
+      // ---- 17.3 to 18.1: the card becomes the world; the published site takes over from it. ----
+      ft($("#rb-surfaces"), { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(15px)", duration: 0.3, ease: "power2.in" }, 17.3);
+      {
+        const s = 3.4;
+        ft($("#rb-hero"), { x: SX - heroBox.x, y: SY - heroBox.y, scale: SCALE }, { x: 960 - (heroBox.w / 2) * s - heroBox.x, y: 540 - (heroBox.h / 2) * s - heroBox.y, scale: s, transformOrigin: "0 0", duration: 0.65, ease: "power2.inOut" }, 17.4);
+      }
+
+      window.__timelines["rebuild"] = tl;
+    })();
+  </script>
+</template>

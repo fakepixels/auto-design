@@ -11,8 +11,10 @@ function chromiumPath() {
   const base = "/opt/pw-browsers";
   if (!fs.existsSync(base)) return undefined;
   for (const dir of fs.readdirSync(base).filter((d) => /^chromium-\d+$/.test(d)).sort().reverse()) {
-    const bin = path.join(base, dir, "chrome-linux", "chrome");
-    if (fs.existsSync(bin)) return bin;
+    for (const sub of ["chrome-linux64", "chrome-linux"]) {
+      const bin = path.join(base, dir, sub, "chrome");
+      if (fs.existsSync(bin)) return bin;
+    }
   }
   return undefined;
 }

@@ -6,7 +6,11 @@ auto-design turns a handful of taste choices (brand color, type, texture, densit
 system repo: W3C design tokens, a locked Tailwind theme, shadcn components, a `DESIGN.md` that coding
 agents read, and a checker that fails the build when anything drifts off-system.
 
-![The Quiet preset on one product across four surfaces](docs/specimen-light.png)
+<!-- product-film:start -->
+<a href="docs/media/product-film.mp4"><img src="docs/media/product-film.webp" width="100%" alt="auto-design in 34 seconds: a gray card becomes Moonbeam's invitation as you pick a kind, a vibe, a color, type and motion, then splits into the whole system: its app, site, chat and messages, its design site and its own launch animation."></a>
+
+<sub>Recorded from the real onboarding on October 28, 2026 (14401ef). It re-renders when the product's look changes: <code>npm run video</code>. <a href="docs/media/product-film.mp4">Watch the full-size film</a>.</sub>
+<!-- product-film:end -->
 
 > Status: **Phases 0 to 3 done; every system now builds its own design site and its own brand animations.**
 > Onboarding, five presets, 161 open-source typefaces in 53 pairings, the compiler, the checker, the studio,
@@ -14,6 +18,16 @@ agents read, and a checker that fails the build when anything drifts off-system.
 > own components and pages on top, and the agent surfaces (an MCP server, chat components, an MCP Apps
 > adapter, iMessage and SMS rules, image cards and `auto-design review`) work end to end. See the
 > [build plan](#roadmap).
+
+## What's new
+
+A short clip for each update, newest first. Make one with `npm run video:new -- video/whats-new/entries/<date>-<name>.json`.
+
+<!-- whats-new:start -->
+<a href="docs/media/whats-new/2026-10-28-kind-step.mp4"><img src="docs/media/whats-new/2026-10-28-kind-step.webp" width="640" alt="A Kind step: Say what you're making, from a store to an AI agent to a consumer app with a vibe, and every preview follows."></a>
+
+- **October 28, 2026: A Kind step.** Say what you're making, from a store to an AI agent to a consumer app with a vibe, and every preview follows. [Watch](docs/media/whats-new/2026-10-28-kind-step.mp4)
+<!-- whats-new:end -->
 
 ## Why guardrails, not guidelines
 

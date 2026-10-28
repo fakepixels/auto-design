@@ -1,0 +1,61 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+    #en-claim { position: absolute; left: 0; top: 470px; width: 1920px; text-align: center; font-size: 96px; line-height: 1.1; font-weight: 600; letter-spacing: -0.04em; white-space: nowrap; }
+    #en-claim span { opacity: 0; display: inline-block; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 8px; }
+    #en-lockup { position: absolute; left: 0; top: 404px; width: 1920px; display: flex; justify-content: center; align-items: center; gap: 30px; }
+    /* The mark is auto-design's own favicon: a #17181a square with a white dot, here with the gallery's edge. */
+    #en-mark { position: relative; width: 104px; height: 104px; border-radius: 26px; flex: none; opacity: 0; background: #17181a; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .12), inset 0 1px 0 rgb(255 255 255 / .1), 0 18px 44px -26px rgb(0 0 0 / .9); }
+    #en-dot { position: absolute; left: 29.25px; top: 29.25px; width: 45.5px; height: 45.5px; border-radius: 50%; background: #fff; opacity: 0; }
+    #en-word { clip-path: inset(0% 100% 0% 0%); font-size: 92px; line-height: 1; font-weight: 600; letter-spacing: -0.045em; padding-bottom: 10px; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    #en-cmd { position: absolute; left: 0; top: 590px; width: 1920px; display: flex; justify-content: center; opacity: 0; }
+    #en-cmd code { position: relative; display: inline-flex; align-items: center; gap: 18px; height: 84px; padding: 0 40px; border-radius: 999px; font: 500 36px/1 var(--mono); color: var(--ink);
+      background: linear-gradient(180deg, rgb(255 255 255 / .07), rgb(255 255 255 / .025)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .1), 0 18px 44px -26px rgb(0 0 0 / .9); }
+    #en-cmd code i { font-style: normal; color: var(--faint); }
+    #en-cursor { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="end" data-width="1920" data-height="1080">
+    <div id="en-ground" class="ground clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+    <div id="en-stage" class="clip" data-start="0" data-duration="5.5" data-track-index="1" style="position: absolute; inset: 0" data-layout-allow-overlap>
+      <h2 id="en-claim">One card. A whole system.</h2>
+      <div id="en-lockup">
+        <div id="en-mark"><i id="en-dot"></i></div>
+        <span id="en-word">auto-design</span>
+      </div>
+      <div id="en-cmd"><code><i>$</i>npx auto-design init</code></div>
+      <div id="en-cursor" class="cursor"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const F = window.FILM;
+      const $ = (s) => document.querySelector(s);
+      $("#en-cursor").innerHTML = F.CURSOR;
+      const words = F.words($("#en-claim"));
+      const mark = F.box($("#en-mark"), $("#en-stage"));
+
+      const tl = gsap.timeline({ paused: true });
+      const ft = (el, from, to, t) => tl.fromTo(el, from, Object.assign({ immediateRender: false }, to), t);
+
+      // The claim, in two beats: "One card." then "A whole system."
+      words.forEach((w, i) => ft(w, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power2.out" }, (i < 2 ? 0.15 : 0.62) + i * 0.08));
+      words.forEach((w, i) => ft(w, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.14, ease: "power2.in" }, 2.45 + i * 0.04));
+
+      // The mark is performed: the empty square, a click, and its dot lands.
+      ft($("#en-mark"), { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 2.62);
+      ft($("#en-dot"), { opacity: 1, scale: 0 }, { opacity: 1, scale: 1, duration: 0.42, ease: "expo.out" }, 3.06);
+      ft($("#en-word"), { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.46, ease: "power2.inOut" }, 3.26);
+      const cur = $("#en-cursor"), arrow = cur.querySelector("svg");
+      ft(cur, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 2.5);
+      ft(cur, { x: 1990, y: 1120 }, { x: mark.cx + 10, y: mark.cy + 12, duration: 0.5, ease: "power2.inOut" }, 2.5);
+      ft(arrow, { scale: 1 }, { scale: 0.86, duration: 0.08, ease: "power2.out", transformOrigin: "3px 3px" }, 3.0);
+      ft(arrow, { scale: 0.86 }, { scale: 1, duration: 0.14, ease: "power2.out", transformOrigin: "3px 3px" }, 3.08);
+      ft(cur, { x: mark.cx + 10, y: mark.cy + 12 }, { x: 2000, y: 1180, duration: 0.5, ease: "power2.in" }, 3.3);
+
+      // The command lands and holds.
+      ft($("#en-cmd"), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, 3.42);
+
+      window.__timelines["end"] = tl;
+    })();
+  </script>
+</template>

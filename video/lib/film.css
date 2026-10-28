@@ -1,0 +1,81 @@
+/* The film's chrome: the onboarding's dark gallery, from packages/cli/src/onboard/onboard.html, scaled for 1080p. */
+@property --sheen-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+:root {
+  --mat: #08080a;
+  --panel: #161618;
+  --panel-2: #111113;
+  --ink: #f2f2f3;
+  --muted: #8e8e96;
+  --faint: #5c5c63;
+  --edge-hi: rgb(255 255 255 / .1);
+  --edge-lo: rgb(255 255 255 / .025);
+  --sel-1: rgb(255 255 255 / .82);
+  --sel-2: rgb(255 255 255 / .14);
+  --sel-3: rgb(255 255 255 / .42);
+  --sheen: rgb(255 255 255 / .05);
+  --lift: 0 1px 2px rgb(0 0 0 / .5), 0 18px 44px -26px rgb(0 0 0 / .9);
+  --metal: linear-gradient(180deg, #ffffff 0%, #e8e8eb 50%, #c8c8ce 100%);
+  --metal-fg: #0b0b0c;
+  --metal-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgb(0 0 0 / .16), 0 1px 2px rgb(0 0 0 / .6), 0 10px 30px -12px rgb(255 255 255 / .22);
+  --title: linear-gradient(180deg, #ffffff 30%, #a8a8b0 120%);
+  --ui: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono Variable", ui-monospace, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--mat); }
+body { font-family: var(--ui); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+/* The page: near black with one soft lift at the top, as the onboarding's mat. */
+.ground { position: absolute; inset: 0; background: radial-gradient(60% 55% at 50% 0%, rgb(255 255 255 / .05), transparent 70%), var(--mat); }
+
+/* A step's question, in the onboarding's title treatment. */
+.q { position: absolute; font-size: 48px; line-height: 1.12; font-weight: 600; letter-spacing: -0.032em; white-space: nowrap; }
+.q span { display: inline-block; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 4px; }
+
+/* A gallery card (.proof): graphite, a 1px edge lit from the top, a framed preview, its name and a tick. */
+.opt { position: absolute; border-radius: 26px; padding: 7px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: inset 0 1px 0 var(--sheen), var(--lift); }
+.opt::before, .frame::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(180deg, var(--edge-hi), var(--edge-lo));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.opt .view { position: relative; border-radius: 19px; overflow: hidden; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .04); }
+.opt .view > .sp-host, .frame .view > .sp-host { position: absolute; left: 0; top: 0; }
+.sp-host > .sp { height: 100%; }
+.opt .meta { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 8px 14px; }
+.opt .meta b { font-weight: 500; font-size: 26px; letter-spacing: -0.015em; white-space: nowrap; }
+.tick { position: relative; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .18); flex: none; }
+.tick i { position: absolute; inset: 0; border-radius: 50%; background: var(--metal); box-shadow: var(--metal-shadow); opacity: 0; }
+.tick i::after { content: ""; position: absolute; left: 8px; top: 8px; width: 10px; height: 5px; border: 2px solid var(--metal-fg); border-top: 0; border-right: 0; transform: rotate(-45deg); }
+
+/* What's chosen: a 1.25px ring from white to gray that turns slowly. */
+.ring { position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; opacity: 0;
+  background: conic-gradient(from var(--sheen-angle), var(--sel-1), var(--sel-2) 22%, var(--sel-3) 48%, var(--sel-2) 74%, var(--sel-1));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+
+/* A palette card (.pal): a strip of the color's steps, its name and its code. */
+.pal { position: absolute; border-radius: 20px; padding: 6px 6px 10px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: inset 0 1px 0 var(--sheen), var(--lift); }
+.pal::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(180deg, var(--edge-hi), var(--edge-lo));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.pal .strip { display: flex; height: 70px; border-radius: 14px; overflow: hidden; }
+.pal .strip i { flex: 1; }
+.pal .strip i.seed { flex: 2.6; }
+.pal .pm { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px 0; }
+.pal .pm b { font-weight: 500; font-size: 24px; letter-spacing: -0.01em; }
+.pal .pm small { font: 17px/1.4 var(--mono); color: var(--faint); }
+
+/* The hero: the chosen option's preview, large, in a graphite frame. */
+.frame { position: absolute; border-radius: 44px; padding: 12px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: inset 0 1px 0 var(--sheen), var(--lift), 0 40px 120px -60px rgb(0 0 0 / .9); }
+.frame .view { position: relative; width: 100%; height: 100%; border-radius: 33px; overflow: hidden; }
+.frame .layer { position: absolute; inset: 0; }
+
+/* The cursor: a white arrow with a dark edge, its tip at the element's origin. */
+.cursor { position: absolute; left: 0; top: 0; width: 46px; height: 58px; z-index: 50; filter: drop-shadow(0 6px 10px rgb(0 0 0 / .45)); }
+.cursor svg { display: block; width: 100%; height: 100%; }
+
+/* The one solid action: the metal pill. */
+.metal { background: var(--metal); color: var(--metal-fg); box-shadow: var(--metal-shadow); }
+
+/* Previews are frames of the film: no browser-clock transitions or animations inside them. */
+.sp-host *, .sp-host *::before, .sp-host *::after { transition: none !important; animation: none !important; }

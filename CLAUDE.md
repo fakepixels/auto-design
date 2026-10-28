@@ -49,6 +49,13 @@ user-facing story; this file is how to work on it.
   `motion` lib for apps (`lib.ts`). `auto-design animate` renders with Playwright frame stepping into
   ffmpeg (`cli/src/animate.ts`); the site's Motion section plays and edits them (`site/src/motion.ts`,
   `motion-player.js`); MCP has `list_animations` and `render_animation`.
+- Product films (October 28, 2026). Tina asked for HyperFrames (HeyGen's HTML-to-video tool) to record
+  product videos and update the README on every update. The README opens on "The atom", a 34 s film she
+  picked from three storylines (`video/STORYLINES.md`): one card re-skinned by Kind, Vibe, Color, Type and
+  Motion, then split into the system's six surfaces, its design site and its own launch animation. A "What's
+  new" section holds a 14.6 s clip per update. Decisions: the media lives in the repo (`docs/media/`), and
+  `npm run video` re-renders only when what the film shows changed, so the repo grows only with the look.
+  How it works is under Product films below.
 - Fonts: 161 OFL families in `core/src/font-catalog.ts` (generated from Fontsource metadata on npm), 53
   pairings in seven moods in `fonts.ts`, and hand-picked faces (`customFonts`, the `fonts` patch field).
   Onboarding's type step filters by mood and has a "Your own" picker.
@@ -149,6 +156,7 @@ user-facing story; this file is how to work on it.
 | `packages/eslint-plugin`, `packages/stylelint-plugin` | The checker inside editors |
 | `examples/quiet-design` | A generated system repo (Quiet preset) |
 | `examples/next-quiet` | A Next.js app with that system installed. Not a workspace: it has its own `npm install` |
+| `video/` | The README's product film, a HyperFrames project: `index.html` mounts `compositions/rebuild.html`, `proof.html` and `end.html`; `lib/` holds the chrome and helpers; `SPEC.md`, `STORYLINES.md` and `REVIEW.md` are its brief, options and last review. `video/whats-new/` is the per-update clip, with one JSON per update in `entries/`. `assets/capture/` and `renders/` are made by the scripts and ignored |
 
 ## Invariants
 
@@ -188,6 +196,9 @@ npx tsx scripts/motion-sheet.mts [preset] [ids|all] [format] [mode]          # c
 npx tsx scripts/preset-sheet.mts [presets|all] [light|dark|both] [tag]        # every preset on the onboarding specimens
 python3 scripts/fonts/curate.py | node scripts/fonts/fetch.mjs                  # look up new families on npm
 python3 scripts/fonts/gen.py                                                    # rewrite core/src/font-catalog.ts
+npm run video                    # capture, render and put the product film in the README (skips when unchanged)
+npm run video -- --force         # render the film even when nothing it shows changed
+npm run video:new -- video/whats-new/entries/<date>-<name>.json   # a What's new clip and the README list
 ```
 
 To add a typeface, add a line to `scripts/fonts/curate.py` (style, roles, a one-line note), fetch, then gen.
@@ -211,3 +222,34 @@ Only families in the root devDependencies render in screenshots; others fall bac
 - Every font catalog entry must be OFL-1.1 and carry a style, roles and a one-line note (see Scripts).
 - Product copy follows the system's own voice: plain words, sentence case, active verbs, no emoji, errors
   that say what to do next.
+- After any change people can see (onboarding, the studio, the design site, brand animations), run
+  `npm run video` and commit `docs/media/` and `README.md` with the change. For an update worth announcing,
+  add `video/whats-new/entries/<date>-<name>.json` (a title, one sentence, one or two shots) and run
+  `npm run video:new` on it. Look at the frames before committing (see Product films).
+
+## Product films
+
+- `scripts/video/capture.mts` runs the real onboarding server (no model), makes the film's choices through
+  its API (`FILM` at the top: Moonbeam, consumer, the vibe roll, Ocean, Instrument), publishes the system to
+  a temp folder without GitHub, screenshots its design site at 1.5x and renders its `launch` animation with
+  `auto-design animate`. It saves specimens, copy, fonts, GSAP and the renderer to `video/assets/capture/`.
+  The film draws every card with the product's own renderer from those specimens, so it can't show a screen
+  the product no longer has. If a step's options or the renderer's scenes change shape, update
+  `compositions/rebuild.html` to match.
+- `scripts/video/make.mts` (`npm run video`) captures, fingerprints the capture and the film's sources, and
+  re-renders only when the fingerprint changed (`docs/media/product-film.json`), then writes
+  `docs/media/product-film.mp4`, a looping `product-film.webp` and the README block between
+  `<!-- product-film:start -->` and `<!-- product-film:end -->`.
+- `scripts/video/whats-new.mts` screenshots the onboarding at each shot's step (before and after its `click`),
+  renders `video/whats-new/`, writes `docs/media/whats-new/<entry>.mp4` and `.webp`, and rebuilds the
+  `whats-new` README block from every entry (the newest plays inline).
+- The HyperFrames CLI is pinned in `scripts/video/hf.mts` and run through `npx` with telemetry off. In the
+  sandbox it uses the preinstalled chrome-headless-shell. Fonts that aren't root devDependencies are fetched
+  once into `~/.cache/auto-design/film-fonts`. A full render takes about 3 minutes here.
+- To edit the film, read the HyperFrames skills first: `claude plugin marketplace add heygen-com/hyperframes`,
+  then `claude plugin install hyperframes@hyperframes`. Check with `npx hyperframes@<pin> check --json` and
+  `snapshot --at <t,…>` in `video/` (set `HYPERFRAMES_BROWSER_PATH` to the headless shell in the sandbox).
+- Lessons: put opacity in a fromTo's to-vars too, or GSAP ignores it; give every hidden-at-start element its
+  start state in CSS (tweens are `immediateRender: false`); every `<img>` needs `data-duration` or it lasts
+  3 s; large or fast-zoomed layers need `data-motion-blur="off"` or the blur pass can drop them; Studio's
+  preview stamps `data-hf-id` on elements, so strip those before committing.
