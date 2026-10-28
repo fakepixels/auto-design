@@ -1,6 +1,6 @@
 # auto-design
 
-Design systems with hard guardrails, for teams without a designer and the agents that write their UI.
+A design system in minutes, and agents that never go off-brand.
 
 auto-design turns a handful of taste choices (brand color, type, texture, density, motion) into a design
 system repo: a locked Tailwind v4 theme, shadcn components, W3C design tokens, a `DESIGN.md` that coding

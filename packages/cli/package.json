@@ -1,7 +1,7 @@
 {
   "name": "auto-design",
   "version": "0.1.0",
-  "description": "Design systems with hard guardrails, for teams without a designer and the agents that write their UI: tokens, a locked Tailwind theme, shadcn components, DESIGN.md, a checker and an MCP server.",
+  "description": "A design system in minutes, and agents that never go off-brand: tokens, a locked Tailwind theme, shadcn components, DESIGN.md, a checker and an MCP server.",
   "keywords": [
     "design-system",
     "tailwind",
