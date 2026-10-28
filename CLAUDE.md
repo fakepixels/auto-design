@@ -30,8 +30,12 @@ user-facing story; this file is how to work on it.
   when its process stopped; custom components, examples and docs survive rebuilds. The taste pass, the
   dark-gallery onboarding Tina picked, its sleek pass and the bring-your-own Start step are on main (see Design
   direction). Still to do:
-  give the Surfaces and Review steps the same one-object previews, refresh the README screenshots in docs/,
-  and visual regression screenshots.
+  give the Surfaces and Review steps the same one-object previews, and visual regression screenshots.
+- README (October 28, 2026). Tina asked for a much cleaner README with only dark mode screenshots. It now
+  runs: tagline ("A design system in minutes, and agents that never go off-brand."), the film, quick start,
+  What's new, then short sections with two dark screenshots (`docs/onboarding.png`, the Kind step;
+  `docs/site.png`, the Quiet site). `scripts/readme-shots.mts` re-shoots them. Keep it short: detail belongs
+  on the design site and in this file, not in the README.
 - Phase 5 (first version done): the white-label design site, `packages/site`. Home, docs for every
   foundation, a page per component with live examples, search, light and dark, phone layouts; team pages
   from `docs/`. Onboarding ends on it (`/site/` in the onboarding server), the studio serves it at
@@ -196,6 +200,7 @@ npx tsx scripts/motion-sheet.mts [preset] [ids|all] [format] [mode]          # c
 npx tsx scripts/preset-sheet.mts [presets|all] [light|dark|both] [tag]        # every preset on the onboarding specimens
 python3 scripts/fonts/curate.py | node scripts/fonts/fetch.mjs                  # look up new families on npm
 python3 scripts/fonts/gen.py                                                    # rewrite core/src/font-catalog.ts
+npx tsx scripts/readme-shots.mts [dir]                                        # the README's dark mode screenshots
 npm run video                    # capture, render and put the product film in the README (skips when unchanged)
 npm run video -- --force         # render the film even when nothing it shows changed
 npm run video:new -- video/whats-new/entries/<date>-<name>.json   # a What's new clip and the README list
@@ -226,6 +231,8 @@ Only families in the root devDependencies render in screenshots; others fall bac
   `npm run video` and commit `docs/media/` and `README.md` with the change. For an update worth announcing,
   add `video/whats-new/entries/<date>-<name>.json` (a title, one sentence, one or two shots) and run
   `npm run video:new` on it. Look at the frames before committing (see Product films).
+- README screenshots are dark mode only (Tina's call). Re-shoot them with `scripts/readme-shots.mts` when
+  onboarding or the design site changes.
 
 ## Product films
 
