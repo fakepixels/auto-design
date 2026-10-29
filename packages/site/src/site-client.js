@@ -60,7 +60,8 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  if (e.target.closest("[data-theme]")) {
+  // Its own attribute: hosts and frameworks put data-theme on <html>, which would make every click a toggle.
+  if (e.target.closest("button[data-mode-toggle]")) {
     const cls = html.dataset.modeClass;
     const on = html.classList.toggle(cls);
     const mode = on ? cls : html.dataset.defaultMode;

@@ -72,7 +72,7 @@ function header(meta: SiteMeta, page: PageInput, root: string): string {
       </button>
       <button type="button" data-search aria-label="Search" class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground sm:hidden">${icons.search}</button>
       ${meta.repoUrl ? `<a href="${esc(meta.repoUrl)}" target="_blank" rel="noreferrer" aria-label="Source on GitHub" class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground">${icons.github}</a>` : ""}
-      ${meta.modeClass ? `<button type="button" data-theme aria-label="Switch color mode" class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><span class="dark:hidden">${icons.moon}</span><span class="hidden dark:inline">${icons.sun}</span></button>` : ""}
+      ${meta.modeClass ? `<button type="button" data-mode-toggle aria-label="Switch color mode" class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><span class="dark:hidden">${icons.moon}</span><span class="hidden dark:inline">${icons.sun}</span></button>` : ""}
     </div>
   </div>
 </header>`;
