@@ -10,6 +10,27 @@ for (const el of $$("[data-origin]")) el.textContent = origin;
 for (const el of $$("[data-copy]")) el.dataset.copy = el.dataset.copy.split("{origin}").join(origin);
 for (const a of $$("a[href*='{root}']")) a.setAttribute("href", a.getAttribute("href").split("{root}").join(html.dataset.root || "./"));
 
+// The color mode is the reader's last choice, kept under the site's storage key, or the system's default.
+// Follow a choice made in another tab, and re-read it when Back restores this page from the cache, so the
+// mode stays the same across pages and tabs (other pages, like a product's landing page, can share the key).
+function syncMode() {
+  const cls = html.dataset.modeClass;
+  if (!cls) return;
+  let mode = null;
+  try {
+    mode = localStorage.getItem(html.dataset.storageKey);
+  } catch {
+    // No storage: keep what the page has.
+  }
+  html.classList.toggle(cls, (mode || html.dataset.defaultMode) !== html.dataset.defaultMode);
+}
+addEventListener("storage", (e) => {
+  if (e.key === html.dataset.storageKey) syncMode();
+});
+addEventListener("pageshow", (e) => {
+  if (e.persisted) syncMode();
+});
+
 const ICON_COPY = $$("[data-copy]")[0]?.innerHTML;
 const ICON_DONE =
   '<svg aria-hidden="true" viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';

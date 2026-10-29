@@ -75,18 +75,33 @@ async function main() {
   cpSync(path.join(HERE, "public"), OUT, { recursive: true });
   const og = existsSync(path.join(OUT, "og.png"));
 
-  writeFileSync(path.join(OUT, "index.html"), document({ title: TITLE, description: DESCRIPTION, body, og }));
+  writeFileSync(path.join(OUT, "index.html"), document({ title: TITLE, description: DESCRIPTION, body, og, mode: demoMode() }));
   const size = files(OUT).reduce((n, f) => n + statSync(f).size, 0);
   console.log(`  wrote ${path.relative(process.cwd(), OUT)}/ (${(size / 1e6).toFixed(1)} MB)`);
 }
 
-function document(o: { title: string; description: string; body: string; og: boolean }): string {
+/**
+ * How the demo (the system's design site) keeps its color mode: the class it toggles, its default and the
+ * storage key it remembers the reader's choice under. The page uses the same three, so the mode is one
+ * choice across the page and the demo.
+ */
+function demoMode(): { modeClass: string; defaultMode: string; storageKey: string } {
+  const html = readFileSync(path.join(ROOT, "brand", "public", "index.html"), "utf8");
+  const attr = (name: string) => {
+    const v = new RegExp(`data-${name}="([^"]+)"`).exec(html)?.[1];
+    if (!v) throw new Error(`brand/public/index.html has no data-${name}. Rebuild brand/ with a current auto-design.`);
+    return v;
+  };
+  return { modeClass: attr("mode-class"), defaultMode: attr("default-mode"), storageKey: attr("storage-key") };
+}
+
+function document(o: { title: string; description: string; body: string; og: boolean; mode: ReturnType<typeof demoMode> }): string {
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   // Crawlers want an absolute image URL: set LANDING_URL to where the page is hosted.
   const base = (process.env.LANDING_URL ?? "").replace(/\/?$/, "/").replace(/^\/$/, "");
   const og = o.og ? `\n<meta property="og:image" content="${base}og.png">\n<meta name="twitter:card" content="summary_large_image">` : "";
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-mode-class="${esc(o.mode.modeClass)}" data-default-mode="${esc(o.mode.defaultMode)}" data-storage-key="${esc(o.mode.storageKey)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -98,8 +113,15 @@ function document(o: { title: string; description: string; body: string; og: boo
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script>
-  // The system loads dark; light follows the reader's own setting.
-  try { const m = matchMedia("(prefers-color-scheme: light)"); const set = () => document.documentElement.classList.toggle("light", m.matches); set(); m.addEventListener("change", set); } catch {}
+  // One color mode across this page and the demo: the reader's last choice on either, else the system's
+  // default. A choice made in another tab, or before Back restored this page, is picked up too.
+  (() => {
+    const r = document.documentElement, d = r.dataset;
+    const sync = () => { let m = null; try { m = localStorage.getItem(d.storageKey); } catch {} r.classList.toggle(d.modeClass, (m || d.defaultMode) !== d.defaultMode); };
+    sync();
+    addEventListener("storage", (e) => { if (e.key === d.storageKey) sync(); });
+    addEventListener("pageshow", (e) => { if (e.persisted) sync(); });
+  })();
 </script>
 <link rel="stylesheet" href="app.css">
 <script type="module" src="showcase.js"></script>

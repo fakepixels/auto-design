@@ -29,6 +29,22 @@ const steps = (r: number) => [
 const radii = (r: number) =>
   Object.fromEntries([["--radius", `${r}px`], ...steps(r).map(([name, px]) => [`--${name.replace("rounded", "radius")}`, `${px}px`])]) as CSSProperties;
 
+/**
+ * Switch the page's color mode and remember it under the demo's key, so the demo opens in the same mode
+ * (the build puts the class, default and key on <html>, read from the demo itself).
+ */
+function setMode(light: boolean) {
+  const root = document.documentElement;
+  const { modeClass = "light", defaultMode = "dark", storageKey } = root.dataset;
+  const mode = light ? "light" : "dark";
+  root.classList.toggle(modeClass, mode !== defaultMode);
+  try {
+    if (storageKey) localStorage.setItem(storageKey, mode);
+  } catch {
+    // No storage: the mode still switches on this page.
+  }
+}
+
 const CHECKS = ["Colors come from roles", "Text passes AA, light and dark", "Sizes on the type scale", "Corners on the radius steps"];
 
 /**
@@ -149,7 +165,7 @@ export function Showcase() {
           <Separator />
           <div className="flex items-center justify-between gap-4">
             <Label htmlFor="light-mode">Light mode</Label>
-            <Switch id="light-mode" checked={light} onCheckedChange={(on) => document.documentElement.classList.toggle("light", on)} />
+            <Switch id="light-mode" checked={light} onCheckedChange={setMode} />
           </div>
           <Separator />
           <div className="flex flex-col gap-2.5">

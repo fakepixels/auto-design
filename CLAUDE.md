@@ -48,7 +48,11 @@ user-facing story; this file is how to work on it.
   components (an agent's change with a tool call, a review with tabs, checks and tokens, and a "Try a
   choice" card) where one control, the corners, drives the agent's words, the token table and every
   component's radius through the system's own radius tokens, and a switch flips the page to light. The
-  build copies `brand/public` (the design site) to `dist/demo/`. `npm run landing` prerenders it into
+  build copies `brand/public` (the design site) to `dist/demo/`. One color mode across both (Tina: switching
+  between them reset dark to light): the page uses the demo's own rule and storage key (read from
+  `brand/public/index.html`), the reader's last choice or else the system's dark, and the showcase switch
+  saves to that key. Every design site, and the page, now follow a choice made in another tab (`storage`)
+  and re-read it when Back restores a page (`pageshow`). `npm run landing` prerenders it into
   `landing/dist/` with self-hosted fonts; `npx auto-design check --cwd landing` passes with 0 warnings (the
   checker turned down the onboarding's gradient headings, so the headline is solid). Its og image comes from
   `auto-design card`. Not hosted yet: Tina to choose where (GitHub Pages, Vercel or a domain); then set
