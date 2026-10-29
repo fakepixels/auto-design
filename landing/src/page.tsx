@@ -52,8 +52,14 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-/** The whole page. `start` is the commands as a rendered CodeBlock (it's async, so the build renders it first). */
-export function Page({ start }: { start: ReactNode }) {
+/** Where the demo lives: auto-design's own design site, copied next to this page by the build. */
+export const DEMO = "demo/";
+
+/**
+ * The whole page. `start` is the commands as a rendered CodeBlock (it's async, so the build renders it
+ * first); `showcase` is the showcase's own prerendered HTML, which the browser hydrates on its own.
+ */
+export function Page({ start, showcase }: { start: ReactNode; showcase: string }) {
   return (
     <div className="flex min-h-svh flex-col">
       <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
@@ -61,12 +67,17 @@ export function Page({ start }: { start: ReactNode }) {
           <Mark />
           auto-design
         </a>
-        <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-          <a href={REPO}>
-            <GitHubIcon />
-            GitHub
-          </a>
-        </Button>
+        <nav className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <a href={DEMO}>Demo</a>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <a href={REPO}>
+              <GitHubIcon />
+              GitHub
+            </a>
+          </Button>
+        </nav>
       </header>
 
       <main className="flex-1">
@@ -90,21 +101,13 @@ export function Page({ start }: { start: ReactNode }) {
         </section>
 
         <section style={after(3)} className="mx-auto mt-20 max-w-5xl animate-reveal px-4 sm:mt-24 sm:px-6">
-          <div className="rounded-xl border bg-card p-1.5 shadow-sm">
-            <video
-              src="media/product-film.mp4"
-              poster="film-poster.webp"
-              width={1920}
-              height={1080}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-label="auto-design in 34 seconds: one card takes on a kind, a vibe, a color, type and motion, then becomes a whole system: its app, site, chat, design site and launch animation."
-              className="block aspect-video w-full rounded-lg bg-muted"
-            />
-          </div>
+          <div id="showcase" dangerouslySetInnerHTML={{ __html: showcase }} />
+          <p className="mt-6 text-center text-sm text-balance text-muted-foreground">
+            Real components from auto-design&rsquo;s own system.{" "}
+            <a href={DEMO} className="text-foreground underline-offset-4 hover:underline">
+              See the whole system
+            </a>
+          </p>
         </section>
 
         <section id="start" className="mx-auto max-w-2xl scroll-mt-8 px-6 pt-24 pb-32 sm:pt-32">
@@ -126,7 +129,7 @@ export function Page({ start }: { start: ReactNode }) {
         <div className="mx-auto flex max-w-5xl flex-col gap-2 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:justify-between">
           <p>Open source under the MIT license.</p>
           <p>
-            This page uses{" "}
+            Built with{" "}
             <a href={`${REPO}/tree/main/brand`} className="text-foreground underline-offset-4 hover:underline">
               auto-design&rsquo;s own design system
             </a>

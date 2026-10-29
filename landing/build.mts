@@ -1,6 +1,7 @@
 // Builds auto-design's landing page into landing/dist/: one static HTML page, its CSS compiled by Tailwind
-// against auto-design's own design system (brand/, installed with `auto-design add`), self-hosted fonts and
-// the product film. Host dist/ anywhere static.
+// against auto-design's own design system (brand/, installed with `auto-design add`), self-hosted fonts,
+// the showcase's script (real components, hydrated) and the system's design site under demo/. Host dist/
+// anywhere static.
 //   npx tsx landing/build.mts
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -22,7 +23,6 @@ const FONTS = ["@fontsource-variable/inter", "@fontsource-variable/jetbrains-mon
 async function main() {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(path.join(OUT, "fonts"), { recursive: true });
-  mkdirSync(path.join(OUT, "media"), { recursive: true });
   mkdirSync(CACHE, { recursive: true });
 
   // 1. The markup: the page in TSX, prerendered.
@@ -53,8 +53,25 @@ async function main() {
   }
   writeFileSync(path.join(OUT, "app.css"), fontFaces() + css);
 
-  // 3. Assets: the film from the README, and this page's own files.
-  copyFileSync(path.join(ROOT, "docs", "media", "product-film.mp4"), path.join(OUT, "media", "product-film.mp4"));
+  // 3. The showcase in the browser: the same components, hydrated, so the controls work.
+  await build({
+    entryPoints: [path.join(SRC, "client.tsx")],
+    outfile: path.join(OUT, "showcase.js"),
+    bundle: true,
+    platform: "browser",
+    format: "esm",
+    minify: true,
+    jsx: "automatic",
+    target: "es2020",
+    define: { "process.env.NODE_ENV": '"production"' },
+    tsconfig: path.join(HERE, "tsconfig.json"),
+    logLevel: "warning",
+  });
+
+  // 4. The demo: auto-design's own design site, as its repo publishes it. Its links are relative.
+  cpSync(path.join(ROOT, "brand", "public"), path.join(OUT, "demo"), { recursive: true });
+
+  // 5. This page's own files.
   cpSync(path.join(HERE, "public"), OUT, { recursive: true });
   const og = existsSync(path.join(OUT, "og.png"));
 
@@ -85,6 +102,7 @@ function document(o: { title: string; description: string; body: string; og: boo
   try { const m = matchMedia("(prefers-color-scheme: light)"); const set = () => document.documentElement.classList.toggle("light", m.matches); set(); m.addEventListener("change", set); } catch {}
 </script>
 <link rel="stylesheet" href="app.css">
+<script type="module" src="showcase.js"></script>
 </head>
 <body>
 ${o.body}
@@ -102,8 +120,6 @@ ${o.body}
       }
     });
   }
-  // The film loops on its own, unless the reader asked for less motion.
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) for (const v of document.querySelectorAll("video")) { v.pause(); v.controls = true; }
 </script>
 </body>
 </html>

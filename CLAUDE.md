@@ -41,8 +41,14 @@ user-facing story; this file is how to work on it.
   drives the real onboarding through its API (Developer tool, then the onboarding's own look: a paper brand
   so the main action is the light pill on near-black, cool grays, minimal texture, Inter, 12px corners,
   comfortable, subtle motion, dark first) and publishes without GitHub. `landing/` installed it with
-  `auto-design add` and is one TSX page (`src/page.tsx`): header, headline, one line, two buttons, the
-  product film in a frame, three commands in a terminal block, footer. `npm run landing` prerenders it into
+  `auto-design add` and is one TSX page (`src/page.tsx`): header (Demo, GitHub), headline, one line, two
+  buttons, a showcase, three commands in a terminal block, footer. Tina then asked to drop the film and
+  "show, not tell" with the real components, and to put auto-design's own design site under "Demo": the
+  showcase (`src/showcase.tsx`, hydrated on its own by `src/client.tsx`) is three cards of the system's
+  components (an agent's change with a tool call, a review with tabs, checks and tokens, and a "Try a
+  choice" card) where one control, the corners, drives the agent's words, the token table and every
+  component's radius through the system's own radius tokens, and a switch flips the page to light. The
+  build copies `brand/public` (the design site) to `dist/demo/`. `npm run landing` prerenders it into
   `landing/dist/` with self-hosted fonts; `npx auto-design check --cwd landing` passes with 0 warnings (the
   checker turned down the onboarding's gradient headings, so the headline is solid). Its og image comes from
   `auto-design card`. Not hosted yet: Tina to choose where (GitHub Pages, Vercel or a domain); then set
@@ -234,7 +240,7 @@ npx tsx scripts/readme-shots.mts [dir]                                        # 
 npm run video                    # capture, render and put the product film in the README (skips when unchanged)
 npm run video -- --force         # render the film even when nothing it shows changed
 npm run video:new -- video/whats-new/entries/<date>-<name>.json   # a What's new clip and the README list
-npm run brand                    # remake brand/ through onboarding, then: npx auto-design add brand --cwd landing --components button,code-block --no-install --no-mcp
+npm run brand                    # remake brand/ through onboarding, then: npx auto-design add brand --cwd landing --components button,code-block,card,badge,switch,tabs,table,message,label,separator,input --no-install --no-mcp
 npm run landing                  # build the landing page into landing/dist/; check it with npx auto-design check --cwd landing
 ```
 
