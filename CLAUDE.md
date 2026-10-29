@@ -57,17 +57,6 @@ user-facing story; this file is how to work on it.
   checker turned down the onboarding's gradient headings, so the headline is solid). Its og image comes from
   `auto-design card`. Not hosted yet: Tina to choose where (GitHub Pages, Vercel or a domain); then set
   `LANDING_URL` for an absolute og:image. Next for dogfooding: build the onboarding's chrome from `brand/`.
-- Style diversity (October 28, 2026, open). Tina: "its truly a 100% reproduction of shadcn, so its not too
-  different from just using shadcn and changing the color. I think it could add more value by bringing more
-  diversity to the style (without sacrificing simplicity and elegance)!" Why: a texture only changes shadows
-  and borders (`skinFor` in `emit/components.ts`); every component keeps shadcn's anatomy and type treatment.
-  Proposal, shown before building: a style changes how components are built (fields boxed, underlined or
-  filled; tabs segmented, text links, joined or chips; tags, pills or plain text; rows as rules, tiles or a
-  grid; edges as hairlines, ink outlines or hard offset shadows; type and where color goes). Mockup:
-  `docs/explorations/style-directions.html`, six styles on one product and one brand color (Minimal today,
-  Editorial, Technical, Soft, Graphic, Luxe; Glass stays). Waiting for her picks. Then: per-style anatomy in
-  the generated components (and checker-clean examples for each), the Texture step becomes a Style step, and
-  the previews draw each style's anatomy.
 - Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
   so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
   sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
