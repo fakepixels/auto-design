@@ -57,6 +57,18 @@ user-facing story; this file is how to work on it.
   checker turned down the onboarding's gradient headings, so the headline is solid). Its og image comes from
   `auto-design card`. Not hosted yet: Tina to choose where (GitHub Pages, Vercel or a domain); then set
   `LANDING_URL` for an absolute og:image. Next for dogfooding: build the onboarding's chrome from `brand/`.
+- Taste checks from impeccable (October 29, 2026, in progress). Tina approved a plan to stop agents building
+  generic "AI-looking" screens, not just off-brand ones, after studying impeccable (pbakaus/impeccable,
+  Apache 2.0: named design moves, a 62-rule slop and quality detector, and a hook that checks every agent
+  edit). auto-design locks the ingredients (tokens); impeccable guards what agents assemble from them. The
+  plan, in order: (1) fix onboarding's faint text, which fails AA in both modes; (2) add about 15 taste
+  checks to our own checker and review (nested cards, labels above headings, flat type, monotonous spacing,
+  glow, buzzword copy), waived where the system chose the thing on purpose; (3) hooks in every system repo
+  so agents check after each UI edit; (4) a skill per system with moves like bolder and quieter bound to its
+  own scales; plus DESIGN.md in Google's DESIGN.md format so other tools can read it. We write our own
+  rules and credit impeccable; no dependency on it. Tina asked for checks and her input at every step:
+  show screenshots and the rule list before committing each one. Full plan: `claude/impeccable-plan.md` in
+  the claude.ai project.
 - Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
   so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
   sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
