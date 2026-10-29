@@ -95,7 +95,7 @@ export function homePage(ctx: PageContext): PageInput {
   // Wide examples get a row of their own; the rest flow into columns.
   const featured = ["table", "card"].filter((n) => tiles.includes(n));
   const rest = tiles.filter((n) => !featured.includes(n));
-  const tile = (n: string, cls: string) => `<figure class="flex flex-col rounded-xl border bg-card p-6 ${cls}">
+  const tile = (n: string, cls: string) => `<figure class="flex min-w-0 flex-col rounded-xl border bg-card p-6 ${cls}">
       <div class="flex min-w-0 flex-1 items-center overflow-x-auto">${preview(ctx, n, { frame: false })}</div>
       <figcaption class="mt-6 text-xs"><a href="docs/components/${comp(n)}/" class="font-medium text-muted-foreground transition-colors hover:text-foreground">${esc(ctx.components.find((c) => c.name === comp(n))?.title ?? comp(n))}</a></figcaption>
     </figure>`;
@@ -157,12 +157,12 @@ export function homePage(ctx: PageContext): PageInput {
 
 <section class="border-t bg-muted">
   <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-2 md:px-6">
-    <div>
+    <div class="min-w-0">
       <h2 class="text-xl font-semibold tracking-tight">Use it in an app</h2>
       <p class="mt-2 text-muted-foreground">Any Tailwind v4 app: Next.js, Vite, React Router or Astro. This installs the theme, the components and the rules.</p>
       <div class="mt-4">${command(`npx auto-design add ${origin}/r/ --components all`, `npx auto-design add ${ORIGIN}/r/ --components all`)}</div>
     </div>
-    <div>
+    <div class="min-w-0">
       <h2 class="text-xl font-semibold tracking-tight">Hand it to your agents</h2>
       <p class="mt-2 text-muted-foreground">Coding agents read <a href="DESIGN.md" class="font-medium text-foreground underline underline-offset-4">DESIGN.md</a>, ask the MCP server for tokens and components, and check their work before they finish.</p>
       <div class="mt-4">${btn("outline", s, "docs/agents/", "Set up agents")}</div>
