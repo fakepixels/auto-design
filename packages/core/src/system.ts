@@ -424,7 +424,7 @@ export function buildSystem(input: DesignConfig): DesignSystem {
     palettes,
     brand: { seed, step: seedStep },
     roles,
-    type: { scale: typeScale(config.type.baseSize, config.type.ratio), fonts, weights },
+    type: { scale: typeScale(config.type.baseSize, config.type.ratio, config.art.display), fonts, weights },
     spacing: SPACING_STEPS,
     controls: controlHeights(config.density),
     radius: radiusScale(config.shape.radius),

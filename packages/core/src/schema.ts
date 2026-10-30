@@ -12,6 +12,26 @@ export const MOTION_PROFILES = ["still", "subtle", "expressive"] as const;
 export const SURFACES = ["web-app", "marketing", "code", "chat", "mcp-apps", "messaging"] as const;
 export const FONT_WEIGHTS = [300, 400, 500, 600, 700] as const;
 
+/**
+ * Art direction: how pages are composed, not only what they're made of. These are what make a
+ * reference like a fashion house read as itself (photography that leads, a wordmark, uppercase
+ * labels, headlines far larger than the text), and they're still choices between good options.
+ */
+/** How much photography carries the page. */
+export const IMAGERY = ["none", "supporting", "leading"] as const;
+/** The shape of a landing page's first screen. */
+export const HEROES = ["type", "centered", "split", "full-bleed", "editorial"] as const;
+/** How collections (products, features, posts) are laid out. */
+export const GRIDS = ["cards", "open", "editorial"] as const;
+/** Navigation and small labels: in sentence case, or uppercase with wide tracking. */
+export const LABEL_CASES = ["sentence", "uppercase"] as const;
+/** How far headlines rise above the text: the usual scale, or a dramatic one for display sizes. */
+export const DISPLAY_SCALES = ["standard", "dramatic"] as const;
+/** The product's name in the header: a letter mark beside it, or a spaced wordmark on its own. */
+export const LOGOS = ["mark", "wordmark"] as const;
+
+export const DEFAULT_ART = { imagery: "none", hero: "type", grid: "cards", labels: "sentence", display: "standard", logo: "mark" } as const;
+
 /** Licenses that allow a font to be committed to a public MIT repo. */
 export const OPEN_FONT_LICENSES = ["OFL-1.1", "Apache-2.0", "MIT", "system"] as const;
 
@@ -86,6 +106,18 @@ export const designConfigSchema = z
       .default({ radius: 8 }),
 
     density: z.enum(["compact", "comfortable"]).default("comfortable"),
+
+    /** Art direction for pages: imagery, the first screen's composition, grids, labels, headline scale and logo. */
+    art: z
+      .object({
+        imagery: z.enum(IMAGERY).default(DEFAULT_ART.imagery),
+        hero: z.enum(HEROES).default(DEFAULT_ART.hero),
+        grid: z.enum(GRIDS).default(DEFAULT_ART.grid),
+        labels: z.enum(LABEL_CASES).default(DEFAULT_ART.labels),
+        display: z.enum(DISPLAY_SCALES).default(DEFAULT_ART.display),
+        logo: z.enum(LOGOS).default(DEFAULT_ART.logo),
+      })
+      .default({ ...DEFAULT_ART }),
     motion: z.enum(MOTION_PROFILES).default("subtle"),
     surfaces: z.array(z.enum(SURFACES)).min(1).default(["web-app"]),
 
@@ -122,6 +154,7 @@ export type ResolvedConfig = z.output<typeof designConfigSchema>;
 export type Texture = (typeof TEXTURES)[number];
 export type MotionProfileName = (typeof MOTION_PROFILES)[number];
 export type Surface = (typeof SURFACES)[number];
+export type Art = z.output<typeof designConfigSchema>["art"];
 export type FontConfig = z.output<typeof fontSchema>;
 
 /** Identity helper that gives editors type checking in design.config.ts. */

@@ -26,23 +26,39 @@ const TRACKING: Record<TypeStep, string> = {
 /** Smallest size any text may use. */
 export const MIN_TEXT_PX = 12;
 
-export function typeScale(baseSize: number, ratio: number): Record<TypeStep, TypeStepValue> {
+/**
+ * Display steps on a dramatic scale grow faster than the text scale above 3xl, so a headline can sit
+ * far above the copy (a fashion house, a magazine cover) while product UI, which tops out at 3xl, keeps
+ * its usual steps.
+ */
+const DRAMATIC: Partial<Record<TypeStep, { grow: number; lineHeight: number; tracking: string }>> = {
+  "4xl": { grow: 1.5, lineHeight: 1.04, tracking: "-0.03em" },
+  "5xl": { grow: 1.4, lineHeight: 1, tracking: "-0.035em" },
+  "6xl": { grow: 1.33, lineHeight: 0.96, tracking: "-0.035em" },
+};
+
+export function typeScale(baseSize: number, ratio: number, display: "standard" | "dramatic" = "standard"): Record<TypeStep, TypeStepValue> {
   const out = {} as Record<TypeStep, TypeStepValue>;
   let previous = 0;
   for (const step of TYPE_STEPS) {
-    const raw = baseSize * ratio ** EXPONENT[step];
+    const dramatic = display === "dramatic" ? DRAMATIC[step] : undefined;
+    const raw = dramatic ? previous * dramatic.grow : baseSize * ratio ** EXPONENT[step];
     let px = raw <= 20 ? Math.round(raw) : Math.round(raw / 2) * 2;
     px = Math.max(px, MIN_TEXT_PX, previous + 1);
     previous = px;
     out[step] = {
       px,
       rem: `${+(px / 16).toFixed(4)}rem`,
-      lineHeight: LINE_HEIGHT[step],
-      letterSpacing: TRACKING[step],
+      lineHeight: dramatic?.lineHeight ?? LINE_HEIGHT[step],
+      letterSpacing: dramatic?.tracking ?? TRACKING[step],
     };
   }
   return out;
 }
+
+/** Tracking for uppercase labels and the wordmark, when a system sets its labels in capitals. */
+export const LABEL_TRACKING = "0.12em";
+export const WORDMARK_TRACKING = "0.32em";
 
 /** Display sizes are for marketing surfaces; product UI tops out below them. */
 export const PRODUCT_MAX_STEP: TypeStep = "3xl";

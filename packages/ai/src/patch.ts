@@ -1,10 +1,17 @@
 import {
+  DISPLAY_SCALES,
   FONTS,
+  GRIDS,
+  HEROES,
+  IMAGERY,
+  LABEL_CASES,
+  LOGOS,
   MOTION_PROFILES,
   PAIRINGS,
   TEXTURES,
   buildSystem,
   customFonts,
+  DEFAULT_ART,
   fontsFor,
   fontsOf,
   pairingFonts,
@@ -37,11 +44,20 @@ export interface DesignPatch {
   uiCase: "sentence" | "title" | null;
   emoji: "never" | "sparingly" | null;
   tone: string | null;
+  /** Art direction: how much photography carries the page, and how pages are composed. */
+  imagery: (typeof IMAGERY)[number] | null;
+  hero: (typeof HEROES)[number] | null;
+  grid: (typeof GRIDS)[number] | null;
+  labels: (typeof LABEL_CASES)[number] | null;
+  display: (typeof DISPLAY_SCALES)[number] | null;
+  logo: (typeof LOGOS)[number] | null;
 }
+
+export const ART_FIELDS = ["imagery", "hero", "grid", "labels", "display", "logo"] as const;
 
 export const PATCH_FIELDS = [
   "brand", "neutral", "defaultMode", "texture", "pairing", "fonts", "radius", "density", "motion",
-  "energy", "warmth", "novelty", "uiCase", "emoji", "tone",
+  "energy", "warmth", "novelty", "uiCase", "emoji", "tone", ...ART_FIELDS,
 ] as const;
 
 const nullable = (schema: Record<string, unknown>) => ({ anyOf: [schema, { type: "null" }] });
@@ -78,6 +94,16 @@ export function patchSchema(): Record<string, unknown> {
       uiCase: nullable({ type: "string", enum: ["sentence", "title"] }),
       emoji: nullable({ type: "string", enum: ["never", "sparingly"] }),
       tone: nullable({ type: "string", description: "One sentence on how the product talks." }),
+      imagery: nullable({ type: "string", enum: [...IMAGERY], description: "How much photography carries the pages: none, supporting, or leading (the photos are the page, as on a fashion or travel site)." }),
+      hero: nullable({
+        type: "string",
+        enum: [...HEROES],
+        description: "A landing page's first screen: type (words only), centered, split (copy beside a picture), full-bleed (a photo fills the screen, words over it) or editorial (a magazine column beside a tall picture).",
+      }),
+      grid: nullable({ type: "string", enum: [...GRIDS], description: "Collections: cards (boxed), open (pictures and captions without boxes) or editorial (one large item beside smaller ones)." }),
+      labels: nullable({ type: "string", enum: [...LABEL_CASES], description: "Navigation and small labels in sentence case, or uppercase with wide tracking (luxury, editorial)." }),
+      display: nullable({ type: "string", enum: [...DISPLAY_SCALES], description: "Headline scale: standard, or dramatic (display headlines far larger than the text)." }),
+      logo: nullable({ type: "string", enum: [...LOGOS], description: "Header logo: a letter mark beside the name, or the name alone as a spaced wordmark." }),
     },
   };
 }
@@ -121,6 +147,15 @@ export function applyPatch(config: DesignConfig, patch: Partial<DesignPatch>): D
   if (patch.emoji) voice.emoji = patch.emoji;
   if (patch.tone) voice.tone = patch.tone.trim().slice(0, 240);
   next.voice = voice;
+  const art = { ...DEFAULT_ART, ...next.art };
+  const pick = <T extends readonly string[]>(list: T, v: unknown): T[number] | undefined => (typeof v === "string" && (list as readonly string[]).includes(v) ? (v as T[number]) : undefined);
+  art.imagery = pick(IMAGERY, patch.imagery) ?? art.imagery;
+  art.hero = pick(HEROES, patch.hero) ?? art.hero;
+  art.grid = pick(GRIDS, patch.grid) ?? art.grid;
+  art.labels = pick(LABEL_CASES, patch.labels) ?? art.labels;
+  art.display = pick(DISPLAY_SCALES, patch.display) ?? art.display;
+  art.logo = pick(LOGOS, patch.logo) ?? art.logo;
+  next.art = art;
   return next;
 }
 
@@ -155,6 +190,12 @@ export function currentChoices(config: DesignConfig): DesignPatch {
     uiCase: config.voice?.uiCase ?? "sentence",
     emoji: config.voice?.emoji ?? "never",
     tone: config.voice?.tone ?? null,
+    imagery: config.art?.imagery ?? DEFAULT_ART.imagery,
+    hero: config.art?.hero ?? DEFAULT_ART.hero,
+    grid: config.art?.grid ?? DEFAULT_ART.grid,
+    labels: config.art?.labels ?? DEFAULT_ART.labels,
+    display: config.art?.display ?? DEFAULT_ART.display,
+    logo: config.art?.logo ?? DEFAULT_ART.logo,
   };
 }
 
@@ -166,6 +207,7 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
     brand: "Brand color", neutral: "Grays", defaultMode: "Loads in", texture: "Texture", pairing: "Type", fonts: "Typefaces",
     radius: "Corners", density: "Density", motion: "Motion", energy: "Energy", warmth: "Warmth",
     novelty: "Novelty", uiCase: "Label case", emoji: "Emoji", tone: "Voice",
+    imagery: "Photography", hero: "First screen", grid: "Collections", labels: "Labels", display: "Headlines", logo: "Logo",
   };
   const fmt = (k: string, v: unknown) => {
     if (v === null || v === undefined) return "none";

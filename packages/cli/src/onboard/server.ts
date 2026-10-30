@@ -11,6 +11,7 @@ import {
   PAIRINGS,
   SURFACES,
   specimenAssets,
+  withKind,
   type DesignConfig,
 } from "@auto-design/core";
 import {
@@ -165,7 +166,7 @@ function view(s: Session) {
     name: s.config.name,
     displayName: s.config.displayName,
     specimen: specimen(s.config),
-    copy: s.copy,
+    copy: withKind(s.copy, s.kind),
     history: s.history.map((h) => ({ label: h.label, changes: h.changes })),
     generated: s.generated.map((g) => ({ id: g.id, name: g.name, tag: g.tag })),
     kind: s.kind,

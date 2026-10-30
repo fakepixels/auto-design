@@ -64,6 +64,7 @@
     el.setAttribute("data-texture", d.texture);
     el.setAttribute("data-press", d.skin.press);
     el.setAttribute("data-labels", d.skin.tableMono ? "mono" : "sans");
+    el.setAttribute("data-case", d.art && d.art.labels === "uppercase" ? "upper" : "sentence");
     if (d.fonts.display && (d.texture === "editorial" || d.texture === "tactile")) el.setAttribute("data-display-titles", "");
     else el.removeAttribute("data-display-titles");
   }
@@ -110,6 +111,80 @@
       "</tbody></table>"
     );
   }
+
+  /* ---------- Pages: how a landing page is composed (the system's art direction) ---------- */
+
+  var ART = { imagery: "none", hero: "type", grid: "cards", labels: "sentence", display: "standard", logo: "mark" };
+  var SITE = {
+    links: ["Product", "Customers", "Pricing"], action: "Sign in", collection: "Why teams switch",
+    items: [
+      { title: "Plan in one place", body: "Projects, owners and budgets on one page." },
+      { title: "See what needs a decision", body: "What's at risk rises to the top before Friday." },
+      { title: "Share the numbers", body: "One link for clients, always current." },
+    ],
+  };
+  /** The object that stands in for a picture when there is none: the kind's own card on a tinted panel. */
+  var KIND_OBJECT = { ecommerce: "shop", agent: "agent", consumer: "moment" };
+  /** Collections drawn as pictures rather than words. */
+  var PICTURED = { ecommerce: true, consumer: true };
+
+  function artOf(d) {
+    var a = {};
+    for (var k in ART) a[k] = (d.art && d.art[k]) || ART[k];
+    return a;
+  }
+  function siteOf(copy) {
+    var s = copy.site || {};
+    var out = {};
+    for (var k in SITE) out[k] = s[k] && (!Array.isArray(s[k]) || s[k].length) ? s[k] : SITE[k];
+    return out;
+  }
+  function picture(img, cls) {
+    return '<figure class="sp-pic' + (cls ? " " + cls : "") + '"><img src="' + e(img.src) + '" alt="' + e(img.alt || "") + '" loading="lazy" decoding="async"></figure>';
+  }
+  function stand(d, copy, cls) {
+    return '<figure class="sp-pic sp-stand' + (cls ? " " + cls : "") + '">' + scenes[KIND_OBJECT[copy.kind] || "object"](d, copy, {}) + "</figure>";
+  }
+  function logo(copy, art) {
+    return art.logo === "wordmark" ? '<span class="sp-wordmark">' + e(copy.product) + "</span>" : '<span class="brand">' + mark(copy) + e(copy.product) + "</span>";
+  }
+  function siteNav(d, copy, art, size, over) {
+    var s = siteOf(copy);
+    var small = size === "s" || size === "xs";
+    var links = small ? "" : s.links.slice(0, art.logo === "wordmark" ? 3 : 4).map(function (l) { return "<a>" + e(l) + "</a>"; }).join("");
+    var plain = over || art.labels === "uppercase" || art.logo === "wordmark";
+    var action = plain ? '<a class="act">' + e(s.action) + "</a>" : '<button class="sp-btn sm outline" tabindex="-1">' + e(s.action) + "</button>";
+    var cls = "sp-nav" + (d.texture === "glass" && !over ? " sp-glass" : "") + (over ? " over" : "");
+    if (art.logo === "wordmark") return '<nav class="' + cls + ' centered"><span class="side">' + links + "</span>" + logo(copy, art) + '<span class="side end">' + action + "</span></nav>";
+    return '<nav class="' + cls + '">' + logo(copy, art) + links + action + "</nav>";
+  }
+  function heroCopy(d, copy, size) {
+    var small = size === "s" || size === "xs";
+    return (
+      "<h1" + (d.fonts.display ? ' class="display"' : "") + ">" + e(copy.headline) + "</h1>" +
+      (size === "xs" ? "" : '<p class="lead">' + e(copy.subhead) + "</p>") +
+      '<div class="sp-row"><button class="sp-btn primary lg" tabindex="-1">' + e(copy.cta) + "</button>" +
+      (small ? "" : '<button class="sp-btn outline lg" tabindex="-1">' + e(copy.secondaryCta) + "</button>") + "</div>" +
+      (small ? "" : '<p class="note">' + e(copy.note) + "</p>")
+    );
+  }
+  /** One collection under the first screen: products for a store, moments for an app, reasons for software. */
+  function collection(d, copy, art, imgs) {
+    var s = siteOf(copy);
+    var pictured = art.imagery !== "none" && (PICTURED[copy.kind] || art.imagery === "leading");
+    var count = pictured && art.grid !== "editorial" ? 4 : 3;
+    var items = s.items.slice(0, count).map(function (it, i) {
+      var img = imgs[i + 1];
+      var media = !pictured ? "" : img ? picture(img) : '<figure class="sp-pic sp-blank"><i class="sp-shop-img" aria-hidden="true"><i></i></i></figure>';
+      return '<article class="sp-item">' + media + '<div class="cap"><b>' + e(it.title) + "</b><span>" + e(it.body) + "</span></div></article>";
+    }).join("");
+    return (
+      '<section class="sp-coll"><div class="sp-coll-head"><h2' + (d.fonts.display ? ' class="display"' : "") + ">" + e(s.collection) + "</h2><a>View all</a></div>" +
+      '<div class="sp-coll-grid" data-grid="' + e(art.grid) + '" data-pictured="' + (pictured ? "yes" : "no") + '">' + items + "</div></section>"
+    );
+  }
+  var HERO_STEP = { xs: "2xl", s: "3xl", m: "4xl", l: "5xl" };
+  var HERO_STEP_DRAMATIC = { xs: "3xl", s: "4xl", m: "5xl", l: "6xl" };
 
   var scenes = {
     /**
@@ -193,21 +268,38 @@
       );
     },
 
+    /**
+     * A landing page in the system's art direction: its first screen (words only, centered, split,
+     * full-bleed or editorial), its navigation and, at the largest size, one collection below.
+     * Pictures come from o.images ({ src, alt }); without them, the kind's own object stands in, or
+     * the brand fills the screen.
+     */
     hero: function (d, copy, o) {
-      var glass = d.texture === "glass" ? " sp-glass" : "";
+      var art = artOf(d);
       var size = o.size || "m";
-      var small = size === "s" || size === "xs";
-      var style = size === "xs" ? ' style="--sp-hero-size:var(--sp-t-2xl);--sp-hero-lh:var(--sp-lh-2xl);padding-top:calc(var(--sp-pad)*0.75);padding-bottom:var(--sp-pad)"' :
-        size === "s" ? ' style="--sp-hero-size:var(--sp-t-3xl);--sp-hero-lh:var(--sp-lh-3xl)"' : size === "m" ? ' style="--sp-hero-size:var(--sp-t-4xl);--sp-hero-lh:var(--sp-lh-4xl)"' : "";
-      return (
-        '<div class="sp-shell sp-marketing"><nav class="sp-nav' + glass + '"><span class="brand">' + mark(copy) + e(copy.product) + "</span>" +
-        (small ? "" : "<a>Product</a><a>Pricing</a><a>Docs</a>") +
-        '<button class="sp-btn sm outline" tabindex="-1">Sign in</button></nav>' +
-        '<section class="sp-hero"' + style + ">" + (size === "xs" ? "" : '<span class="sp-eyebrow"><i>New</i>' + e(copy.eyebrow || "Introducing " + copy.product + " 2.0") + "</span>") + "<h1" + (d.fonts.display ? ' class="display"' : "") + ">" + e(copy.headline) + "</h1>" + (size === "xs" ? "" : '<p class="lead">' + e(copy.subhead) + "</p>") +
-        '<div class="sp-row"><button class="sp-btn primary lg" tabindex="-1">' + e(copy.cta) + "</button>" +
-        (small ? "" : '<button class="sp-btn outline lg" tabindex="-1">' + e(copy.secondaryCta) + "</button>") + "</div>" +
-        (small ? "" : '<p class="note">' + e(copy.note) + "</p>") + "</section></div>"
-      );
+      var imgs = (o.images || d.images || []).filter(function (x) { return x && x.src; });
+      var first = art.imagery !== "none" ? imgs[0] : null;
+      var step = (art.display === "dramatic" ? HERO_STEP_DRAMATIC : HERO_STEP)[size] || "5xl";
+      var style = ' style="--sp-hero-size:var(--sp-t-' + step + ");--sp-hero-lh:var(--sp-lh-" + step + ");--sp-hero-ls:var(--sp-ls-" + step + ')"';
+      var text = heroCopy(d, copy, size);
+      var more = size === "l" ? collection(d, copy, art, art.imagery !== "none" ? imgs : []) : "";
+      var shell = function (hero, body) { return '<div class="sp-shell sp-marketing" data-hero="' + hero + '" data-size="' + size + '">' + body + more + "</div>"; };
+      if (art.hero === "full-bleed") {
+        return shell("full-bleed",
+          '<section class="sp-hero sp-bleed ' + (first ? "on-photo" : "on-brand") + (art.logo === "wordmark" ? " centered" : "") + '"' + style + ">" +
+          (first ? picture(first, "bg") : "") + siteNav(d, copy, art, size, true) + '<div class="sp-over">' + text + "</div></section>");
+      }
+      var nav = siteNav(d, copy, art, size, false);
+      if (art.hero === "split") {
+        return shell("split", nav + '<section class="sp-hero sp-split-hero"' + style + '><div class="sp-hero-copy">' + text + "</div>" + (first ? picture(first) : stand(d, copy)) + "</section>");
+      }
+      if (art.hero === "editorial") {
+        return shell("editorial", nav + '<section class="sp-hero sp-ed-hero"' + style + '><div class="sp-hero-copy"><hr>' + text + "</div>" + (first ? picture(first, "tall") : stand(d, copy, "tall")) + "</section>");
+      }
+      if (art.hero === "centered") {
+        return shell("centered", nav + '<section class="sp-hero sp-center-hero"' + style + ">" + text + "</section>" + (first && size !== "xs" ? picture(first, "band") : ""));
+      }
+      return shell("type", nav + '<section class="sp-hero"' + style + ">" + text + "</section>");
     },
 
     chat: function (d, copy, o) {

@@ -19,6 +19,8 @@ export interface SpecimenData {
   description: string;
   texture: string;
   density: string;
+  /** Art direction: imagery, the first screen's composition, grids, labels, headline scale and logo. */
+  art: { imagery: string; hero: string; grid: string; labels: string; display: string; logo: string };
   modes: string;
   defaultMode: Mode;
   pairing: string | null;
@@ -70,6 +72,7 @@ export function specimenData(s: DesignSystem): SpecimenData {
     description: s.config.description,
     texture: s.config.texture,
     density: s.config.density,
+    art: { ...s.config.art },
     modes: s.config.color.modes,
     defaultMode: s.config.color.modes === "dark" || isDarkFirst(s) ? "dark" : "light",
     pairing: pairingOf(s.config),

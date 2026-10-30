@@ -32,6 +32,107 @@ export interface SpecimenCopy {
   agent?: { ask: string; tool: string; args: string; say: string; approve: string; decline: string };
   /** A consumer app's preview: a line of invitation and one action. */
   moment?: { title: string; body: string; cta: string; later: string };
+  /** The kind of product (saas, ecommerce, consumer, agent, devtool), so pages draw its navigation and collection. */
+  kind?: string | null;
+  /** A landing page's navigation, the header's one action and one collection under the first screen. */
+  site?: SiteCopy;
+}
+
+export interface SiteCopy {
+  links: string[];
+  action: string;
+  collection: string;
+  items: { title: string; body: string }[];
+}
+
+/**
+ * What a landing page says around the headline, by kind of product: a store has a bag and new arrivals,
+ * software has a sign-in and reasons to switch. Never a "Product · Pricing · Docs" bar on a fashion house.
+ */
+export function siteCopy(kind: string | null | undefined, copy: Pick<SpecimenCopy, "product" | "shop" | "moment">): SiteCopy {
+  const shop = copy.shop;
+  switch (kind) {
+    case "ecommerce":
+      return {
+        links: ["New in", "Shop", "Collections", "Stories"],
+        action: `Bag (${shop?.count ?? "2"})`,
+        collection: "New in",
+        items: [
+          { title: shop?.item ?? "Canvas tote", body: shop?.price ?? "$48" },
+          { title: "Leather pouch", body: "$68" },
+          { title: "Linen scarf", body: "$54" },
+          { title: "Weekend bag", body: "$180" },
+        ],
+      };
+    case "consumer":
+      return {
+        links: ["Discover", "Stories", "About"],
+        action: "Get the app",
+        collection: "This week",
+        items: [
+          { title: copy.moment?.title ?? `New from ${copy.product}`, body: copy.moment?.body ?? "A small collection, picked for you." },
+          { title: "A slower morning", body: "Five quiet minutes, every day." },
+          { title: "Made with friends", body: "Share the things you love." },
+        ],
+      };
+    case "agent":
+      return {
+        links: ["Product", "Security", "Pricing"],
+        action: "Sign in",
+        collection: "What it handles",
+        items: [
+          { title: "Asks before it acts", body: "Every send, payment and change waits for your approval." },
+          { title: "Shows its work", body: "Each step lists the tool it ran and what came back." },
+          { title: "Works where you do", body: "Email, calendar and your files, with the access you grant." },
+        ],
+      };
+    case "devtool":
+      return {
+        links: ["Docs", "Changelog", "Pricing"],
+        action: "Sign in",
+        collection: "Built for the terminal",
+        items: [
+          { title: "One command to start", body: "Install, sign in and ship from the CLI." },
+          { title: "Typed from end to end", body: "Every response is typed, every error says what to do." },
+          { title: "Runs in CI", body: "The same checks locally and on every pull request." },
+        ],
+      };
+    default:
+      return {
+        links: ["Product", "Customers", "Pricing"],
+        action: "Sign in",
+        collection: `Why teams switch to ${copy.product}`,
+        items: [
+          { title: "Plan in one place", body: "Projects, owners and budgets on one page." },
+          { title: "See what needs a decision", body: "What's at risk rises to the top before Friday." },
+          { title: "Share the numbers", body: "One link for clients, always current." },
+        ],
+      };
+  }
+}
+
+/** The first screen's lines for a kind of product: a store invites you to shop, software to try it. */
+function heroLines(kind: string | null | undefined, product: string): Pick<SpecimenCopy, "subhead" | "cta" | "secondaryCta" | "note"> | null {
+  switch (kind) {
+    case "ecommerce":
+      return { subhead: "New pieces every week, shipped free and easy to return.", cta: "Shop the collection", secondaryCta: "See what's new", note: "Free shipping and returns on every order." };
+    case "consumer":
+      return { subhead: `${product} is a small, calm place for the things you love.`, cta: "Get the app", secondaryCta: "Take a look", note: "Free on iPhone and Android." };
+    case "agent":
+      return { subhead: `${product} handles the busywork and asks before anything leaves your hands.`, cta: "Try it free", secondaryCta: "See it work", note: "Every action waits for your approval." };
+    case "devtool":
+      return { subhead: `${product} runs in your terminal and in CI, with the same checks in both.`, cta: "Get started", secondaryCta: "Read the docs", note: "Free for open source." };
+    default:
+      return null;
+  }
+}
+
+/** Copy with the kind folded in: its navigation, collection and first-screen lines, unless a model already wrote them. */
+export function withKind(copy: SpecimenCopy, kind: string | null | undefined): SpecimenCopy {
+  const byModel = (copy as SpecimenCopy & { byModel?: boolean }).byModel === true;
+  const written = copy.site && (byModel || copy.kind === kind) ? copy.site : null;
+  const lines = byModel ? null : heroLines(kind, copy.product);
+  return { ...copy, ...(lines ?? {}), kind: kind ?? null, site: written ?? siteCopy(kind, copy) };
 }
 
 export function defaultCopy(product = "Northwind", description = ""): SpecimenCopy {
