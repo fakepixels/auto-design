@@ -9,7 +9,7 @@ drifts, a design site and its own brand animations.
 <!-- product-film:start -->
 <a href="docs/media/product-film.mp4"><img src="docs/media/product-film.webp" width="100%" alt="auto-design in 34 seconds: a gray card becomes Moonbeam's invitation as you pick a kind, a vibe, a color, type and motion, then splits into the whole system: its app, site, chat and messages, its design site and its own launch animation."></a>
 
-<sub>Recorded from the real onboarding on October 28, 2026 (e7ef07d). It re-renders when the product's look changes: <code>npm run video</code>. <a href="docs/media/product-film.mp4">Watch the full-size film</a>.</sub>
+<sub>Recorded from the real onboarding on October 30, 2026 (69b331f). It re-renders when the product's look changes: <code>npm run video</code>. <a href="docs/media/product-film.mp4">Watch the full-size film</a>.</sub>
 <!-- product-film:end -->
 
 ## Quick start

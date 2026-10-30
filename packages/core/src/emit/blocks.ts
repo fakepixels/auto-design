@@ -290,7 +290,7 @@ export { Hero };
         ))}
       </div>`;
   } else if (a.grid === "open") {
-    grid = `      <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+    grid = `      <div className={cn("grid grid-cols-2 gap-6", items.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-4")}>
         {items.map((item) => (
           <a key={item.title} href={item.href ?? "#"} className={cn("flex flex-col gap-3", !item.image && "border-t pt-4")}>
             ${itemPic(cls(`aspect-4/5 w-full object-cover ${st.pic}`))}

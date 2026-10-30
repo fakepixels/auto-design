@@ -105,7 +105,12 @@ user-facing story; this file is how to work on it.
     headlines; surface changes say what changed in the history.
   - Marketing blocks (`core/src/emit/blocks.ts`): `site-header`, `hero` and `collection`, generated in the
     system's composition for systems with the marketing surface, with examples that use the repo's photos.
-    A test checks every composition on every preset against the checker and the compiled theme.
+    A test checks every composition on every preset against the checker and the compiled theme. Header
+    links that don't fit wrap onto a hidden row instead of being cut. The design site's own header shows the
+    wordmark when the system has one (`SiteMeta.wordmark`).
+  - Starting points made from a reference keep its wordmark, label case and colors (the kind's option takes
+    the reference's brand too), and no two share a first screen: close to the reference, photography leads
+    (centered over a wide photo when the reference is already full-bleed), type leads, words beside a picture.
   - Previews (`site/renderer.js` hero scene): five compositions, kind-aware navigation and copy (`withKind` in
     `site/copy.ts`), no "Introducing 2.0" chip. `scripts/page-sheet.mts` draws them side by side. A pictured
     item takes its photo's name as its caption when the name is short and plain (both the preview and the
