@@ -1,5 +1,6 @@
 import { findFont, PAIRINGS, parseColor, toCss, toHex, type Oklch } from "@auto-design/core";
 import type { DesignPatch } from "./patch.js";
+import { lookPatch, type Look } from "./look.js";
 
 /**
  * Read a live site for hints: its brand color, grays, fonts and corners. This
@@ -29,6 +30,8 @@ export interface SiteMaterial {
   dark: boolean;
   /** What was read, for the model and for the person. */
   summary: string;
+  /** How the page looks (imagery, composition, labels, logo, ink), when a browser read it. */
+  look?: Look;
 }
 
 const MAX_HTML = 1_500_000;
@@ -221,12 +224,13 @@ export async function extractFromSite(input: string, signal?: AbortSignal): Prom
 
 /** A patch from what the site shows, without a model. */
 export function patchFromSite(m: SiteMaterial): Partial<DesignPatch> {
-  const patch: Partial<DesignPatch> = {};
-  if (m.colors[0]) patch.brand = m.colors[0].hex;
+  // What a browser saw (art direction, the buttons' real color, ink) comes first; the CSS fills the rest.
+  const patch: Partial<DesignPatch> = m.look ? lookPatch(m.look) : {};
+  if (!patch.brand && m.colors[0]) patch.brand = m.colors[0].hex;
   if (m.neutral) patch.neutral = m.neutral;
   // The site's own faces when the catalog has them; otherwise the closest pairing.
   if (m.catalogFonts && !PAIRINGS.some((p) => p.sans.font === m.catalogFonts!.sans && (p.display?.font ?? null) === m.catalogFonts!.display)) patch.fonts = m.catalogFonts;
-  else if (m.pairing) patch.pairing = m.pairing;
+  else if (m.pairing && !patch.fonts) patch.pairing = m.pairing;
   if (m.radius !== null) patch.radius = m.radius;
   if (m.dark) patch.defaultMode = "dark";
   return patch;

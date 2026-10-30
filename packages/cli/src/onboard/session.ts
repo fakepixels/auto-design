@@ -21,9 +21,13 @@ import {
   currentChoices,
   defaultCopy,
   describeChanges,
+  lookPatch,
   patchFromSite,
   type DesignPatch,
+  type Look,
   type ModelConfig,
+  type Part,
+  type Photo,
   type SiteMaterial,
 } from "@auto-design/ai";
 import { presets } from "@auto-design/presets";
@@ -66,6 +70,20 @@ export interface Session {
   kind: string | null;
   vibe: string | null;
   history: HistoryEntry[];
+  /** How the reference looks: the site's, measured in a browser, else the images', measured in pixels. */
+  look: Look | null;
+  /** The images' look, kept apart so a site read later doesn't lose it. */
+  imageLook: Look | null;
+  /** The site's first screen as a browser drew it, for the model. */
+  siteShot: Part | null;
+  /** Photos the system uses, in order: the first leads the landing page, the next fill its collection. */
+  photos: Photo[];
+  /** The last photo search: its words and what came back. */
+  photoSearch: { q: string; results: Photo[]; error: string | null; auto: boolean } | null;
+  /** Photos the person added from their own files, by id. Never sent anywhere; published into the repo. */
+  ownPhotos: Map<string, { mediaType: string; data: Buffer }>;
+  /** The person chose the photos themselves, so automatic searches no longer replace them. */
+  photosPicked: boolean;
 }
 
 export const TEXTURE_INFO: Record<(typeof TEXTURES)[number], { name: string; note: string }> = {
@@ -119,7 +137,31 @@ export function createSession(product: Partial<Session["product"]> = {}): Sessio
     kind: null,
     vibe: null,
     history: [],
+    look: null,
+    imageLook: null,
+    siteShot: null,
+    photos: [],
+    photoSearch: null,
+    ownPhotos: new Map(),
+    photosPicked: false,
   };
+}
+
+/** The reference's look: the site's when one was read in a browser, else the images'. */
+export function referenceLook(session: Session): Look | null {
+  return session.site?.look ?? session.imageLook ?? null;
+}
+
+/**
+ * Photos in the order a page uses them: a wide one first when the first screen is full-bleed or centered,
+ * a tall one when it's split or editorial; the rest fill the collection.
+ */
+export function photosForPage(photos: Photo[], hero: string): Photo[] {
+  if (photos.length < 2) return photos;
+  const ratio = (p: Photo) => (p.width && p.height ? p.width / p.height : 1);
+  const wide = hero === "full-bleed" || hero === "centered";
+  const lead = [...photos].sort((a, b) => (wide ? ratio(b) - ratio(a) : ratio(a) - ratio(b)))[0]!;
+  return [lead, ...photos.filter((p) => p !== lead)];
 }
 
 export function errorText(err: unknown): string {
@@ -214,17 +256,17 @@ export const VIBES: { id: string; name: string; note: string }[] = [
 interface Direction { patch: Partial<DesignPatch>; brand: string; surfaces?: Surface[] }
 
 const DIRECTIONS: Record<string, Direction> = {
-  saas: { patch: { texture: "minimal", pairing: "geist", radius: 8, density: "compact", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.3, warmth: 0.3, novelty: 0.2 }, brand: "oklch(0.55 0.21 262)" },
-  ecommerce: { patch: { texture: "minimal", pairing: "jakarta", radius: 12, density: "comfortable", motion: "subtle", neutral: "warm", defaultMode: "light", energy: 0.5, warmth: 0.6, novelty: 0.4 }, brand: "oklch(0.67 0.19 42)", surfaces: ["web-app", "marketing"] },
-  agent: { patch: { texture: "glass", pairing: "inter", radius: 12, density: "comfortable", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.4, warmth: 0.4, novelty: 0.4 }, brand: "oklch(0.55 0.21 292)", surfaces: ["web-app", "chat"] },
-  devtool: { patch: { texture: "technical", pairing: "plex", radius: 4, density: "compact", motion: "still", neutral: "cool", defaultMode: "dark", energy: 0.2, warmth: 0.2, novelty: 0.3 }, brand: "oklch(0.82 0.13 200)", surfaces: ["web-app", "code"] },
-  "consumer:luxury": { patch: { texture: "editorial", pairing: "bodoni", radius: 0, density: "comfortable", motion: "still", neutral: "warm", defaultMode: "dark", energy: 0.15, warmth: 0.6, novelty: 0.5 }, brand: "oklch(0.78 0.09 82)" },
-  "consumer:dreamy": { patch: { texture: "glass", pairing: "fraunces", radius: 16, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "light", energy: 0.6, warmth: 0.6, novelty: 0.6 }, brand: "oklch(0.7 0.13 320)" },
-  "consumer:scifi": { patch: { texture: "technical", pairing: "chakra", radius: 2, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "dark", energy: 0.8, warmth: 0.2, novelty: 0.8 }, brand: "oklch(0.84 0.14 195)" },
-  "consumer:playful": { patch: { texture: "tactile", pairing: "fredoka", radius: 16, density: "comfortable", motion: "expressive", neutral: "warm", defaultMode: "light", energy: 0.85, warmth: 0.85, novelty: 0.8 }, brand: "oklch(0.72 0.16 355)" },
+  saas: { patch: { texture: "minimal", pairing: "geist", radius: 8, density: "compact", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.3, warmth: 0.3, novelty: 0.2, imagery: "supporting", hero: "split", grid: "cards", labels: "sentence", display: "standard", logo: "mark" }, brand: "oklch(0.55 0.21 262)" },
+  ecommerce: { patch: { texture: "minimal", pairing: "jakarta", radius: 12, density: "comfortable", motion: "subtle", neutral: "warm", defaultMode: "light", energy: 0.5, warmth: 0.6, novelty: 0.4, imagery: "leading", hero: "split", grid: "open", labels: "sentence", display: "standard", logo: "mark" }, brand: "oklch(0.67 0.19 42)", surfaces: ["web-app", "marketing"] },
+  agent: { patch: { texture: "glass", pairing: "inter", radius: 12, density: "comfortable", motion: "subtle", neutral: "cool", defaultMode: "light", energy: 0.4, warmth: 0.4, novelty: 0.4, imagery: "none", hero: "split", grid: "open", labels: "sentence", display: "standard", logo: "mark" }, brand: "oklch(0.55 0.21 292)", surfaces: ["web-app", "chat"] },
+  devtool: { patch: { texture: "technical", pairing: "plex", radius: 4, density: "compact", motion: "still", neutral: "cool", defaultMode: "dark", energy: 0.2, warmth: 0.2, novelty: 0.3, imagery: "none", hero: "type", grid: "open", labels: "sentence", display: "standard", logo: "mark" }, brand: "oklch(0.82 0.13 200)", surfaces: ["web-app", "code"] },
+  "consumer:luxury": { patch: { texture: "editorial", pairing: "bodoni", radius: 0, density: "comfortable", motion: "still", neutral: "warm", defaultMode: "dark", energy: 0.15, warmth: 0.6, novelty: 0.5, imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark" }, brand: "oklch(0.78 0.09 82)" },
+  "consumer:dreamy": { patch: { texture: "glass", pairing: "fraunces", radius: 16, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "light", energy: 0.6, warmth: 0.6, novelty: 0.6, imagery: "leading", hero: "centered", grid: "editorial", labels: "sentence", display: "dramatic", logo: "mark" }, brand: "oklch(0.7 0.13 320)" },
+  "consumer:scifi": { patch: { texture: "technical", pairing: "chakra", radius: 2, density: "comfortable", motion: "expressive", neutral: "cool", defaultMode: "dark", energy: 0.8, warmth: 0.2, novelty: 0.8, imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "mark" }, brand: "oklch(0.84 0.14 195)" },
+  "consumer:playful": { patch: { texture: "tactile", pairing: "fredoka", radius: 16, density: "comfortable", motion: "expressive", neutral: "warm", defaultMode: "light", energy: 0.85, warmth: 0.85, novelty: 0.8, imagery: "supporting", hero: "split", grid: "cards", labels: "sentence", display: "dramatic", logo: "mark" }, brand: "oklch(0.72 0.16 355)" },
 };
 /** Without a kind, a bolder take still leans expressive. */
-const BOLD: Direction = { patch: { texture: "glass", pairing: "bricolage", radius: 16, density: "comfortable", motion: "expressive", energy: 0.75, novelty: 0.75 }, brand: "oklch(0.62 0.2 300)" };
+const BOLD: Direction = { patch: { texture: "glass", pairing: "bricolage", radius: 16, density: "comfortable", motion: "expressive", energy: 0.75, novelty: 0.75, hero: "editorial", grid: "editorial", display: "dramatic" }, brand: "oklch(0.62 0.2 300)" };
 
 function directionFor(kind: string | null, vibe: string | null): Direction | null {
   if (!kind) return null;
@@ -306,10 +348,26 @@ export const PALETTES: { id: string; name: string; brand: string; neutral: "cool
 
 const TEXTURE_PRESET: Record<(typeof TEXTURES)[number], string> = { minimal: "quiet", editorial: "editorial", glass: "glass", technical: "terminal", tactile: "tactile" };
 
+/** The art direction in a few words, for a starting point's card. */
+export function artNote(config: DesignConfig): string {
+  const a = { imagery: "none", hero: "type", grid: "cards", labels: "sentence", display: "standard", logo: "mark", ...config.art };
+  const hero: Record<string, string> = { "full-bleed": "full-bleed photo", split: "words beside a picture", centered: "centered", editorial: "magazine column", type: "headline first" };
+  const parts = [a.imagery === "leading" ? "photos lead" : a.imagery === "none" ? "type leads" : "", hero[a.hero] ?? "", a.logo === "wordmark" ? "wordmark" : "", a.labels === "uppercase" ? "uppercase labels" : "", a.display === "dramatic" ? "big headlines" : ""];
+  return parts.filter(Boolean).slice(0, 3).join(", ");
+}
+
+/** A patch without its art direction, so a starting point can keep the reference's colors and type but compose differently. */
+function withoutArt(patch: Partial<DesignPatch>): Partial<DesignPatch> {
+  const { imagery: _i, hero: _h, grid: _g, labels: _l, display: _d, logo: _o, ...rest } = patch;
+  return rest;
+}
+
 /**
- * Starting points made from the person's own material: their site, the images
- * they dropped, or both. Built without a model, so they appear the moment the
- * material is read; a model's pick is kept alongside when there is one.
+ * Starting points made from the person's own material: their site, the images they dropped, or both.
+ * They differ in how pages are composed, not only in shades of one color: one stays as close to the
+ * reference as the system allows, one lets photography lead, one lets type lead, and one takes a bolder
+ * risk. Built without a model, so they appear the moment the material is read; a model's pick is kept
+ * alongside when there is one.
  */
 export function generateOptions(session: Session, imageColors: string[] = session.imageColors): Generated[] {
   session.imageColors = imageColors.filter((c) => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6);
@@ -324,47 +382,68 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
     return applyPatch(preset, { ...rest, texture: t });
   };
   const made: Generated[] = [];
-  const add = (g: Omit<Generated, "config">, make: () => DesignConfig) => {
+  const add = (g: Omit<Generated, "config" | "note"> & { note?: string }, make: () => DesignConfig) => {
     try {
       const config = make();
       config.surfaces = session.config.surfaces?.length ? session.config.surfaces : config.surfaces;
       buildSystem(config);
-      made.push({ ...g, config });
+      made.push({ ...g, note: g.note ?? artNote(config), config });
     } catch {
       /* an option that doesn't build isn't offered */
     }
   };
   const site = session.site;
-  const sitePatch = site ? patchFromSite(site) : {};
+  const look = referenceLook(session);
   const [first, second] = session.imageColors;
-  // In order of how much they say about the person; the first three are shown.
-  if (site && Object.keys(sitePatch).length) {
-    add({ id: "gen:site", name: "Your site", tag: "From your site", note: siteNote(site), label: "Started from your site" }, () => applyPatch(base(), sitePatch));
+  // The reference as the system can hold it: the site's colors, type and corners, and how it's composed.
+  const ref: Partial<DesignPatch> = site ? patchFromSite(site) : look ? lookPatch(look) : {};
+  if (!ref.brand && first) ref.brand = first;
+  const from = site ? "site" : "images";
+  const tag = site ? "From your site" : "From your images";
+  const hasMaterial = !!site || session.imageColors.length > 0 || !!look;
+  if (!hasMaterial) {
+    session.generated = session.generated.filter((g) => g.id === "gen:model" || g.id === "gen:kind");
+    return session.generated;
   }
-  // A bolder take: the material's most characterful color in the kind's full direction, the risk the site doesn't take.
-  const signature = mostVivid([...(site?.colors.map((c) => c.hex) ?? []), ...session.imageColors]);
+  const refHero = ref.hero ?? "type";
+  const colorsAndType = withoutArt(ref);
+
+  add({ id: "gen:ref", name: `Close to your ${from}`, tag, label: `Started close to your ${from}`, note: look ? look.facts.slice(0, 3).join(", ").toLowerCase().replace(/^./, (c) => c.toUpperCase()) : site ? siteNote(site) : undefined }, () => applyPatch(base(), ref));
+  add(
+    { id: "gen:photo", name: "Photography leads", tag, label: "Started from photography leading" },
+    () => applyPatch(base(), { ...colorsAndType, imagery: "leading", hero: refHero === "full-bleed" ? "editorial" : "full-bleed", grid: "open", display: "dramatic", labels: ref.labels ?? "uppercase", logo: ref.logo ?? "wordmark" }),
+  );
+  // Type leads: no photography, a big headline and a collection set like a magazine's contents.
+  const serifDisplay = ref.fonts?.display ?? null;
+  add(
+    { id: "gen:type", name: "Type leads", tag, label: "Started from type leading" },
+    () => applyPatch(base("editorial"), { ...colorsAndType, ...(serifDisplay ? {} : { pairing: "instrument" }), texture: "editorial", imagery: "none", hero: "type", grid: "editorial", display: "dramatic", labels: "sentence", logo: "mark" }),
+  );
+  // A bolder take: the material's most characterful color in the kind's full direction, the risk the reference doesn't take.
+  const signature = mostVivid([...(site?.colors.map((c) => c.hex) ?? []), ...session.imageColors, ...(look?.uiColors ?? [])]);
   if (signature) {
     const bold = dir ?? BOLD;
     const mood = (session.kind === "consumer" ? VIBES.find((v) => v.id === session.vibe)?.name ?? "bolder" : "bolder").toLowerCase();
-    const from = site ? "site" : "images";
-    const pairing = PAIRINGS.find((p) => p.id === bold.patch.pairing);
-    const faces = pairing ? [pairing.display?.font, pairing.sans.font].filter(Boolean).map((f) => FONTS[f!]!.google)[0] : "";
     add(
-      { id: "gen:bold", name: `Your ${from}, ${mood}`, tag: site ? "From your site" : "From your images", note: [signature, faces, `${bold.patch.radius ?? 12}px corners`].filter(Boolean).join(", "), label: `Started from your ${from}, ${mood}` },
-      () => applyPatch(presetFor(TEXTURE_PRESET[(bold.patch.texture as (typeof TEXTURES)[number]) ?? "glass"]!, session.product), { ...bold.patch, brand: signature }),
+      { id: "gen:bold", name: `Your ${from}, ${mood}`, tag, label: `Started from your ${from}, ${mood}` },
+      () => applyPatch(presetFor(TEXTURE_PRESET[(bold.patch.texture as (typeof TEXTURES)[number]) ?? "glass"]!, session.product), { ...bold.patch, brand: signature, imagery: "supporting", hero: "split", grid: "editorial", display: "dramatic" }),
     );
   }
-  if (first) {
-    add({ id: "gen:images", name: "Your images", tag: "From your images", note: `${first} on ${TEXTURE_INFO[texture].name.toLowerCase()} surfaces`, label: "Started from your images" }, () => applyPatch(base(), { brand: first }));
+  // The store's classic: words beside a picture over boxed products, for when the reference does something else.
+  if (refHero !== "split") {
+    add(
+      { id: "gen:split", name: "Words beside a picture", tag, label: "Started from words beside a picture" },
+      () => applyPatch(base(), { ...colorsAndType, imagery: ref.imagery && ref.imagery !== "none" ? ref.imagery : "supporting", hero: "split", grid: "cards", labels: "sentence", display: "standard", logo: "mark" }),
+    );
   }
-  if (site && sitePatch.brand) {
+  if (site && ref.brand && !look) {
     const flip = site.dark ? "light" : "dark";
-    add({ id: "gen:site-flip", name: site.dark ? "Your site, light" : "Your site, dark", tag: "From your site", note: `The same colors and type, ${flip} first`, label: `Started from your site, ${flip}` }, () => applyPatch(base(), { ...sitePatch, defaultMode: flip }));
+    add({ id: "gen:site-flip", name: site.dark ? "Your site, light" : "Your site, dark", tag, note: `The same colors and type, ${flip} first`, label: `Started from your site, ${flip}` }, () => applyPatch(base(), { ...ref, defaultMode: flip }));
   }
   if (second) {
-    add({ id: "gen:images-2", name: "Your second color", tag: "From your images", note: `${second} on ${TEXTURE_INFO[other].name.toLowerCase()} surfaces`, label: "Started from your second color" }, () => applyPatch(base(other), { brand: second }));
+    add({ id: "gen:images-2", name: "Your second color", tag: "From your images", note: `${second} on ${TEXTURE_INFO[other].name.toLowerCase()} surfaces`, label: "Started from your second color" }, () => applyPatch(base(other), { ...colorsAndType, brand: second }));
   }
-  session.generated = [...made.slice(0, 3), ...session.generated.filter((g) => g.id === "gen:model" || g.id === "gen:kind")];
+  session.generated = [...made.slice(0, 4), ...session.generated.filter((g) => g.id === "gen:model" || g.id === "gen:kind")];
   return session.generated;
 }
 

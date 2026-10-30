@@ -2,7 +2,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { buildSystem, emitAll, type DesignConfig, type SpecimenCopy } from "@auto-design/core";
-import { PROVIDERS, type ModelConfig } from "@auto-design/ai";
+import { PROVIDERS, type ModelConfig, type Photo } from "@auto-design/ai";
+import { localPhotoFile, writePhotos } from "./photos.js";
 import { COPY_FILE, CONFIG_FILE, WORKFLOW, configSource, systemPackageJson, systemReadme, writeFiles, writeSite } from "../commands.js";
 
 /**
@@ -24,6 +25,9 @@ export interface PublishOptions {
   hosting: Hosting;
   model?: ModelConfig | null;
   saveKey?: boolean;
+  /** Photos the system starts with, in page order, and the bytes of the person's own. */
+  photos?: Photo[];
+  ownPhotos?: Map<string, { mediaType: string; data: Buffer }>;
 }
 
 export interface StepResult {
@@ -214,9 +218,18 @@ export async function publish(opts: PublishOptions): Promise<PublishResult> {
   let owner: string | null = null;
   const repoName = opts.repoName || `${opts.config.name}-design`;
 
-  // 1. Files, then the design site.
+  // 1. Files, the photos, then the design site.
   const files = writeRepo(opts);
   steps.push({ step: "Write the design system", ok: true, detail: `${files.length} files in ${relative(process.cwd(), dir) || dir}` });
+  if (opts.photos?.length) {
+    const local = process.env.AUTO_DESIGN_PHOTOS_DIR ? (name: string) => localPhotoFile(process.env.AUTO_DESIGN_PHOTOS_DIR!, name) : undefined;
+    const photos = await writePhotos(dir, opts.photos, opts.ownPhotos ?? new Map(), local);
+    steps.push(
+      photos.written.length
+        ? { step: "Add the photos", ok: true, detail: `${photos.written.length} in images/, with their credits in images/CREDITS.md${photos.failed.length ? `. Couldn't download ${photos.failed.length}; add them later` : ""}` }
+        : { step: "Add the photos", ok: false, detail: "Couldn't download the photos. Add your own to images/ and list them in images/credits.json." },
+    );
+  }
   const { byModel: _b, ...copy } = opts.copy as SpecimenCopy & { byModel?: boolean };
   const site = await writeSite(dir, buildSystem(opts.config), { copy: copy as SpecimenCopy });
   steps.push(

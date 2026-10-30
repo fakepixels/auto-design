@@ -1,5 +1,5 @@
 import { toCss } from "../color.js";
-import { SHADOW_STEPS, TYPE_STEPS, bezier, shadowCss } from "../scales.js";
+import { LABEL_TRACKING, SHADOW_STEPS, TYPE_STEPS, WORDMARK_TRACKING, bezier, shadowCss } from "../scales.js";
 import { ROLE_NAMES, type DesignSystem, type Mode } from "../system.js";
 import { WEIGHT_NAMES, fontStack, header } from "./shared.js";
 import { mcpLayer } from "../agents/mcp-app.js";
@@ -44,6 +44,9 @@ export function themeTokens(s: DesignSystem): Record<string, string> {
   t["--tracking-tight"] = "-0.02em";
   t["--tracking-normal"] = "0em";
   t["--tracking-wide"] = "0.04em";
+  // Uppercase labels and a spaced wordmark, when the system's art direction uses them.
+  if (s.config.art.labels === "uppercase") t["--tracking-label"] = LABEL_TRACKING;
+  if (s.config.art.logo === "wordmark") t["--tracking-wordmark"] = WORDMARK_TRACKING;
   t["--leading-none"] = "1";
   t["--leading-tight"] = "1.25";
   t["--leading-snug"] = "1.4";

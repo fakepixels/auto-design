@@ -53,6 +53,57 @@ const ROLE_USE: [string, string][] = [
   ["sidebar-*", "App navigation sidebars."],
 ];
 
+/**
+ * How pages are composed: where photography goes, the first screen's shape, collections, labels,
+ * headline scale and the logo. These are what make a reference read as itself, so agents get them as
+ * rules, not as a mood.
+ */
+function artSection(s: DesignSystem): string[] {
+  const a = s.config.art;
+  const display = s.type.fonts.display ? "font-display " : "";
+  const lines = ["## Art direction", ""];
+  const imagery: Record<typeof a.imagery, string> = {
+    none: "- No photography. Pages lead with type and the product itself (screens, objects, data). Don't add stock photos or illustration to fill space.",
+    supporting:
+      "- Photography supports the words: one picture beside or under the headline, product shots in collections. Real photos only (the product, its people, its places), never illustration standing in for a photo.",
+    leading:
+      "- Photography leads: pictures are the page and carry most of the color, so the interface around them stays quiet. Use real photos of the product and its world, large and uncropped where possible (`object-cover` in a fixed aspect), and give every photo `alt` text that says what it shows.",
+  };
+  lines.push(imagery[a.imagery]);
+  const hero: Record<typeof a.hero, string> = {
+    type: "- Landing pages open on words only: a headline, one line and the main action, left-aligned, with nothing decorative beside them.",
+    centered: "- Landing pages open centered: the headline, one line and the action in the middle, with a wide picture or the product under them.",
+    split: "- Landing pages open split: the words on one side, one picture or the product on the other, both the same height.",
+    "full-bleed":
+      "- Landing pages open full-bleed: one photo fills the first screen and the navigation and headline sit on it, with a dark scrim for contrast (`bg-gradient-to-t from-black/60`). Buttons on the photo are white or outlined white.",
+    editorial: "- Landing pages open like a magazine: a short rule, a headline column on the left and one tall picture on the right.",
+  };
+  lines.push(hero[a.hero]);
+  const grid: Record<typeof a.grid, string> = {
+    cards: "- Collections (products, features, posts) sit in cards: `bg-card`, the system radius and border, an even grid.",
+    open: "- Collections are open: pictures and captions with no boxes around them, separated by space. Captions are a name and one detail (a price, a date).",
+    editorial: "- Collections are editorial: one large item beside smaller ones, never an even grid of identical cards.",
+  };
+  lines.push(grid[a.grid]);
+  if (a.labels === "uppercase") {
+    lines.push("- Navigation links, small labels and marketing buttons are uppercase and tracked: `uppercase tracking-label text-xs`. Body text, headlines and form labels stay in sentence case.");
+  } else {
+    lines.push("- Navigation, labels and buttons are in sentence case. Don't add tiny uppercase labels above headings.");
+  }
+  if (a.display === "dramatic") {
+    lines.push(`- Headlines are dramatic: a landing page's headline uses \`${display}text-5xl\` or \`text-6xl\`, far above the text. Keep it to a short line or two so it never crowds the first screen.`);
+  } else {
+    lines.push(`- Headlines are measured: \`${display}text-4xl\` to \`text-5xl\` on landing pages, sized for the words they carry.`);
+  }
+  if (a.logo === "wordmark") {
+    lines.push(`- The logo is a wordmark: the name alone, uppercase and widely spaced (\`${display}uppercase tracking-wordmark\`), centered in the header with the links on either side. No letter mark beside it.`);
+  } else {
+    lines.push("- The logo is a letter mark beside the name, on the left of the header.");
+  }
+  lines.push("");
+  return lines;
+}
+
 /** Concrete instructions for the texture, so agents reproduce it instead of guessing. */
 function textureSection(s: DesignSystem): string[] {
   const t = s.config.texture;
@@ -186,6 +237,7 @@ export function emitDesignMd(s: DesignSystem): string {
     `- Elevation: \`shadow-xs\` (controls at rest), \`shadow-sm\` (cards), \`shadow-md\` (menus, toasts), \`shadow-lg\` (dialogs) and \`shadow-raised\` (solid buttons). ${c.texture === "technical" || c.texture === "editorial" ? "Only floating layers (popovers, dialogs) use a shadow here." : "Use `shadow-lg` only for floating layers."}`,
     "",
     ...textureSection(s),
+    ...artSection(s),
     "## Motion",
     "",
     `Profile: **${s.motion.name}**.`,

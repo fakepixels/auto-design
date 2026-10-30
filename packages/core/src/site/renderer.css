@@ -255,7 +255,7 @@
 .sp-coll-head h2.display { font-family: var(--sp-display); font-weight: var(--sp-w-display); }
 .sp-coll-head a { color: var(--muted-foreground); font-size: var(--sp-t-sm); white-space: nowrap; }
 .sp-coll-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.sp-coll-grid[data-pictured="yes"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sp-coll-grid[data-pictured="yes"] { grid-template-columns: repeat(var(--sp-coll-n, 4), minmax(0, 1fr)); }
 .sp-item { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .sp-item .sp-pic { aspect-ratio: 4 / 5; }
 .sp-item .cap { display: flex; flex-direction: column; gap: 2px; }
@@ -282,6 +282,8 @@
 }
 @container (max-width: 620px) {
   .sp-split-hero, .sp-ed-hero { grid-template-columns: minmax(0, 1fr); }
+  /* Stacked, the picture comes first, so a small preview still shows it. */
+  .sp-split-hero > .sp-pic, .sp-ed-hero > .sp-pic { order: -1; }
   .sp-marketing .sp-split-hero h1, .sp-marketing .sp-ed-hero h1 { font-size: min(var(--sp-hero-size, var(--sp-t-5xl)), 11.5cqw); }
   .sp-split-hero > .sp-pic, .sp-pic.tall { aspect-ratio: 16 / 10; }
   .sp-coll-grid, .sp-coll-grid[data-pictured="yes"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }

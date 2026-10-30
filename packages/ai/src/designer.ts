@@ -1,6 +1,7 @@
 import { FONT_CATALOG, MOODS, MOTION_PROFILES, PAIRINGS, TEXTURES, type DesignConfig } from "@auto-design/core";
 import { copySchema, defaultCopy, mergeCopy, type SpecimenCopy } from "./copy.js";
 import type { SiteMaterial } from "./extract.js";
+import type { Look } from "./look.js";
 import { applyPatch, currentChoices, describeChanges, patchSchema, validate, type DesignPatch } from "./patch.js";
 import { callJson, ModelError, type ModelConfig, type Part } from "./providers.js";
 
@@ -29,6 +30,11 @@ function catalog(): string {
     ...MOTION_PROFILES.map((m) => `- ${m}: ${MOTION_NOTES[m]}`),
     "Corner radius: 0 to 20 px. Density: compact (32px controls) or comfortable (36px).",
     "Grays: cool, neutral or warm. Modes: the product loads in light or dark; both always exist.",
+    "Art direction (how pages are composed, which is what makes a reference read as itself):",
+    "- imagery: none (type and the product lead), supporting (one picture beside the words), leading (photos are the page, as on a fashion house or travel site)",
+    "- hero, the landing page's first screen: type, centered, split, full-bleed (a photo fills it, words on top) or editorial (a magazine column beside a tall picture)",
+    "- grid, collections: cards (boxed), open (pictures and captions, no boxes) or editorial (one large item beside smaller ones)",
+    "- labels: sentence or uppercase (tracked capitals for navigation and small labels); display: standard or dramatic headlines; logo: mark or wordmark (the name alone, spaced, centered)",
   ].join("\n");
 }
 
@@ -41,6 +47,12 @@ Taste rules:
 - Avoid the generic AI look: no purple or violet by default, no neon on dark unless the product is
   for developers, no rainbow palettes. Prefer a brand color with a clear identity.
 - Match the texture to the product and its audience, not to a trend.
+- When the person brings a reference (a site or screenshots), be faithful to how it is composed, not only
+  to its colors: read how much of it is photography, the shape of its first screen, its labels, how far its
+  headlines rise above the text and its logo, and set the art direction fields to match.
+- If the reference's interface is black, white and gray and its color lives in the photos (a fashion
+  house, a gallery, a hotel), the brand is near-black (or near-white on a dark site), not a color taken from
+  a photo. A product's photo is not its brand color.
 - Set a field to null when you have no reason to change it.`;
 
 export interface SuggestInput {
@@ -50,6 +62,8 @@ export interface SuggestInput {
   images?: Part[];
   /** Dominant colors measured from uploaded images, as hex. */
   imageColors?: string[];
+  /** How the reference looks, measured from the site or the images. */
+  look?: Look | null;
   current: DesignConfig;
   signal?: AbortSignal;
 }
@@ -59,16 +73,23 @@ export interface Suggestion {
   patch: DesignPatch;
   reasons: string[];
   changes: string[];
+  /** What to search for when the system needs photos. */
+  photoSearches: string[];
 }
 
 function suggestionSchema() {
   return {
     type: "object",
     additionalProperties: false,
-    required: ["patch", "reasons"],
+    required: ["patch", "reasons", "photoSearches"],
     properties: {
       patch: patchSchema(),
       reasons: { type: "array", items: { type: "string" }, description: "2-5 short reasons, one per notable choice, each under 20 words." },
+      photoSearches: {
+        type: "array",
+        items: { type: "string" },
+        description: "2-3 short searches (2-4 words) for openly licensed photographs that could stand in for this product's own: concrete subjects a camera can take, like 'leather handbag studio' or 'hotel pool morning'. Empty when the system uses no photography.",
+      },
     },
   };
 }
@@ -121,7 +142,8 @@ export async function suggest(model: ModelConfig, input: SuggestInput): Promise<
     input.description && `What it is: ${input.description}`,
     input.site && `What their current site shows:\n${input.site.summary}`,
     input.imageColors?.length && `Dominant colors in their uploaded images: ${input.imageColors.join(", ")}`,
-    input.images?.length && `${input.images.length} image(s) attached: their logo or screens they like. Use them for color, texture and type hints.`,
+    input.look && `What auto-design measured on their reference: ${input.look.facts.join("; ")}.`,
+    input.images?.length && `${input.images.length} image(s) attached: their logo, their site or screens they like. Read their color, type and composition (photography, first screen, labels, headline scale, logo) from them.`,
     `Current choices: ${JSON.stringify(currentChoices(input.current))}`,
     "Suggest the design system that fits this product best. Keep their existing brand color if they clearly have one.",
     "If it's a consumer product, take more risk than their site does: lead with the brand's most characterful color, and let type, corners and motion carry its personality instead of a generic template.",
@@ -133,6 +155,7 @@ export async function suggest(model: ModelConfig, input: SuggestInput): Promise<
     patch,
     reasons: Array.isArray(raw.reasons) ? (raw.reasons as unknown[]).map(String).slice(0, 5) : [],
     changes: describeChanges(input.current, config),
+    photoSearches: Array.isArray(raw.photoSearches) ? (raw.photoSearches as unknown[]).map((q) => String(q).trim().slice(0, 60)).filter(Boolean).slice(0, 3) : [],
   };
 }
 

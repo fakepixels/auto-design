@@ -27,6 +27,18 @@ export function quickTweak(config: DesignConfig, request: string): Partial<Desig
   if (/glass|frost|translucent/.test(r)) p.texture = "glass";
   if (/less corporate|human|approachable/.test(r)) Object.assign(p, { warmth: nudge(now.warmth, 0.25), novelty: nudge(now.novelty, 0.15), pairing: "figtree", radius: Math.min(20, (now.radius ?? 8) + 2) });
   if (/bolder|more character|distinctive/.test(r)) Object.assign(p, { pairing: "bricolage", novelty: nudge(now.novelty, 0.25) });
+  // Art direction: how pages are composed.
+  if (/photos? lead|photography|more photos/.test(r)) Object.assign(p, { imagery: "leading", grid: now.grid === "cards" ? "open" : now.grid });
+  if (/type leads|no photos|without photos/.test(r)) Object.assign(p, { imagery: "none", hero: "type" });
+  if (/full[- ]bleed/.test(r)) Object.assign(p, { hero: "full-bleed", imagery: now.imagery === "none" ? "leading" : now.imagery });
+  if (/\bsplit\b/.test(r)) p.hero = "split";
+  if (/magazine/.test(r)) Object.assign(p, { hero: "editorial", grid: "editorial" });
+  if (/uppercase|capitals|all caps/.test(r)) p.labels = "uppercase";
+  if (/sentence case labels|no uppercase/.test(r)) p.labels = "sentence";
+  if (/wordmark/.test(r)) p.logo = "wordmark";
+  if (/letter mark|logo mark/.test(r)) p.logo = "mark";
+  if (/bigger headlines|dramatic|huge headline/.test(r)) p.display = "dramatic";
+  if (/smaller headlines/.test(r)) p.display = "standard";
   return p;
 }
 
@@ -76,8 +88,17 @@ export function mockDesigner(config: () => DesignConfig) {
     if (texture === "tactile") Object.assign(patch, { radius: 16, motion: "expressive" });
     if (texture === "glass") Object.assign(patch, { radius: 12, motion: "expressive" });
     if (texture === "editorial") Object.assign(patch, { radius: 4, motion: "still", neutral: "warm" });
+    // The measured look, when there is one, as a faithful model would read it.
+    const facts = /What auto-design measured on their reference: (.*)/.exec(text)?.[1] ?? "";
+    if (/Photography leads/.test(facts)) Object.assign(patch, { imagery: "leading", grid: "open" });
+    if (/full-bleed/.test(facts)) patch.hero = "full-bleed";
+    if (/centered wordmark/i.test(facts)) patch.logo = "wordmark";
+    if (/Uppercase labels/.test(facts)) patch.labels = "uppercase";
+    if (/black-and-white interface/.test(facts)) patch.brand = "#111111";
+    if (/white-on-black interface/.test(facts)) Object.assign(patch, { brand: "#f2f2f2", defaultMode: "dark" });
     return {
       patch,
+      photoSearches: /Photography leads|Photos support/.test(facts) ? ["product still life"] : [],
       reasons: [
         `${texture![0]!.toUpperCase()}${texture!.slice(1)} texture fits what the product does.`,
         colors[0] ? `Kept ${colors[0]} from your material as the brand color.` : "Kept your current brand color.",

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   createSession,
   generateOptions,
+  photosForPage,
   heuristicTexture,
   setKind,
   setProduct,
@@ -15,6 +16,7 @@ import {
   variants,
 } from "../src/onboard/session.js";
 import { publish, writeRepo, type Hosting } from "../src/onboard/publish.js";
+import { imageSize, writePhotos } from "../src/onboard/photos.js";
 
 const tmp = () => mkdtempSync(join(tmpdir(), "ad-onboard-"));
 
@@ -61,19 +63,24 @@ describe("onboarding session", () => {
       catalogFonts: null, radius: 6, dark: false, summary: "",
     };
     const made = generateOptions(s, ["#e4572e", "#29335c", "not a color"]);
-    expect(made.map((g) => g.id)).toEqual(["gen:site", "gen:bold", "gen:images"]);
+    // Close to the reference, then three that compose pages differently, not three shades of one color.
+    expect(made.map((g) => g.id)).toEqual(["gen:ref", "gen:photo", "gen:type", "gen:bold"]);
     expect(made[0]!.note).toBe("#0f62fe, Inter, 6px corners");
     expect(made[0]!.config.texture).toBe("technical");
+    expect(made[0]!.config.color.brand).toBe("#0f62fe");
+    expect(made[1]!.config.art).toMatchObject({ imagery: "leading", hero: "full-bleed", grid: "open" });
+    expect(made[2]!.config.art).toMatchObject({ imagery: "none", hero: "type", grid: "editorial", display: "dramatic" });
+    expect(new Set(made.map((g) => JSON.stringify(g.config.art))).size).toBe(made.length);
     expect(s.imageColors).toEqual(["#e4572e", "#29335c"]);
 
     const list = variants(s, "preset");
-    expect(list.slice(0, 3).map((v) => v.tag)).toEqual(["From your site", "From your site", "From your images"]);
-    expect(list.length).toBe(8);
+    expect(list.slice(0, 4).map((v) => v.tag)).toEqual(["From your site", "From your site", "From your site", "From your site"]);
+    expect(list.length).toBe(9);
 
-    startFrom(s, "gen:images");
-    expect(s.config.color.brand).toBe("#e4572e");
-    expect(s.preset).toBe("gen:images");
-    expect(s.history.at(-1)!.label).toBe("Started from your images");
+    startFrom(s, "gen:type");
+    expect(s.config.color.brand).toBe("#0f62fe");
+    expect(s.preset).toBe("gen:type");
+    expect(s.history.at(-1)!.label).toBe("Started from type leading");
   });
 
   it("takes a kind's direction, and a bolder take leads with the site's strongest color", () => {
@@ -184,5 +191,54 @@ describe("writeRepo", () => {
     mkdirSync(dir2);
     writeRepo({ ...base(), dir: dir2, hosting: "later", model, saveKey: false });
     expect(existsSync(join(dir2, ".env.local"))).toBe(false);
+  });
+});
+
+describe("references and photos", () => {
+  it("starts close to a black-and-white, photo-led site, and offers other compositions beside it", () => {
+    const s = createSession({ name: "Maison", description: "Leather goods and ready-to-wear" });
+    setKind(s, "ecommerce");
+    s.site = {
+      url: "https://maison.example/", title: "Maison", description: "", themeColor: null, colors: [], neutral: "warm", fonts: [], pairing: null,
+      catalogFonts: null, radius: 0, dark: false, summary: "",
+      look: {
+        source: "site", imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark",
+        ink: true, inkColor: "#111111", dark: false, photoShare: 0.9, headlineRatio: 5.6, headlineFont: "Cormorant Garamond", uiColors: [], facts: ["Photography leads", "A full-bleed first screen", "A centered wordmark"],
+      },
+    };
+    const made = generateOptions(s, []);
+    expect(made.slice(0, 4).map((g) => g.id)).toEqual(["gen:ref", "gen:photo", "gen:type", "gen:split"]);
+    const ref = made[0]!;
+    expect(ref.name).toBe("Close to your site");
+    expect(ref.note).toBe("Photography leads, a full-bleed first screen, a centered wordmark");
+    expect(ref.config.color.brand).toBe("#111111");
+    expect(ref.config.art).toMatchObject({ imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark" });
+    expect(ref.config.shape?.radius).toBe(0);
+    // The others keep the ink and type but compose differently.
+    expect(made[1]!.config.art?.hero).toBe("editorial");
+    expect(made[3]!.config.art).toMatchObject({ hero: "split", grid: "cards" });
+    expect(new Set(made.slice(0, 4).map((g) => g.config.color.brand))).toEqual(new Set(["#111111"]));
+  });
+
+  it("orders photos for the first screen: a wide one for full-bleed, a tall one beside the words", () => {
+    const p = (id: string, width: number, height: number) => ({ id, url: id, thumb: id, width, height, alt: id, title: id, creator: null, creatorUrl: null, license: "cc0", licenseVersion: null, licenseUrl: null, landing: null, credit: "", source: "openverse" as const });
+    const list = [p("square", 800, 800), p("tall", 600, 900), p("wide", 1600, 900)];
+    expect(photosForPage(list, "full-bleed")[0]!.id).toBe("wide");
+    expect(photosForPage(list, "split")[0]!.id).toBe("tall");
+    expect(photosForPage(list, "split").length).toBe(3);
+  });
+
+  it("writes the person's own photos into images/ with their credits", async () => {
+    const dir = tmp();
+    // A 2×3 PNG: enough for the header to give its size.
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAIAAAA2iEnWAAAAEklEQVR4nGP4z8DAwMDAxAADAA0EAQB3dm0kAAAAAElFTkSuQmCC", "base64");
+    const own = new Map([["own:1", { mediaType: "image/png", data: png }]]);
+    const photo = { id: "own:1", url: "/photos/own/1", thumb: "/photos/own/1", width: 2, height: 3, alt: "Our tote", title: "tote.png", creator: null, creatorUrl: null, license: "own", licenseVersion: null, licenseUrl: null, landing: null, credit: "Your photo", source: "own" as const };
+    const r = await writePhotos(dir, [photo], own);
+    expect(r.failed).toEqual([]);
+    expect(r.written[0]).toMatchObject({ file: "photo-01.png", alt: "Our tote", width: 2, height: 3, credit: "Your photo" });
+    expect(JSON.parse(readFileSync(join(dir, "images", "credits.json"), "utf8")).images[0].file).toBe("photo-01.png");
+    expect(readFileSync(join(dir, "images", "CREDITS.md"), "utf8")).toContain("`photo-01.png`: Our tote. Your photo");
+    expect(imageSize(png)).toEqual({ width: 2, height: 3 });
   });
 });

@@ -529,6 +529,27 @@
   .hist-item:first-child { border-top: 0; padding-top: 2px; }
   .hist-item b { display: block; color: var(--ink); font-weight: 500; }
   .hist-item.flash { animation: rise 420ms var(--ease) both; }
+  /* How pages are composed: photos and the first screen, set directly above the previews. */
+  .page-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 14px; }
+  .page-bar label { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted); }
+  .photos { display: grid; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--line-soft); }
+  .photos-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .ph-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .ph { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 0; padding: 0; background: var(--stage, var(--panel-2)); cursor: pointer; box-shadow: inset 0 0 0 1px var(--edge-lo); transition: transform 200ms var(--ease); }
+  .ph:active { transform: scale(.97); }
+  .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph[aria-pressed="true"]::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--ink); }
+  .ph .n { position: absolute; left: 5px; top: 5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center; font-size: 10.5px; font-weight: 500; background: var(--ink); color: var(--on-ink); }
+  .ph-empty { font-size: 12.5px; color: var(--muted); margin: 0; }
+  .ph-credit { font-size: 11.5px; color: var(--muted); margin: 0; line-height: 1.5; }
+  .ph-credit a { color: inherit; }
+  .ph-tools { display: flex; gap: 6px; }
+  .ph-tools .input { height: 32px; font-size: 13px; padding: 0 12px; border-radius: 10px; }
+  /* A page preview under a card's tag starts its header below the tag. */
+  .proof:has(.tag) .view .sp-marketing .sp-nav { padding-top: 40px; }
+  .reads { display: flex; flex-wrap: wrap; gap: 6px; }
+  .drop-copy .reads { justify-content: center; margin-top: 6px; }
+  .reads span { font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px; background: var(--glass); box-shadow: var(--glass-sheen); color: var(--muted); animation: pop 450ms var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
 
   /* ---------- Publish ---------- */
   .publish { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 32px; align-items: start; }
@@ -665,7 +686,7 @@
   const KIND_OBJECT = { consumer: "moment", ecommerce: "shop", agent: "agent" };
   function draw(el, specimen, scenes, opts = {}) {
     const obj = KIND_OBJECT[app.state.kind] || "object";
-    S.render(el, specimen, { mode: opts.mode || app.previewMode || specimen.defaultMode, copy: app.state.copy, scenes: scenes.map((x) => (x === "object" ? obj : x)), size: opts.size || "s" });
+    S.render(el, specimen, { mode: opts.mode || app.previewMode || specimen.defaultMode, copy: app.state.copy, scenes: scenes.map((x) => (x === "object" ? obj : x)), size: opts.size || "s", images: opts.images || app.state.images || [] });
     return el;
   }
 
@@ -879,7 +900,7 @@
         root.append(h(`<section class="bring" aria-labelledby="bring-h">
           <div class="bring-copy">
             <h2 id="bring-h">Start from what you already have</h2>
-            <p class="lead">Read your site, or drop screenshots you like. auto-design pulls out their colors, type and corners and builds starting points from them${model ? ", and your model suggests one more" : ""}.</p>
+            <p class="lead">Read your site, or drop screenshots you like. auto-design reads their colors, type and how their pages are composed, then builds starting points from them${model ? ", and your model suggests one more" : ""}.</p>
             <div class="site-row"><input class="input" id="site" placeholder="northwind.com" value="${esc(app.state.product.url)}" autocomplete="off" inputmode="url" aria-label="Your site's address"><button class="btn ink" id="read-site">Read site</button></div>
             <div class="site-out" id="site-out" aria-live="polite"></div>
             <p class="inspire">Need inspiration? Browse ${links.slice(0, -1).join(", ")} or ${links.at(-1)}, then drop screenshots of what you like.</p>
@@ -1108,6 +1129,7 @@
       <div class="found-row"><span class="found-label">Colors</span><div class="sw-row">${colors.length ? colors.map((c, i) => `<button class="sw" style="--c:${esc(c.hex)};--i:${i}" data-hex="${esc(c.hex)}" aria-pressed="${i === 0}" title="Lead with ${esc(c.hex)}"><i></i>${esc(c.hex)}</button>`).join("") : `<span class="note">No brand color on that page</span>`}</div></div>
       <div class="found-row"><span class="found-label">Type</span><div>${font ? `<span class="fact" style="--i:${colors.length}"><span class="aa" style="font-family:'${esc(font)}', inherit">Aa</span>${esc(font)}</span>` : `<span class="note">No web font found</span>`}</div></div>
       <div class="found-row"><span class="found-label">Shape</span><div>${shape || `<span class="note">No corners found</span>`}</div></div>
+      ${m.look && m.look.facts.length ? `<div class="found-row"><span class="found-label">Look</span><div class="reads">${m.look.facts.map((f, i) => `<span style="--i:${i}">${esc(f)}</span>`).join("")}</div></div>` : ""}
     </div>`;
     if (!animate) out.querySelectorAll(".found, .sw, .fact").forEach((el) => (el.style.animation = "none"));
     out.querySelectorAll(".sw").forEach((sw) => sw.onclick = () => {
@@ -1122,7 +1144,7 @@
     if (!picked.length) { status(room > 0 ? "Drop PNG, JPG or WebP images." : "Four images is the most it reads at once. Start over to use others.", true); return; }
     for (const f of picked) {
       const img = await loadImage(f);
-      app.material.images.push({ src: img.src, ...shrink(img), colors: dominant(img) });
+      app.material.images.push({ src: img.src, ...shrink(img), colors: dominant(img), look: measurePixels(img) });
     }
     app.material.colors = [...new Set(app.material.images.flatMap((i) => i.colors))].slice(0, 6);
     status("");
@@ -1144,13 +1166,15 @@
     const spots = [[[0, -4, -3]], [[-62, 0, -7], [64, -6, 6]], [[-86, 8, -9], [0, -10, 2], [88, 4, 9]], [[-98, 12, -10], [-32, -10, -3], [34, -6, 4], [100, 10, 11]]][imgs.length - 1];
     $("#screens").innerHTML = imgs.map((im, i) => `<div class="shot" style="--x:${spots[i][0]}px;--y:${spots[i][1]}px;--r:${spots[i][2]}deg;--i:${i};z-index:${i + 1}"><img src="${im.src}" alt=""></div>`).join("");
     $("#drop-copy").innerHTML = `${colors.length ? `<div class="stage-swatches">${colors.map((c, i) => `<button class="sw dot" data-hex="${c}" aria-pressed="${i === 0}" style="--c:${c};--i:${i}" title="Lead with ${c}" aria-label="Lead with ${c}"><i></i></button>`).join("")}</div>` : ""}
-      <b>${imgs.length} image${imgs.length === 1 ? "" : "s"} read</b><span>${colors.length ? "Pick the color that leads. " : "No strong colors in these. "}Drop more, or <button id="clear-imgs" type="button">start over</button></span>`;
+      <b>${imgs.length} image${imgs.length === 1 ? "" : "s"} read</b><span>${colors.length ? "Pick the color that leads. " : "No strong colors in these. "}Drop more, or <button id="clear-imgs" type="button">start over</button></span>
+      ${app.state.look && app.state.look.source === "images" ? `<div class="reads">${app.state.look.facts.slice(0, 4).map((f, i) => `<span style="--i:${i}">${esc(f)}</span>`).join("")}</div>` : ""}`;
   }
 
   /** Make starting points from the site and images, and ask the model for one more when there is one. */
   async function regenerate(extra = {}) {
     try {
-      update(await api("/api/generate", { colors: app.material.colors, ...extra }));
+      update(await api("/api/generate", { colors: app.material.colors, looks: app.material.images.map((i) => i.look).filter(Boolean), ...extra }));
+      paintStage();
       afterMaterial();
     } catch (e) { status(e.message, true); }
   }
@@ -1184,7 +1208,8 @@
       onPick: async (v) => { try { update(await api("/api/start", { preset: v.value })); return true; } catch (e) { status(e.message, true); return false; } } };
     const n = (app.state.generated || []).length;
     made.hidden = !n;
-    if (n) proofs(mg, "preset", { ...opts, only: isMade, count: n, fresh });
+    // Starting points made from material differ in how pages are composed, so they show a page.
+    if (n) proofs(mg, "preset", { ...opts, scenes: ["hero"], height: 280, only: isMade, count: n, fresh });
     if (!madeOnly) proofs(grid, "preset", { ...opts, only: (v) => !isMade(v), count: 5 });
   }
   function loadImage(file) {
@@ -1220,6 +1245,59 @@
     }
     const hex = (v) => Math.round(v).toString(16).padStart(2, "0");
     return [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, 3).map((e) => `#${hex(e.r / e.n)}${hex(e.g / e.n)}${hex(e.b / e.n)}`);
+  }
+
+  /**
+   * How a screenshot is composed, from its pixels: how much of it is photography (cells with many colors),
+   * whether a photo fills the top band edge to edge, whether pictures sit to one side, and whether the flat
+   * parts (the interface) carry any color. A model reads more; this is the reading without one.
+   */
+  function measurePixels(img) {
+    const W = 120, H = Math.max(12, Math.round(img.naturalHeight * (W / img.naturalWidth)));
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, W, H);
+    const d = ctx.getImageData(0, 0, W, H).data;
+    const CELL = 6, cols = Math.floor(W / CELL), rows = Math.floor(H / CELL);
+    let photo = 0, total = 0, flat = 0, flatColor = 0, top = 0, topTotal = 0, left = 0, right = 0, flatLum = 0;
+    const flats = new Map();
+    for (let cy = 0; cy < rows; cy++) {
+      for (let cx = 0; cx < cols; cx++) {
+        const seen = new Set();
+        let sum = 0, sum2 = 0, n = 0, chroma = 0, r0 = 0, g0 = 0, b0 = 0;
+        for (let y = cy * CELL; y < (cy + 1) * CELL; y++) {
+          for (let x = cx * CELL; x < (cx + 1) * CELL; x++) {
+            const i = (y * W + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2];
+            const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            sum += l; sum2 += l * l; n++;
+            chroma += Math.max(r, g, b) - Math.min(r, g, b);
+            r0 += r; g0 += g; b0 += b;
+            seen.add((r >> 4) << 8 | (g >> 4) << 4 | (b >> 4));
+          }
+        }
+        const sd = Math.sqrt(Math.max(0, sum2 / n - (sum / n) ** 2)), ch = chroma / n;
+        const isPhoto = seen.size >= 14 || (seen.size >= 8 && ch > 22 && sd > 6);
+        total++;
+        if (cy < rows * 0.35) { topTotal++; if (isPhoto) top++; }
+        if (isPhoto) { photo++; if (cx < cols / 2) left++; else right++; }
+        else if (sd < 5 && seen.size <= 4) {
+          flat++;
+          flatLum += sum / n / 255;
+          const hexv = "#" + [r0 / n, g0 / n, b0 / n].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+          if (ch > 40) { flatColor++; flats.set(hexv, (flats.get(hexv) || 0) + 1); }
+        }
+      }
+    }
+    const share = total ? photo / total : 0;
+    return {
+      photoShare: Math.round(share * 100) / 100,
+      topBand: topTotal ? Math.round((top / topTotal) * 100) / 100 : 0,
+      oneSide: share > 0.12 && share < 0.65 && Math.max(left, right) / Math.max(1, photo) > 0.75,
+      flatChromatic: flat ? Math.round((flatColor / flat) * 100) / 100 : 0,
+      flatColors: [...flats.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([hexv]) => hexv),
+      dark: flat ? flatLum / flat < 0.25 : false,
+    };
   }
 
   /* ---------- Color step ---------- */
@@ -1375,21 +1453,28 @@
   }
 
   /* ---------- Review ---------- */
-  const QUICK = ["Warmer", "Cooler", "Rounder", "Sharper", "Denser", "Roomier", "Calmer motion", "Livelier motion", "Less corporate", "More character"];
+  const QUICK = ["Warmer", "Cooler", "Rounder", "Sharper", "Denser", "Roomier", "Calmer motion", "Livelier motion", "Less corporate", "More character", "Uppercase labels", "Wordmark logo", "Bigger headlines"];
+  const IMAGERY_OPTS = [["none", "None"], ["supporting", "Supporting"], ["leading", "Lead"]];
+  const HERO_OPTS = [["type", "Words"], ["centered", "Centered"], ["split", "Split"], ["full-bleed", "Full-bleed"], ["editorial", "Magazine"]];
   function renderReview(root) {
-    const mode = app.reviewMode || app.state.specimen.defaultMode;
-    const wrap = h(`<div class="review"><div><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="seg" id="r-mode"><button data-v="light">Light</button><button data-v="dark">Dark</button></div><span class="note" id="r-checks"></span></div><div class="frames" id="frames"></div></div>
-      <aside class="refine"><h3>Ask for changes</h3>
+    const seg = (id, opts) => `<div class="seg" id="${id}">${opts.map(([v, name]) => `<button data-v="${v}">${esc(name)}</button>`).join("")}</div>`;
+    const wrap = h(`<div class="review"><div>
+        <div class="page-bar"><label>Photos ${seg("r-imagery", IMAGERY_OPTS)}</label><label>First screen ${seg("r-hero", HERO_OPTS)}</label></div>
+        <div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="seg" id="r-mode"><button data-v="light">Light</button><button data-v="dark">Dark</button></div><span class="note" id="r-checks"></span></div><div class="frames" id="frames"></div></div>
+      <aside class="refine"><section class="photos" id="photos" aria-live="polite"></section><h3>Ask for changes</h3>
         <div class="chips" id="quick">${QUICK.map((q) => `<button class="chip" style="padding-left:10px">${esc(q)}</button>`).join("")}</div>
         <div class="field"><textarea id="ask" placeholder="${app.state.model ? "“Less corporate, more like a magazine.” “Denser, like Linear.”" : "Connect a model on step 2 to describe changes in your own words."}" ${app.state.model ? "" : "disabled"}></textarea></div>
         <div class="row"><button class="btn ink small" id="ask-go" ${app.state.model ? "" : "disabled"}>Apply</button><span class="note" id="ask-msg"></span></div>
-        <div class="history" id="hist"></div></aside></div>`);
+        <div class="history" id="hist"></div></aside>
+      <input type="file" id="own-photos" accept="image/png,image/jpeg,image/webp" multiple hidden></div>`);
     root.append(wrap);
     const frames = $("#frames", wrap);
     const paint = () => {
       const sp = app.state.specimen;
       const m = app.reviewMode || sp.defaultMode;
       $("#r-mode", wrap).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === m)));
+      $("#r-imagery", wrap).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === app.state.choices.imagery)));
+      $("#r-hero", wrap).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === app.state.choices.hero)));
       $("#r-checks", wrap).textContent = `${sp.report.passed} of ${sp.report.total} contrast checks pass`;
       const list = [["hero", "Marketing page", "wide"], ["app", "Web app", "wide"]];
       const sf = app.state.surfaces;
@@ -1408,10 +1493,71 @@
       $("#hist", wrap).innerHTML = hist.map((x, i) => `<div class="hist-item${i === 0 && app.justChanged ? " flash" : ""}"><div><b>${esc(x.label)}</b><span>${esc(x.changes.join("; ") || "No change")}</span></div>${i === 0 ? `<button class="undo-btn" id="hist-undo" type="button" title="Undo this change">${UNDO_ICON}Undo</button>` : ""}</div>`).join("");
       app.justChanged = false;
       if ($("#hist-undo", wrap)) $("#hist-undo", wrap).onclick = () => $("#undo").click();
+      paintPhotos();
+    };
+
+    /** The photos the system uses, a search for others (Openverse, openly licensed) and your own. */
+    const paintPhotos = () => {
+      const box = $("#photos", wrap);
+      const st = app.state;
+      if (st.choices.imagery === "none") {
+        box.innerHTML = `<div class="photos-head"><h3>Photos</h3></div><p class="ph-empty">This system uses no photography. Set Photos to Supporting or Lead to add some.</p>`;
+        return;
+      }
+      const chosen = st.photos || [];
+      const search = st.photoSearch;
+      const ids = new Set(chosen.map((p) => p.id));
+      const results = (search?.results || []).filter((p) => !ids.has(p.id)).slice(0, 12);
+      const thumb = (p, i, on) => `<button class="ph" data-id="${esc(p.id)}" aria-pressed="${on}" title="${esc(p.credit || p.alt)}"><img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">${on ? `<span class="n">${i + 1}</span>` : ""}</button>`;
+      box.innerHTML = `<div class="photos-head"><h3>Photos</h3><span class="note">${chosen.length ? `${chosen.length} in use · the first leads` : "None yet"}</span></div>
+        ${chosen.length ? `<div class="ph-row" id="ph-chosen">${chosen.map((p, i) => thumb(p, i, true)).join("")}</div>` : ""}
+        <div class="ph-tools"><input class="input" id="ph-q" placeholder="leather handbag studio" value="${esc(search?.q || "")}" aria-label="Search photos"><button class="btn small" id="ph-go">Find</button><button class="btn small" id="ph-own" title="Add your own photos">Yours</button></div>
+        ${search?.error ? `<p class="ph-empty">${esc(search.error)}</p>` : ""}
+        ${results.length ? `<div class="ph-row" id="ph-results">${results.map((p, i) => thumb(p, i, false)).join("")}</div>` : ""}
+        <p class="ph-credit">Openly licensed photos from <a href="https://openverse.org" target="_blank" rel="noreferrer">Openverse</a>. Their credits go into your repo with them. Click one to use it; click a numbered one to drop it.</p>`;
+      const setPhotos = async (list) => {
+        try { update(await api("/api/photos/choose", { ids: list })); paint(); } catch (e) { status(e.message, true); }
+      };
+      box.querySelectorAll("#ph-chosen .ph").forEach((b) => b.onclick = () => setPhotos(chosen.map((p) => p.id).filter((id) => id !== b.dataset.id)));
+      box.querySelectorAll("#ph-results .ph").forEach((b) => b.onclick = () => setPhotos([...chosen.map((p) => p.id), b.dataset.id].slice(0, 8)));
+      const find = async () => {
+        const q = $("#ph-q", box).value.trim();
+        if (!q) return;
+        $("#ph-go", box).disabled = true;
+        try { update(await api("/api/photos/search", { q })); paintPhotos(); } catch (e) { status(e.message, true); }
+        finally { if ($("#ph-go", box)) $("#ph-go", box).disabled = false; }
+      };
+      $("#ph-go", box).onclick = find;
+      $("#ph-q", box).addEventListener("keydown", (e) => { if (e.key === "Enter") find(); });
+      $("#ph-own", box).onclick = () => $("#own-photos", wrap).click();
+    };
+    $("#own-photos", wrap).onchange = async (e) => {
+      const files = [...e.target.files].filter((f) => /^image\/(png|jpeg|webp)$/.test(f.type)).slice(0, 8);
+      e.target.value = "";
+      for (const f of files) {
+        try {
+          const img = await loadImage(f);
+          const k = Math.min(1, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          const data = c.toDataURL("image/jpeg", 0.88).split(",")[1];
+          update(await api("/api/photos/own", { mediaType: "image/jpeg", data, width: c.width, height: c.height, name: f.name, alt: f.name.replace(/\.[a-z]+$/i, "").replace(/[-_]+/g, " ") }));
+        } catch (err) { status(err.message, true); }
+      }
+      paint();
     };
     paint();
     app.repaintReview = paint;
     $("#r-mode", wrap).querySelectorAll("button").forEach((b) => b.onclick = () => { app.reviewMode = b.dataset.v; paint(); });
+    $("#r-imagery", wrap).querySelectorAll("button").forEach((b) => b.onclick = async () => {
+      const name = IMAGERY_OPTS.find(([v]) => v === b.dataset.v)[1];
+      if (await choose({ imagery: b.dataset.v }, `Photos: ${name.toLowerCase()}`)) { app.justChanged = true; paint(); }
+    });
+    $("#r-hero", wrap).querySelectorAll("button").forEach((b) => b.onclick = async () => {
+      const name = HERO_OPTS.find(([v]) => v === b.dataset.v)[1];
+      if (await choose({ hero: b.dataset.v }, `First screen: ${name.toLowerCase()}`)) { app.justChanged = true; paint(); }
+    });
     const ask = async (request, quick) => {
       const msg = $("#ask-msg", wrap);
       msg.className = "note"; msg.textContent = quick ? "" : "Thinking…";

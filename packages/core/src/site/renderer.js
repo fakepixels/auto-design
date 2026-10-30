@@ -173,6 +173,8 @@
     var s = siteOf(copy);
     var pictured = art.imagery !== "none" && (PICTURED[copy.kind] || art.imagery === "leading");
     var count = pictured && art.grid !== "editorial" ? 4 : 3;
+    // With photos, show as many items as there are photos for them (three at least), so none is a blank.
+    if (pictured && imgs.length > 1) count = Math.max(3, Math.min(count, imgs.length - 1));
     var items = s.items.slice(0, count).map(function (it, i) {
       var img = imgs[i + 1];
       var media = !pictured ? "" : img ? picture(img) : '<figure class="sp-pic sp-blank"><i class="sp-shop-img" aria-hidden="true"><i></i></i></figure>';
@@ -180,7 +182,7 @@
     }).join("");
     return (
       '<section class="sp-coll"><div class="sp-coll-head"><h2' + (d.fonts.display ? ' class="display"' : "") + ">" + e(s.collection) + "</h2><a>View all</a></div>" +
-      '<div class="sp-coll-grid" data-grid="' + e(art.grid) + '" data-pictured="' + (pictured ? "yes" : "no") + '">' + items + "</div></section>"
+      '<div class="sp-coll-grid" data-grid="' + e(art.grid) + '" data-pictured="' + (pictured ? "yes" : "no") + '" style="--sp-coll-n:' + count + '">' + items + "</div></section>"
     );
   }
   var HERO_STEP = { xs: "2xl", s: "3xl", m: "4xl", l: "5xl" };

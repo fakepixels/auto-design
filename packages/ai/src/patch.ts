@@ -229,7 +229,16 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
     return String(v);
   };
   // Values that read the same after formatting (a brand nudged within one hex step) aren't a change to show.
-  return PATCH_FIELDS.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]) && fmt(k, a[k]) !== fmt(k, b[k])).map(
+  const lines = PATCH_FIELDS.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]) && fmt(k, a[k]) !== fmt(k, b[k])).map(
     (k) => `${label[k]}: ${fmt(k, a[k])} → ${fmt(k, b[k])}`,
   );
+  // Surfaces aren't a patch field, but changing them is a change worth a line.
+  const sa = before.surfaces ?? [];
+  const sb = after.surfaces ?? [];
+  const added = sb.filter((x) => !sa.includes(x));
+  const removed = sa.filter((x) => !sb.includes(x));
+  const name = (x: string) => x.replace("web-app", "web app").replace("mcp-apps", "chat apps").replace(/-/g, " ");
+  if (added.length) lines.push(`Added ${added.map(name).join(", ")}`);
+  if (removed.length) lines.push(`Removed ${removed.map(name).join(", ")}`);
+  return lines;
 }
