@@ -23,6 +23,8 @@ export interface SiteMeta {
   modeClass: "dark" | "light" | null;
   defaultMode: "light" | "dark";
   storageKey: string;
+  /** The system's logo is a wordmark: the header shows the name alone, uppercase and spaced, in the display face when there is one. */
+  wordmark?: { display: boolean };
   repoUrl?: string;
   nav: NavGroup[];
   top: NavLink[];
@@ -54,10 +56,12 @@ function header(meta: SiteMeta, page: PageInput, root: string): string {
   return `<header class="sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur">
   <div class="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 md:gap-8 md:px-6">
     <button type="button" data-menu aria-label="Open navigation" class="-ml-1 inline-flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent md:hidden">${icons.menu}</button>
-    <a href="${root}" class="flex items-center gap-2 text-sm font-semibold text-foreground">
+    ${meta.wordmark
+      ? `<a href="${root}" class="flex items-center text-base ${meta.wordmark.display ? "font-display " : "font-semibold "}uppercase tracking-wordmark text-foreground">${esc(meta.name)}</a>`
+      : `<a href="${root}" class="flex items-center gap-2 text-sm font-semibold text-foreground">
       <span aria-hidden="true" class="flex size-6 items-center justify-center rounded-md bg-primary text-xs font-semibold text-primary-foreground">${esc(meta.name.charAt(0).toUpperCase())}</span>
       <span>${esc(meta.name)}</span>
-    </a>
+    </a>`}
     <nav class="hidden items-center gap-6 text-sm md:flex" aria-label="Main">
       ${meta.top
         .map(

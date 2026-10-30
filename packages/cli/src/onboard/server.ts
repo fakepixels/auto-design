@@ -479,7 +479,8 @@ export async function runOnboard(opts: OnboardOptions) {
       const result = await publish({
         dir,
         config,
-        copy: session.copy,
+        // The kind's navigation, collection and first-screen lines go into the repo's copy too.
+        copy: withKind(session.copy, session.kind),
         visibility: b.visibility === "private" ? "private" : "public",
         github: b.github === "gh" || b.github === "token" ? b.github : "none",
         token: b.token ? String(b.token) : undefined,

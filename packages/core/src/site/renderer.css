@@ -194,6 +194,8 @@
 .sp-nav .act { color: var(--foreground); text-decoration: none; font-weight: var(--sp-w-medium); white-space: nowrap; }
 .sp-nav.centered { display: grid; grid-template-columns: 1fr auto 1fr; }
 .sp-nav.centered .side { display: flex; align-items: center; gap: 20px; min-width: 0; overflow: hidden; }
+/* Links that don't fit wrap onto a row the side's height hides, so none is cut mid-word. */
+.sp-nav.centered .side:not(.end) { flex-wrap: wrap; align-content: flex-start; height: 20px; line-height: 20px; row-gap: 40px; }
 .sp-nav.centered .side.end { justify-content: flex-end; }
 .sp-wordmark {
   font-family: var(--sp-display, var(--sp-sans)); font-weight: var(--sp-w-display); font-size: var(--sp-t-lg); line-height: 1;
@@ -280,6 +282,27 @@
 @container (max-width: 720px) {
   .sp-nav.centered .side:not(.end) a:nth-child(n+3) { display: none; }
 }
+/* A thumbnail keeps split and magazine first screens side by side, so each still reads as its composition. */
+.sp-marketing[data-size="s"] .sp-split-hero, .sp-marketing[data-size="xs"] .sp-split-hero,
+.sp-marketing[data-size="s"] .sp-ed-hero, .sp-marketing[data-size="xs"] .sp-ed-hero {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) !important; gap: calc(var(--sp-pad) * 0.75); padding-top: calc(var(--sp-pad) * 0.5);
+}
+.sp-marketing[data-size="s"] :is(.sp-split-hero, .sp-ed-hero) > .sp-pic, .sp-marketing[data-size="xs"] :is(.sp-split-hero, .sp-ed-hero) > .sp-pic { order: 0 !important; aspect-ratio: 3 / 4 !important; }
+.sp-marketing[data-size="s"] :is(.sp-split-hero, .sp-ed-hero) h1 { font-size: min(var(--sp-hero-size), 7.4cqw) !important; }
+.sp-marketing[data-size="s"] :is(.sp-split-hero, .sp-ed-hero) p.lead { font-size: var(--sp-t-sm); line-height: var(--sp-lh-sm); margin-top: 8px; }
+.sp-marketing[data-size="s"] :is(.sp-split-hero, .sp-ed-hero) .sp-row { margin-top: 12px; }
+.sp-marketing[data-size="s"] :is(.sp-split-hero, .sp-ed-hero) .sp-btn { height: auto; min-height: 30px; padding: 6px 12px; font-size: var(--sp-t-xs); max-width: 100%; white-space: normal; text-align: left; }
+/* In a thumbnail, every first screen fits its window: the headline, a line under it and the main action. */
+.sp-marketing[data-size="s"] :is(.sp-bleed, .sp-center-hero) h1 { font-size: min(var(--sp-hero-size), 8.4cqw) !important; }
+.sp-marketing[data-size="s"] :is(.sp-bleed, .sp-center-hero) p.lead { font-size: var(--sp-t-sm); line-height: var(--sp-lh-sm); margin-top: 8px; }
+.sp-marketing[data-size="s"] :is(.sp-bleed, .sp-center-hero) .sp-row { margin-top: 14px; }
+.sp-marketing[data-size="s"] :is(.sp-bleed, .sp-center-hero) .sp-btn { height: auto; min-height: 32px; padding: 7px 14px; font-size: var(--sp-t-xs); }
+/* Centered over a wide photo: the line under the headline gives way, so the photo shows in the window. */
+.sp-marketing[data-size="s"] .sp-center-hero p.lead { display: none; }
+.sp-marketing[data-size="s"] .sp-center-hero { padding-top: var(--sp-pad); padding-bottom: calc(var(--sp-pad) * 0.75); }
+.sp-marketing[data-size="s"] .sp-pic.band { aspect-ratio: 2 / 1; }
+/* Uppercase actions track a little tighter in a thumbnail, so they hold one line in a narrow column. */
+.sp[data-case="upper"] .sp-marketing[data-size="s"] .sp-btn { letter-spacing: 0.06em; }
 @container (max-width: 620px) {
   .sp-split-hero, .sp-ed-hero { grid-template-columns: minmax(0, 1fr); }
   /* Stacked, the picture comes first, so a small preview still shows it. */

@@ -75,7 +75,7 @@ function artSection(s: DesignSystem): string[] {
     centered: "- Landing pages open centered: the headline, one line and the action in the middle, with a wide picture or the product under them.",
     split: "- Landing pages open split: the words on one side, one picture or the product on the other, both the same height.",
     "full-bleed":
-      "- Landing pages open full-bleed: one photo fills the first screen and the navigation and headline sit on it, with a dark scrim for contrast (`bg-gradient-to-t from-black/60`). Buttons on the photo are white or outlined white.",
+      "- Landing pages open full-bleed: one photo fills the first screen and the navigation and headline sit on it. Words on a photo go over the `photo-scrim` layer inside an `on-photo` element, which turns text, links and buttons light in either mode; the `Hero` component does both.",
     editorial: "- Landing pages open like a magazine: a short rule, a headline column on the left and one tall picture on the right.",
   };
   lines.push(hero[a.hero]);
@@ -99,6 +99,13 @@ function artSection(s: DesignSystem): string[] {
     lines.push(`- The logo is a wordmark: the name alone, uppercase and widely spaced (\`${display}uppercase tracking-wordmark\`), centered in the header with the links on either side. No letter mark beside it.`);
   } else {
     lines.push("- The logo is a letter mark beside the name, on the left of the header.");
+  }
+  if (s.config.surfaces.includes("marketing")) {
+    lines.push("- Build landing pages from `SiteHeader`, `Hero` and `Collection`: they already compose pages this way. Give them real words and real photos.");
+  }
+  if (s.images?.length && a.imagery !== "none") {
+    lines.push("", "Photos this system ships, in `images/` (served at `/images/` on the design site). Use them until the product has its own, keep each credit visible somewhere on the site (a footer or an About page), and see `images/CREDITS.md` for licenses:", "");
+    for (const img of s.images) lines.push(`- \`images/${img.file}\`${img.width && img.height ? ` (${img.width}×${img.height})` : ""}: ${img.alt}. ${img.credit}.`);
   }
   lines.push("");
   return lines;

@@ -214,10 +214,14 @@ describe("references and photos", () => {
     expect(ref.config.color.brand).toBe("#111111");
     expect(ref.config.art).toMatchObject({ imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark" });
     expect(ref.config.shape?.radius).toBe(0);
-    // The others keep the ink and type but compose differently.
-    expect(made[1]!.config.art?.hero).toBe("editorial");
-    expect(made[3]!.config.art).toMatchObject({ hero: "split", grid: "cards" });
+    // The others keep the ink, type and wordmark but compose differently, and no two share a first screen.
+    expect(made[1]!.config.art?.hero).toBe("centered");
+    expect(made[2]!.config.art).toMatchObject({ hero: "type", imagery: "none", labels: "uppercase", logo: "wordmark" });
+    expect(made[3]!.config.art).toMatchObject({ hero: "split", grid: "cards", logo: "wordmark" });
+    expect(new Set(made.slice(0, 4).map((g) => g.config.art?.hero)).size).toBe(4);
     expect(new Set(made.slice(0, 4).map((g) => g.config.color.brand))).toEqual(new Set(["#111111"]));
+    // The kind's own starting point takes the site's ink instead of its stock color.
+    expect(made.find((g) => g.id === "gen:kind")!.config.color.brand).toBe("#111111");
   });
 
   it("orders photos for the first screen: a wide one for full-bleed, a tall one beside the words", () => {

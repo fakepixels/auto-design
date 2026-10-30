@@ -136,6 +136,24 @@
       "description": "The agent's thinking, folded away with how long it took."
     },
     {
+      "name": "site-header",
+      "type": "registry:ui",
+      "title": "Site header",
+      "description": "A landing page's header: the mark and name, then the links."
+    },
+    {
+      "name": "hero",
+      "type": "registry:ui",
+      "title": "Hero",
+      "description": "A landing page's first screen: the headline, one line and the actions, with nothing decorative beside them."
+    },
+    {
+      "name": "collection",
+      "type": "registry:ui",
+      "title": "Collection",
+      "description": "Products, posts or reasons under the first screen: each item in a card on an even grid."
+    },
+    {
       "name": "motion",
       "type": "registry:lib",
       "title": "Motion",

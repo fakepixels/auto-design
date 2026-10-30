@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { check, type CheckResult } from "@auto-design/check";
 import {
@@ -87,9 +87,15 @@ export interface SiteBuild {
 export async function writeSite(root: string, s: DesignSystem, opts: { copy?: SpecimenCopy; custom?: CustomContent } = {}): Promise<SiteBuild> {
   const copy = siteCopy(s, opts.copy);
   const custom = opts.custom ?? loadCustom(root);
+  if (!s.images) s.images = custom.images;
   try {
     const r = await buildSite({ root, system: s, copy, examples: custom.examples, docs: custom.docs, repoUrl: repoUrlOf(root) });
     writeFiles(join(root, "public"), r.files);
+    // The photos the system ships, next to the pages that show them.
+    if (custom.images.length) {
+      mkdirSync(join(root, "public", "images"), { recursive: true });
+      for (const img of custom.images) copyFileSync(join(root, "images", img.file), join(root, "public", "images", img.file));
+    }
     return { pages: r.pages.length, warnings: r.warnings };
   } catch (err) {
     writeFiles(root, emitSite(s, copy));

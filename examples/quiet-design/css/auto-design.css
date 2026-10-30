@@ -399,6 +399,25 @@
   }
 }
 
+/* Words over a photo: light text and controls in either mode, over a scrim that keeps them readable. */
+@utility on-photo {
+  --background: transparent;
+  --foreground: oklch(0.985 0.004 256);
+  --muted-foreground: color-mix(in oklab, oklch(0.985 0.004 256) 84%, transparent);
+  --primary: oklch(0.985 0.004 256);
+  --primary-foreground: oklch(0.145 0.007 256);
+  --accent: color-mix(in oklab, oklch(0.985 0.004 256) 16%, transparent);
+  --accent-foreground: oklch(0.985 0.004 256);
+  --border: color-mix(in oklab, oklch(0.985 0.004 256) 55%, transparent);
+  --input: color-mix(in oklab, oklch(0.985 0.004 256) 55%, transparent);
+  --ring: oklch(0.985 0.004 256);
+  color: var(--foreground);
+}
+
+@utility photo-scrim {
+  background-image: linear-gradient(to top, oklch(0 0 0 / 0.64), oklch(0 0 0 / 0.14) 52%, oklch(0 0 0 / 0.34));
+}
+
 @layer components {
   .shiki,
   .shiki span {

@@ -67,6 +67,9 @@ describe("applyPatch", () => {
   it("describes changes in words", () => {
     const next = applyPatch(quiet, { neutral: "warm", radius: 10, pairing: "figtree" });
     expect(describeChanges(quiet, next)).toEqual(["Grays: cool → warm", "Type: Geist → Figtree", "Corners: 8px → 10px"]);
+    // Hand-picked faces in place of a pairing read as one change of type.
+    const faces = applyPatch(quiet, { fonts: { sans: "inter", mono: "jetbrains-mono", display: "cormorant-garamond" } });
+    expect(describeChanges(quiet, faces)).toEqual(["Type: Geist → Cormorant Garamond + Inter"]);
   });
 });
 

@@ -1,5 +1,6 @@
 import type { DesignSystem } from "../system.js";
 import { agentComponentSources } from "../agents/components.js";
+import { blockSources } from "./blocks.js";
 import { codeTheme } from "./code.js";
 import { motionModule } from "../motion/lib.js";
 
@@ -742,6 +743,7 @@ export { CodeBlock };
     { name: "message", title: "Message", description: "Chat messages and tool-call rows for agent UI.", dependencies: [], file: "message.tsx", content: message },
     ...extra,
     ...agentComponentSources(s),
+    ...blockSources(s),
     {
       name: "motion",
       title: "Motion",

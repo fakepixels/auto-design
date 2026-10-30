@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hero",
+  "type": "registry:ui",
+  "title": "Hero",
+  "description": "A landing page's first screen: the headline, one line and the actions, with nothing decorative beside them.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/hero.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\nimport { Button } from \"@/components/ui/button\";\n\ntype HeroLink = { label: string; href: string };\n\n/** A landing page's first screen in this system's composition: the headline, one line and the actions, with nothing decorative beside them. */\nfunction Hero({\n  title,\n  lead,\n  primary,\n  secondary,\n  note,\n  image,\n  header,\n  className,\n}: {\n  title: string;\n  lead?: string;\n  primary?: HeroLink;\n  secondary?: HeroLink;\n  note?: string;\n  /** This system leads with type; a picture is drawn only where the composition has room for one. */\n  image?: { src: string; alt: string };\n  /** The SiteHeader, drawn inside the first screen. */\n  header?: React.ReactNode;\n  className?: string;\n}) {\n  return (\n    <section data-slot=\"hero\" className={cn(\"\", className)}>\n      {header}\n      <div className=\"max-w-3xl px-6 py-16 md:px-10 md:py-24\">\n          <h1 className=\"font-semibold tracking-tight text-4xl md:text-5xl text-balance \">{title}</h1>\n          {lead && <p className=\"mt-5 max-w-prose text-lg text-muted-foreground\">{lead}</p>}\n          {(primary || secondary) && (\n            <div className=\"mt-8 flex flex-wrap gap-3\">\n              {primary && (\n                <Button asChild size=\"lg\">\n                  <a href={primary.href}>{primary.label}</a>\n                </Button>\n              )}\n              {secondary && (\n                <Button asChild size=\"lg\" variant=\"outline\">\n                  <a href={secondary.href}>{secondary.label}</a>\n                </Button>\n              )}\n            </div>\n          )}\n          {note && <p className=\"mt-4 text-sm text-muted-foreground\">{note}</p>}\n      </div>\n    </section>\n  );\n}\n\nexport { Hero };\n"
+    }
+  ],
+  "meta": {
+    "requires": [
+      "button"
+    ]
+  }
+}

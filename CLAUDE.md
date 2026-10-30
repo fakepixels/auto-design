@@ -69,6 +69,49 @@ user-facing story; this file is how to work on it.
   rules and credit impeccable; no dependency on it. Tina asked for checks and her input at every step:
   show screenshots and the rule list before committing each one. Full plan: `claude/impeccable-plan.md` in
   the claude.ai project.
+  Step 1 shipped (d3cee2b): onboarding's faint text passes AA, and design sites no longer scroll sideways
+  on phones. `scripts/taste-scan.mts` is the measuring stick. Steps 2 to 4 wait behind the reference work below.
+- Faithful references (October 29, 2026, branch `faithful-references`). Tina tried onboarding with gucci.com and
+  screenshots: the UI felt "a lot better" but the result was "so so bland", "not really faithful", and grids
+  needed "more diversity". Causes: the site read was a plain download with a 10 s timeout (big sites block it);
+  screenshots only gave colors (the bag's brown became the button); a system had nowhere to hold composition;
+  every landing page was one SaaS template. She approved a plan and said to pick high-quality open-source tools.
+  Now:
+  - Art direction in the config (`art` in `schema.ts`): imagery (none, supporting, leading), hero (type,
+    centered, split, full-bleed, editorial), grid (cards, open, editorial), labels (sentence, uppercase),
+    display (standard, dramatic: display steps grow faster, `typeScale`), logo (mark, wordmark). Defaults keep
+    old output. Patches, the model's schema, `describeChanges`, DESIGN.md (an Art direction section) and
+    the CSS (`--tracking-label`, `--tracking-wordmark`, and `on-photo` and `photo-scrim` utilities for words
+    over photos, which reset the role variables for their subtree) all carry it. Each kind's direction sets it.
+  - Reading (`cli/src/onboard/read-site.ts`, `ai/src/look.ts`): a site opens in Playwright's Chromium when
+    installed (a desktop Chrome user agent, consent banners hidden) and `MEASURE_SCRIPT` measures the first
+    screen: photo coverage, full-bleed or split, headline size over body, nav case and tracking, a centered home
+    link (wordmark), collections, and the colors of filled buttons and links. `lookFromPage` turns that into a
+    `Look` with plain-word facts; a black-and-white interface is `ink` and becomes a near-black brand. The plain
+    download still runs alongside and is the fallback. Dropped screenshots get `measurePixels` in the page
+    (photo cells, top band, flat colored areas) and `lookFromPixels`. The model is told to read composition and
+    keep ink, sees the site's screenshot, and returns `photoSearches`.
+  - Photos (`ai/src/photos.ts`, `cli/src/onboard/photos.ts`): Openverse (WordPress's open-source search for
+    openly licensed media; no key; `license_type=commercial,modification`, photographs) with credits per photo.
+    `ensurePhotos` finds some when the art direction uses photography (the model's searches, else
+    `photoQueries` from the description), never over photos the person picked. Review has a Photos panel
+    (search, choose, your own uploads). Publishing writes `images/` with `credits.json` and `CREDITS.md`, emits
+    again so DESIGN.md lists them, and the design site copies them to `public/images/`. The sandbox can't reach
+    Openverse: `AUTO_DESIGN_PHOTOS_DIR=<folder>` stands in (served at `/photos/local/`). Don't commit photos
+    cropped from someone's site; they are for local checks only.
+  - Starting points made from material differ in composition (`generateOptions`): close to the reference,
+    photography leads, type leads, then a bolder color or words beside a picture. They preview as pages.
+    Review has Photos and First screen controls and chips for uppercase labels, a wordmark and bigger
+    headlines; surface changes say what changed in the history.
+  - Marketing blocks (`core/src/emit/blocks.ts`): `site-header`, `hero` and `collection`, generated in the
+    system's composition for systems with the marketing surface, with examples that use the repo's photos.
+    A test checks every composition on every preset against the checker and the compiled theme.
+  - Previews (`site/renderer.js` hero scene): five compositions, kind-aware navigation and copy (`withKind` in
+    `site/copy.ts`), no "Introducing 2.0" chip. `scripts/page-sheet.mts` draws them side by side. A pictured
+    item takes its photo's name as its caption when the name is short and plain (both the preview and the
+    generated collection example), so a coat isn't captioned as a pouch.
+  - Not done yet: a What's new clip (it needs real photos, so make it where Openverse is reachable), the web app
+    preview is still the SaaS dashboard for every kind, and Openverse hasn't been tried live from the sandbox.
 - Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
   so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
   sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
@@ -258,6 +301,8 @@ npm run video -- --force         # render the film even when nothing it shows ch
 npm run video:new -- video/whats-new/entries/<date>-<name>.json   # a What's new clip and the README list
 npm run brand                    # remake brand/ through onboarding, then: npx auto-design add brand --cwd landing --components button,code-block,card,badge,switch,tabs,table,message,label,separator,input --no-install --no-mcp
 npm run landing                  # build the landing page into landing/dist/; check it with npx auto-design check --cwd landing
+npx tsx scripts/taste-scan.mts [onboarding,landing,site|all] [dark|light|both] [desktop|phone|both]   # impeccable's detector on our own screens
+npx tsx scripts/page-sheet.mts [luxury|store|saas|consumer|devtool] [l|m|s] [light|dark|both] [tag]   # the five landing page compositions; IMAGES=a.jpg,b.jpg for photos
 ```
 
 To add a typeface, add a line to `scripts/fonts/curate.py` (style, roles, a one-line note), fetch, then gen.
@@ -271,7 +316,8 @@ Only families in the root devDependencies render in screenshots; others fall bac
   to the @fontsource packages in node_modules when a screenshot needs the real typefaces.
 - Automated runs of onboarding must never create a real GitHub repo: untick the GitHub option before
   publishing. `AUTO_DESIGN_MOCK_MODEL=1` adds a mock model; `AUTO_DESIGN_FORCE_UI=1` opens onboarding
-  without a TTY; `AUTO_DESIGN_CHROMIUM` points cards and reviews at a Chromium binary.
+  without a TTY; `AUTO_DESIGN_CHROMIUM` points cards, reviews and site reading at a Chromium binary;
+  `AUTO_DESIGN_PHOTOS_DIR` replaces Openverse with a local folder of photos (and its credits.json).
 - Browser-side code embedded in template strings (`site/renderer.js` consumers, `review/audit.ts`,
   `emit/site.ts`) needs doubled backslashes in regexes.
 - The studio started from onboarding runs inside the `init` process; ending it stops the studio.

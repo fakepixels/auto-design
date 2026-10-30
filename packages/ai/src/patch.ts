@@ -229,9 +229,15 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
     return String(v);
   };
   // Values that read the same after formatting (a brand nudged within one hex step) aren't a change to show.
-  const lines = PATCH_FIELDS.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]) && fmt(k, a[k]) !== fmt(k, b[k])).map(
-    (k) => `${label[k]}: ${fmt(k, a[k])} → ${fmt(k, b[k])}`,
-  );
+  // A pairing and hand-picked faces are one choice to a reader: "Type: Plus Jakarta → Cormorant Garamond + Inter",
+  // not a pairing that became "none" and faces that came from "none".
+  const typeOf = (c: typeof a) => (c.pairing ? fmt("pairing", c.pairing) : c.fonts ? fmt("fonts", c.fonts) : "none");
+  const changed = (k: (typeof PATCH_FIELDS)[number]) => JSON.stringify(a[k]) !== JSON.stringify(b[k]) && fmt(k, a[k]) !== fmt(k, b[k]);
+  const lines = PATCH_FIELDS.flatMap((k) => {
+    if (k === "fonts") return [];
+    if (k === "pairing") return typeOf(a) !== typeOf(b) ? [`${label[k]}: ${typeOf(a)} → ${typeOf(b)}`] : [];
+    return changed(k) ? [`${label[k]}: ${fmt(k, a[k])} → ${fmt(k, b[k])}`] : [];
+  });
   // Surfaces aren't a patch field, but changing them is a change worth a line.
   const sa = before.surfaces ?? [];
   const sb = after.surfaces ?? [];

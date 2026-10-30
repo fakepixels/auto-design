@@ -28,4 +28,7 @@ and check work with `npx auto-design check`.
 - [Switch](r/switch.json): On and off settings.
 - [Avatar](r/avatar.json): People and workspaces.
 - [Code block](r/code-block.json): Syntax-highlighted code in the system's colors (Shiki, server-rendered).
+- [Site header](r/site-header.json): A landing page's header: the mark and name, then the links.
+- [Hero](r/hero.json): A landing page's first screen: the headline, one line and the actions, with nothing decorative beside them.
+- [Collection](r/collection.json): Products, posts or reasons under the first screen: each item in a card on an even grid.
 - [Motion](r/motion.json): Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.

@@ -113,7 +113,9 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
   const components = componentSources(s);
   const uiComponents = components.filter((c) => c.type !== "registry:lib");
   const titles = Object.fromEntries(components.map((c) => [c.name, c.title]));
-  const merged = mergeExamples(componentExamples(s, copy), input.examples ?? [], uiComponents.map((c) => c.name), titles);
+  // The repo's photos, served from public/images/, fill the marketing blocks' examples.
+  const images = (s.images ?? []).map((i) => ({ src: `/images/${i.file}`, alt: i.alt }));
+  const merged = mergeExamples(componentExamples(s, copy, images), input.examples ?? [], uiComponents.map((c) => c.name), titles);
   const warnings = [...merged.warnings];
 
   const [rendered, highlight] = await Promise.all([renderExamples(input.root, components, merged.examples), highlighter(s)]);
@@ -173,6 +175,7 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
     modeClass: modes === "both" ? (isDarkFirst(s) ? "light" : "dark") : null,
     defaultMode: modes === "dark" ? "dark" : modes === "light" ? "light" : s.config.color.defaultMode,
     storageKey: `${s.config.name}-design-mode`,
+    wordmark: s.config.art?.logo === "wordmark" ? { display: !!s.type.fonts.display } : undefined,
     repoUrl: input.repoUrl,
     nav,
     top: [
@@ -186,7 +189,8 @@ export async function buildSite(input: SiteInput): Promise<SiteResult> {
 
   const files: Record<string, string> = {};
   for (const page of pages) {
-    const html = renderPage(meta, page).split("{root}").join(rootFor(page.path));
+    // Photos are written as /images/… so the code reads like an app's; on the site they resolve from the page.
+    const html = renderPage(meta, page).replace(/(src|href)="\/images\//g, '$1="{root}images/').split("{root}").join(rootFor(page.path));
     files[`${page.path}index.html`] = html;
   }
   const client = asset("site-client.js");

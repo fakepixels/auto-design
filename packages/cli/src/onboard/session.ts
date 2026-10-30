@@ -411,13 +411,15 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   add({ id: "gen:ref", name: `Close to your ${from}`, tag, label: `Started close to your ${from}`, note: look ? look.facts.slice(0, 3).join(", ").toLowerCase().replace(/^./, (c) => c.toUpperCase()) : site ? siteNote(site) : undefined }, () => applyPatch(base(), ref));
   add(
     { id: "gen:photo", name: "Photography leads", tag, label: "Started from photography leading" },
-    () => applyPatch(base(), { ...colorsAndType, imagery: "leading", hero: refHero === "full-bleed" ? "editorial" : "full-bleed", grid: "open", display: "dramatic", labels: ref.labels ?? "uppercase", logo: ref.logo ?? "wordmark" }),
+    // A photo across the page when the reference isn't one already; otherwise a centered headline over a wide photo, so it never repeats the split below.
+    () => applyPatch(base(), { ...colorsAndType, imagery: "leading", hero: refHero === "full-bleed" ? "centered" : "full-bleed", grid: "open", display: "dramatic", labels: ref.labels ?? "uppercase", logo: ref.logo ?? "wordmark" }),
   );
-  // Type leads: no photography, a big headline and a collection set like a magazine's contents.
+  // Type leads: no photography, a big headline and a collection set like a magazine's contents. The
+  // reference's wordmark and label case stay: they're its identity, not its composition.
   const serifDisplay = ref.fonts?.display ?? null;
   add(
     { id: "gen:type", name: "Type leads", tag, label: "Started from type leading" },
-    () => applyPatch(base("editorial"), { ...colorsAndType, ...(serifDisplay ? {} : { pairing: "instrument" }), texture: "editorial", imagery: "none", hero: "type", grid: "editorial", display: "dramatic", labels: "sentence", logo: "mark" }),
+    () => applyPatch(base("editorial"), { ...colorsAndType, ...(serifDisplay ? {} : { pairing: "instrument" }), texture: "editorial", imagery: "none", hero: "type", grid: "editorial", display: "dramatic", labels: ref.labels ?? "sentence", logo: ref.logo ?? "mark" }),
   );
   // A bolder take: the material's most characterful color in the kind's full direction, the risk the reference doesn't take.
   const signature = mostVivid([...(site?.colors.map((c) => c.hex) ?? []), ...session.imageColors, ...(look?.uiColors ?? [])]);
@@ -433,7 +435,7 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   if (refHero !== "split") {
     add(
       { id: "gen:split", name: "Words beside a picture", tag, label: "Started from words beside a picture" },
-      () => applyPatch(base(), { ...colorsAndType, imagery: ref.imagery && ref.imagery !== "none" ? ref.imagery : "supporting", hero: "split", grid: "cards", labels: "sentence", display: "standard", logo: "mark" }),
+      () => applyPatch(base(), { ...colorsAndType, imagery: ref.imagery && ref.imagery !== "none" ? ref.imagery : "supporting", hero: "split", grid: "cards", labels: "sentence", display: "standard", logo: ref.logo ?? "mark" }),
     );
   }
   if (site && ref.brand && !look) {
@@ -442,6 +444,17 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   }
   if (second) {
     add({ id: "gen:images-2", name: "Your second color", tag: "From your images", note: `${second} on ${TEXTURE_INFO[other].name.toLowerCase()} surfaces`, label: "Started from your second color" }, () => applyPatch(base(other), { ...colorsAndType, brand: second }));
+  }
+  // The kind's own starting point takes the reference's colors too: a stock color beside the reference reads as someone else's brand.
+  const kindOption = session.generated.find((g) => g.id === "gen:kind");
+  if (kindOption && ref.brand) {
+    try {
+      const config = applyPatch(kindOption.config, { brand: ref.brand, ...(ref.neutral ? { neutral: ref.neutral } : {}) });
+      buildSystem(config);
+      kindOption.config = config;
+    } catch {
+      /* keeps the kind's own color */
+    }
   }
   session.generated = [...made.slice(0, 4), ...session.generated.filter((g) => g.id === "gen:model" || g.id === "gen:kind")];
   return session.generated;

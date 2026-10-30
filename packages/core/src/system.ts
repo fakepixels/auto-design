@@ -121,6 +121,17 @@ export interface DesignSystem {
    * CLI after it reads the folder. buildSystem never sets this.
    */
   extraComponents?: import("./emit/components.js").ComponentSource[];
+  /** Photos in the system repo's images/ folder, with their credits, attached by the CLI. */
+  images?: SystemImage[];
+}
+
+/** One photo the system ships: a file in images/, what it shows, and who to credit. */
+export interface SystemImage {
+  file: string;
+  alt: string;
+  width: number | null;
+  height: number | null;
+  credit: string;
 }
 
 export class BuildError extends Error {

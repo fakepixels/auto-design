@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "site-header",
+  "type": "registry:ui",
+  "title": "Site header",
+  "description": "A landing page's header: the mark and name, then the links.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/site-header.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\ntype HeaderLink = { label: string; href: string };\n\n/** The site's header in this system's art direction: a letter mark and the name on the left, links and one action on the right. */\nfunction SiteHeader({\n  name,\n  links = [],\n  action,\n  overPhoto = false,\n  className,\n}: {\n  name: string;\n  links?: HeaderLink[];\n  action?: HeaderLink;\n  /** Set when the header sits on a full-bleed photo: text and controls turn light. */\n  overPhoto?: boolean;\n  className?: string;\n}) {\n  return (\n    <header data-slot=\"site-header\" className={cn(\"flex items-center gap-6 px-6 py-4 md:px-10\", overPhoto && \"on-photo\", className)}>\n      <a href=\"/\" className=\"mr-auto flex items-center gap-2 font-medium text-foreground\">\n        <span aria-hidden=\"true\" className=\"grid size-7 place-items-center rounded-md bg-primary text-sm text-primary-foreground\">{name.slice(0, 1)}</span>\n        {name}\n      </a>\n      <nav className=\"hidden items-center gap-6 md:flex\">\n        {links.map((l) => (\n          <a key={l.href} href={l.href} className=\"text-sm text-muted-foreground transition-colors duration-120 ease-out hover:text-foreground\">\n            {l.label}\n          </a>\n        ))}\n      </nav>\n      {action && (\n        <a href={action.href} className=\"text-sm font-medium text-foreground\">\n          {action.label}\n        </a>\n      )}\n    </header>\n  );\n}\n\nexport { SiteHeader };\n"
+    }
+  ]
+}

@@ -177,6 +177,9 @@
     if (pictured && imgs.length > 1) count = Math.max(3, Math.min(count, imgs.length - 1));
     var items = s.items.slice(0, count).map(function (it, i) {
       var img = imgs[i + 1];
+      // A photo with a short, plain name names its item, so a coat isn't captioned as a pouch.
+      var named = img && /^[A-Za-z][A-Za-z' -]{2,38}$/.test(img.alt || "") && img.alt.split(/\s+/).length <= 5 && !/^(untitled|image|photo|picture|pic|img|dsc)\b/i.test(img.alt);
+      if (named) it = { title: img.alt.charAt(0).toUpperCase() + img.alt.slice(1), body: it.body };
       var media = !pictured ? "" : img ? picture(img) : '<figure class="sp-pic sp-blank"><i class="sp-shop-img" aria-hidden="true"><i></i></i></figure>';
       return '<article class="sp-item">' + media + '<div class="cap"><b>' + e(it.title) + "</b><span>" + e(it.body) + "</span></div></article>";
     }).join("");

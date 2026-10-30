@@ -3,6 +3,7 @@ import { LABEL_TRACKING, SHADOW_STEPS, TYPE_STEPS, WORDMARK_TRACKING, bezier, sh
 import { ROLE_NAMES, type DesignSystem, type Mode } from "../system.js";
 import { WEIGHT_NAMES, fontStack, header } from "./shared.js";
 import { mcpLayer } from "../agents/mcp-app.js";
+import { imageryLayer } from "./blocks.js";
 
 /**
  * Tailwind namespaces the system owns completely. Resetting them removes
@@ -394,6 +395,11 @@ export function emitCss(s: DesignSystem): string {
   parts.push(KEYFRAMES, REDUCED_MOTION, baseLayer(darkFirst));
   const texture = textureLayer(s);
   if (texture) parts.push(texture);
+  // Words over photos, for marketing pages whose art direction uses photography.
+  if (s.config.surfaces.includes("marketing")) {
+    const imagery = imageryLayer(s);
+    if (imagery) parts.push(imagery);
+  }
   if (s.config.surfaces.includes("code")) parts.push(codeLayer(darkFirst ? ":root:not(.light)" : ":root.dark"));
   if (s.config.surfaces.includes("mcp-apps")) parts.push(mcpLayer(s, darkFirst));
   return parts.join("\n\n") + "\n";

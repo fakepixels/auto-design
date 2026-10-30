@@ -204,3 +204,75 @@ describe("font catalog", () => {
     }
   });
 });
+
+describe("art direction", () => {
+  const IMAGES = [
+    { src: "/images/photo-01.jpg", alt: "A leather tote on a stone step" },
+    { src: "/images/photo-02.jpg", alt: "A wool coat on a hanger" },
+    { src: "/images/photo-03.jpg", alt: "A silk scarf, folded" },
+  ];
+  const ART = { imagery: ["none", "supporting", "leading"], hero: ["type", "centered", "split", "full-bleed", "editorial"], grid: ["cards", "open", "editorial"], labels: ["sentence", "uppercase"], display: ["standard", "dramatic"], logo: ["mark", "wordmark"] } as const;
+  const combos: Record<string, string>[] = [];
+  for (const hero of ART.hero) for (const grid of ART.grid) for (const labels of ART.labels) for (const logo of ART.logo) {
+    combos.push({ hero, grid, labels, logo, imagery: hero === "type" ? "none" : grid === "cards" ? "supporting" : "leading", display: labels === "uppercase" ? "dramatic" : "standard" });
+  }
+  const systemFor = (preset: DesignConfig, art: Record<string, string>) => buildSystem({ ...preset, surfaces: [...SURFACES], art: art as never });
+
+  it("writes marketing blocks and examples that pass the checker in every composition, on every preset", () => {
+    for (const [name, preset] of Object.entries(presets)) {
+      for (const art of combos) {
+        const s = systemFor(preset, art);
+        const g = buildGuardrails(s);
+        const label = `${name} ${JSON.stringify(art)}`;
+        for (const c of componentSources(s).filter((c) => ["site-header", "hero", "collection"].includes(c.name))) {
+          expect(checkSource(c.content, c.file, g).violations, `${label} ${c.file}`).toEqual([]);
+        }
+        for (const e of componentExamples(s, defaultCopy("Maison", "Leather goods"), IMAGES).filter((e) => ["site-header", "hero", "collection"].includes(e.component))) {
+          expect(checkSource(e.code, `${e.name}.tsx`, g).violations, `${label} ${e.name}`).toEqual([]);
+        }
+      }
+    }
+  });
+
+  it("only uses classes its theme has, whatever the composition", async () => {
+    for (const art of combos.filter((_, i) => i % 6 === 0)) {
+      const s = systemFor(presets.editorial!, art);
+      const classes = new Set<string>();
+      const blocks = componentSources(s).filter((c) => ["site-header", "hero", "collection"].includes(c.name)).map((c) => c.content);
+      const examples = componentExamples(s, defaultCopy("Maison", "Leather goods"), IMAGES).filter((e) => ["site-header", "hero", "collection"].includes(e.component)).map((e) => e.code);
+      for (const content of [...blocks, ...examples]) {
+        for (const m of content.matchAll(/className=\{?(?:cn\()?"([^"]+)"|cn\(\s*"([^"]+)"|: "([^"]+)"|\? "([^"]+)"|&& "([^"]+)"/g)) {
+          for (const cls of (m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5])!.split(/\s+/)) {
+            if (!cls || cls.includes("${") || cls.includes("://") || /^var\(/.test(cls)) continue;
+            if (/[-:/[]/.test(cls) || SINGLE_WORD.has(cls)) classes.add(cls);
+          }
+        }
+      }
+      const { out } = await compiles(emitCss(s), [...classes]);
+      const escape = (c: string) => "." + c.replace(/[^a-zA-Z0-9_-]/g, (m) => `\\${m}`);
+      const missing = [...classes].filter((c) => !NON_UTILITIES.has(c) && /^[a-z!\[]/.test(c) && !out.includes(escape(c)));
+      expect(missing, JSON.stringify(art)).toEqual([]);
+    }
+  });
+
+  it("captions a pictured item with its photo's name when the name is short and plain", () => {
+    const s = systemFor(presets.quiet!, { imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark" });
+    const code = (images: { src: string; alt: string }[]) => componentExamples(s, defaultCopy("Maison", "Leather goods"), images).find((e) => e.component === "collection")!.code;
+    const named = code([IMAGES[0]!, { src: "/images/photo-02.jpg", alt: "Wool coat" }, { src: "/images/photo-03.jpg", alt: "Untitled" }]);
+    expect(named).toContain('title: "Wool coat"');
+    expect(named).not.toContain('title: "Untitled"');
+    // Long descriptions stay alt text; the item keeps the copy's name.
+    expect(code(IMAGES)).not.toContain('title: "A wool coat on a hanger"');
+  });
+
+  it("says how pages are composed in DESIGN.md, and keeps the defaults for systems that never chose", () => {
+    const md = emitDesignMd(buildSystem({ ...presets.quiet!, art: { imagery: "leading", hero: "full-bleed", grid: "open", labels: "uppercase", display: "dramatic", logo: "wordmark" } }));
+    expect(md).toContain("## Art direction");
+    expect(md).toContain("Photography leads");
+    expect(md).toContain("open full-bleed");
+    expect(md).toContain("tracking-wordmark");
+    const plain = buildSystem(presets.quiet!);
+    expect(plain.config.art).toEqual({ imagery: "none", hero: "type", grid: "cards", labels: "sentence", display: "standard", logo: "mark" });
+    expect(emitCss(plain)).not.toContain("--tracking-label");
+  });
+});

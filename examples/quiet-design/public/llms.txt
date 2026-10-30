@@ -33,4 +33,7 @@ and check work with `npx auto-design check`.
 - [Streaming text](r/streaming-text.json): Model output as it arrives, with a caret and screen-reader-safe updates.
 - [File card](r/file-card.json): Attachments and generated files, with type, name and size.
 - [Reasoning](r/reasoning.json): The agent's thinking, folded away with how long it took.
+- [Site header](r/site-header.json): A landing page's header: the mark and name, then the links.
+- [Hero](r/hero.json): A landing page's first screen: the headline, one line and the actions, with nothing decorative beside them.
+- [Collection](r/collection.json): Products, posts or reasons under the first screen: each item in a card on an even grid.
 - [Motion](r/motion.json): Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API.

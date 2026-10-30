@@ -1,4 +1,4 @@
-import type { SpecimenCopy } from "../site/copy.js";
+import { siteCopy, type SpecimenCopy } from "../site/copy.js";
 import type { DesignSystem } from "../system.js";
 import { componentSources } from "./components.js";
 
@@ -29,7 +29,13 @@ const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 
-export function componentExamples(s: DesignSystem, copy: SpecimenCopy): ComponentExample[] {
+/** A photo an example can show: the repo's own images/, served at /images/ on the site and in apps. */
+export interface ExampleImage {
+  src: string;
+  alt: string;
+}
+
+export function componentExamples(s: DesignSystem, copy: SpecimenCopy, images: ExampleImage[] = []): ComponentExample[] {
   const has = new Set(componentSources(s).filter((c) => !c.custom).map((c) => c.name));
   const rows = copy.table.rows;
   const [c0, c1, c2, c3] = copy.table.columns;
@@ -619,6 +625,82 @@ export default function ReasoningExample() {
     <Reasoning seconds={12} className="w-full max-w-lg" open>
       Compared this month's spend with the plan for each project, then looked for the single largest change.
     </Reasoning>
+  );
+}
+`,
+  );
+
+  // Marketing blocks: the header, first screen and collection in the system's own art direction.
+  const site = copy.site ?? siteCopy(copy.kind ?? null, copy);
+  const art = s.config.art;
+  const photos = art.imagery === "none" ? [] : images;
+  const links = site.links.slice(0, 3).map((l) => `{ label: ${JSON.stringify(l)}, href: ${JSON.stringify(`#${l.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`)} }`).join(", ");
+  const action = `{ label: ${JSON.stringify(site.action)}, href: "#${site.action.toLowerCase().startsWith("bag") ? "bag" : "sign-in"}" }`;
+  const img = (i: ExampleImage | undefined) => (i ? `{ src: ${JSON.stringify(i.src)}, alt: ${JSON.stringify(i.alt)} }` : "");
+  add(
+    "site-header",
+    "site-header",
+    "Site header",
+    `
+import { SiteHeader } from "@/components/ui/site-header";
+
+export default function SiteHeaderExample() {
+  return <SiteHeader name=${attr(copy.product)} links={[${links}]} action={${action}} className="w-full" />;
+}
+`,
+  );
+  const lead = photos[0];
+  add(
+    "hero",
+    "hero",
+    "Hero",
+    `
+import { Hero } from "@/components/ui/hero";
+import { SiteHeader } from "@/components/ui/site-header";
+
+export default function HeroExample() {
+  return (
+    <Hero
+      className="w-full"
+      header={<SiteHeader name=${attr(copy.product)} links={[${links}]} action={${action}}${art.hero === "full-bleed" ? " overPhoto" : ""} />}
+      title=${attr(copy.headline)}
+      lead=${attr(copy.subhead)}
+      primary={{ label: ${JSON.stringify(copy.cta)}, href: "#start" }}
+      secondary={{ label: ${JSON.stringify(copy.secondaryCta)}, href: "#tour" }}
+      note=${attr(copy.note)}${lead ? `
+      image={${img(lead)}}` : ""}
+    />
+  );
+}
+`,
+  );
+  // With photos, as many items as there are photos for them (three at least), so none repeats another's picture.
+  const most = art.grid === "editorial" ? 3 : 4;
+  const count = photos.length > 1 ? Math.max(3, Math.min(most, photos.length - 1)) : most;
+  const items = site.items.slice(0, count).map((it, i) => {
+    const pic = photos[i + 1] ?? (photos.length > 1 ? photos[(i % (photos.length - 1)) + 1] : undefined);
+    // A photo with a short, plain name names its item, so a coat isn't captioned as a pouch.
+    const named = pic && /^[A-Za-z][A-Za-z' -]{2,38}$/.test(pic.alt) && pic.alt.split(/\s+/).length <= 5 && !/^(untitled|image|photo|picture|pic|img|dsc)\b/i.test(pic.alt);
+    const title = named ? pic.alt.charAt(0).toUpperCase() + pic.alt.slice(1) : it.title;
+    return `{ title: ${JSON.stringify(title)}, detail: ${JSON.stringify(it.body)}${pic ? `, image: ${img(pic)}` : ""} }`;
+  });
+  add(
+    "collection",
+    "collection",
+    "Collection",
+    `
+import { Collection } from "@/components/ui/collection";
+
+export default function CollectionExample() {
+  return (
+    <Collection
+      className="w-full"
+      title=${attr(site.collection)}
+      action={{ label: "View all", href: "#all" }}
+      items={[
+        ${items.join(",\n        ")},
+      ]}
+    />
   );
 }
 `,

@@ -97,6 +97,16 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 - Structure comes from alignment and spacing first, `border` second, `shadow-xs` last.
 - Cards have a hairline border and a soft `shadow-sm`; menus and toasts use `shadow-md`, dialogs `shadow-lg`. Solid buttons use `shadow-raised`; the Button component already does.
 
+## Art direction
+
+- No photography. Pages lead with type and the product itself (screens, objects, data). Don't add stock photos or illustration to fill space.
+- Landing pages open on words only: a headline, one line and the main action, left-aligned, with nothing decorative beside them.
+- Collections (products, features, posts) sit in cards: `bg-card`, the system radius and border, an even grid.
+- Navigation, labels and buttons are in sentence case. Don't add tiny uppercase labels above headings.
+- Headlines are measured: `text-4xl` to `text-5xl` on landing pages, sized for the words they carry.
+- The logo is a letter mark beside the name, on the left of the header.
+- Build landing pages from `SiteHeader`, `Hero` and `Collection`: they already compose pages this way. Give them real words and real photos.
+
 ## Motion
 
 Profile: **subtle**.
@@ -179,6 +189,9 @@ Use these before writing your own. They already follow every rule here. Install 
 | `switch` | On and off settings. |
 | `avatar` | People and workspaces. |
 | `code-block` | Syntax-highlighted code in the system's colors (Shiki, server-rendered). |
+| `site-header` | A landing page's header: the mark and name, then the links. |
+| `hero` | A landing page's first screen: the headline, one line and the actions, with nothing decorative beside them. |
+| `collection` | Products, posts or reasons under the first screen: each item in a card on an even grid. |
 | `motion` | Durations, easing, springs and entrance and reveal presets for Motion or the Web Animations API. |
 
 ## Checking your work

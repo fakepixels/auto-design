@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ComponentSource, DesignSystem } from "@auto-design/core";
+import type { ComponentSource, DesignSystem, SystemImage } from "@auto-design/core";
 
 /**
  * The parts of a system repo the team writes by hand. The build reads them and
@@ -9,6 +9,7 @@ import type { ComponentSource, DesignSystem } from "@auto-design/core";
  * - components/<name>.tsx  components of your own, or a replacement for a generated one
  * - examples/<name>.tsx    live examples on the design site; <component>-<variant>.tsx adds a variant
  * - docs/<slug>.md         pages of your own on the design site
+ * - images/                photos the system ships, listed with their credits in images/credits.json
  */
 export const CUSTOM_DIRS = ["components", "examples", "docs"] as const;
 
@@ -33,6 +34,22 @@ export interface CustomContent {
   components: ComponentSource[];
   examples: CustomExample[];
   docs: CustomDoc[];
+  /** Photos in images/ that credits.json lists and that exist on disk. */
+  images: SystemImage[];
+}
+
+/** The photos images/credits.json lists, keeping only files that are really there. */
+export function loadImages(root: string): SystemImage[] {
+  const file = join(root, "images", "credits.json");
+  if (!existsSync(file)) return [];
+  try {
+    const list = (JSON.parse(readFileSync(file, "utf8")) as { images?: Partial<SystemImage>[] }).images ?? [];
+    return list
+      .filter((i): i is SystemImage => typeof i.file === "string" && /^[\w.-]+\.(jpe?g|png|webp|avif)$/i.test(i.file) && existsSync(join(root, "images", i.file)))
+      .map((i) => ({ file: i.file, alt: String(i.alt ?? ""), width: Number(i.width) || null, height: Number(i.height) || null, credit: String(i.credit ?? "") }));
+  } catch {
+    throw new Error("images/credits.json isn't valid JSON. It lists the photos in images/ as { \"images\": [{ \"file\", \"alt\", \"credit\" }] }.");
+  }
 }
 
 const NAME = /^[a-z][a-z0-9-]*$/;
@@ -146,11 +163,12 @@ export function loadCustom(root: string): CustomContent {
   if (bad.length) {
     throw new Error(`Rename ${bad.join(", ")} to lowercase words joined by dashes, like pricing-table.tsx. The file name becomes the component or page name.`);
   }
-  return { components, examples, docs };
+  return { components, examples, docs, images: loadImages(root) };
 }
 
 /** Put the repo's own components into the system, so the registry, DESIGN.md and agents see them. */
 export function attachCustom(s: DesignSystem, custom: CustomContent): DesignSystem {
   s.extraComponents = custom.components;
+  s.images = custom.images;
   return s;
 }

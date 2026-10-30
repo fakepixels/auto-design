@@ -44,7 +44,8 @@ const mime = (f: string) => (f.endsWith(".png") ? "image/png" : f.endsWith(".web
 const images = (process.env.IMAGES ?? "")
   .split(",")
   .filter(Boolean)
-  .map((f, i) => ({ src: `data:${mime(f)};base64,${readFileSync(f).toString("base64")}`, alt: `Sample photo ${i + 1}` }));
+  // Named after the file, as a folder of photos is in onboarding, so pictured items take the photo's name.
+  .map((f) => ({ src: `data:${mime(f)};base64,${readFileSync(f).toString("base64")}`, alt: f.split("/").pop()!.replace(/\.[a-z]+$/i, "").replace(/[-_]+/g, " ") }));
 
 const copy = withKind(defaultCopy(sys.product, sys.about), sys.kind);
 const { css, js } = specimenAssets();

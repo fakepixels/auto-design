@@ -4,6 +4,7 @@ import { join, relative, resolve } from "node:path";
 import { buildSystem, emitAll, type DesignConfig, type SpecimenCopy } from "@auto-design/core";
 import { PROVIDERS, type ModelConfig, type Photo } from "@auto-design/ai";
 import { localPhotoFile, writePhotos } from "./photos.js";
+import { attachCustom, loadCustom } from "../custom.js";
 import { COPY_FILE, CONFIG_FILE, WORKFLOW, configSource, systemPackageJson, systemReadme, writeFiles, writeSite } from "../commands.js";
 
 /**
@@ -167,6 +168,12 @@ function readme(config: DesignConfig, extra: string): string {
 }
 
 /** Write the system repo to disk. Refuses to write into a folder that already has files. */
+/** Preview copy without the flag that says a model wrote it. */
+const copyOf = (copy: SpecimenCopy): SpecimenCopy => {
+  const { byModel: _b, ...rest } = copy as SpecimenCopy & { byModel?: boolean };
+  return rest as SpecimenCopy;
+};
+
 export function writeRepo(opts: PublishOptions): string[] {
   const dir = resolve(opts.dir);
   if (existsSync(dir) && readdirSync(dir).some((f) => f !== ".DS_Store")) {
@@ -224,6 +231,8 @@ export async function publish(opts: PublishOptions): Promise<PublishResult> {
   if (opts.photos?.length) {
     const local = process.env.AUTO_DESIGN_PHOTOS_DIR ? (name: string) => localPhotoFile(process.env.AUTO_DESIGN_PHOTOS_DIR!, name) : undefined;
     const photos = await writePhotos(dir, opts.photos, opts.ownPhotos ?? new Map(), local);
+    // DESIGN.md and the registry list the photos, so emit again now that they're on disk.
+    if (photos.written.length) writeFiles(dir, emitAll(attachCustom(buildSystem(opts.config), loadCustom(dir)), { copy: copyOf(opts.copy) }));
     steps.push(
       photos.written.length
         ? { step: "Add the photos", ok: true, detail: `${photos.written.length} in images/, with their credits in images/CREDITS.md${photos.failed.length ? `. Couldn't download ${photos.failed.length}; add them later` : ""}` }

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "collection",
+  "type": "registry:ui",
+  "title": "Collection",
+  "description": "Products, posts or reasons under the first screen: each item in a card on an even grid.",
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/collection.tsx",
+      "type": "registry:ui",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\ntype CollectionItem = { title: string; detail?: string; href?: string; image?: { src: string; alt: string } };\n\n/** Products, posts or reasons under the first screen, laid out the system's way: each item in a card on an even grid. */\nfunction Collection({\n  title,\n  items,\n  action,\n  className,\n}: {\n  title: string;\n  items: CollectionItem[];\n  /** A link to everything, like \"View all\". */\n  action?: { label: string; href: string };\n  className?: string;\n}) {\n  return (\n    <section data-slot=\"collection\" className={cn(\"px-6 py-16 md:px-10\", className)}>\n      <div className=\"mb-8 flex items-baseline justify-between gap-4\">\n        <h2 className=\"font-semibold tracking-tight text-2xl\">{title}</h2>\n        {action && (\n          <a href={action.href} className=\"text-sm text-muted-foreground transition-colors duration-120 ease-out hover:text-foreground\">\n            {action.label}\n          </a>\n        )}\n      </div>\n      <div className=\"grid gap-4 sm:grid-cols-2 md:grid-cols-3\">\n        {items.map((item) => (\n          <a key={item.title} href={item.href ?? \"#\"} className=\"flex flex-col gap-3 rounded-lg border bg-card p-4 text-card-foreground\">\n            {item.image && <img src={item.image.src} alt={item.image.alt} className=\"aspect-4/5 w-full rounded-md object-cover\" />}\n            <span className=\"font-medium\">{item.title}</span>\n            {item.detail && <span className=\"text-sm text-muted-foreground\">{item.detail}</span>}\n          </a>\n        ))}\n      </div>\n    </section>\n  );\n}\n\nexport { Collection };\n"
+    }
+  ]
+}
