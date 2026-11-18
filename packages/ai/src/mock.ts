@@ -17,7 +17,8 @@ export function quickTweak(config: DesignConfig, request: string): Partial<Desig
   if (/round|soft|friendl/.test(r)) p.radius = Math.min(20, (now.radius ?? 8) + 4);
   if (/sharp|square|serious/.test(r)) p.radius = Math.max(0, (now.radius ?? 8) - 3);
   if (/dens|compact|tight|linear/.test(r)) p.density = "compact";
-  if (/roomi|spacious|airy|breath/.test(r)) p.density = "comfortable";
+  if (/roomi|spacious|airy|breath/.test(r)) p.density = now.density === "compact" ? "comfortable" : "spacious";
+  if (/bigger text|larger text|larger type|bigger type|easier to read|older|senior/.test(r)) p.baseSize = Math.min(22, (now.baseSize ?? 16) + 2);
   if (/calm|still|less motion|quiet/.test(r)) Object.assign(p, { motion: "still", energy: nudge(now.energy, -0.2) });
   if (/livel|playful|energetic|bouncy|more motion/.test(r)) Object.assign(p, { motion: "expressive", energy: nudge(now.energy, 0.2) });
   if (/dark/.test(r)) p.defaultMode = "dark";

@@ -1,5 +1,7 @@
 import {
+  DENSITIES,
   FONTS,
+  FONT_WEIGHTS,
   MOTION_PROFILES,
   PAIRINGS,
   TEXTURES,
@@ -11,6 +13,7 @@ import {
   pairingOf,
   parseColor,
   toHex,
+  withHeadingWeight,
   type DesignConfig,
   type DesignSystem,
 } from "@auto-design/core";
@@ -29,7 +32,17 @@ export interface DesignPatch {
   /** Faces picked by hand from the catalog, when no pairing fits. Ignored when pairing is set. */
   fonts: { sans: string; mono: string; display: string | null } | null;
   radius: number | null;
-  density: "compact" | "comfortable" | null;
+  density: (typeof DENSITIES)[number] | null;
+  /** The product's own page color (paper, cream, a tinted dark), or "none" to go back to the texture's page. */
+  page: string | null;
+  /** Body text size in px, 14 to 22. */
+  baseSize: number | null;
+  /** How fast sizes grow from step to step, 1.125 to 1.333. */
+  ratio: number | null;
+  /** The weight headlines are set in: 300 to 700. */
+  headingWeight: number | null;
+  /** Letter-spacing on large type: tight, or normal to leave the face as drawn. */
+  tracking: "tight" | "normal" | null;
   motion: (typeof MOTION_PROFILES)[number] | null;
   energy: number | null;
   warmth: number | null;
@@ -40,7 +53,7 @@ export interface DesignPatch {
 }
 
 export const PATCH_FIELDS = [
-  "brand", "neutral", "defaultMode", "texture", "pairing", "fonts", "radius", "density", "motion",
+  "brand", "neutral", "defaultMode", "texture", "pairing", "fonts", "radius", "density", "page", "baseSize", "ratio", "headingWeight", "tracking", "motion",
   "energy", "warmth", "novelty", "uiCase", "emoji", "tone",
 ] as const;
 
@@ -70,7 +83,12 @@ export function patchSchema(): Record<string, unknown> {
         },
       }),
       radius: nullable({ type: "number", description: "Base corner radius in px, 0 to 20." }),
-      density: nullable({ type: "string", enum: ["compact", "comfortable"] }),
+      density: nullable({ type: "string", enum: [...DENSITIES] }),
+      page: nullable({ type: "string", description: 'The page color as a CSS color, only when the product already has one that is not white or black (paper, cream, a tinted dark). "none" removes it.' }),
+      baseSize: nullable({ type: "number", description: "Body text size in px, 14 to 22. Keep the size the product already uses; 18 and up for older readers." }),
+      ratio: nullable({ type: "number", description: "Type scale ratio, 1.125 to 1.333." }),
+      headingWeight: nullable({ type: "number", enum: [...FONT_WEIGHTS], description: "Weight of headlines. Keep the product's own: a light serif headline stays light." }),
+      tracking: nullable({ type: "string", enum: ["tight", "normal"], description: "Letter-spacing on headlines: tight, or normal to leave the face as drawn." }),
       motion: nullable({ type: "string", enum: [...MOTION_PROFILES] }),
       energy: nullable({ type: "number", description: "0 calm to 1 energetic." }),
       warmth: nullable({ type: "number", description: "0 precise to 1 warm." }),
@@ -109,7 +127,40 @@ export function applyPatch(config: DesignConfig, patch: Partial<DesignPatch>): D
   if (typeof patch.radius === "number" && Number.isFinite(patch.radius)) {
     next.shape = { ...next.shape, radius: Math.round(Math.min(20, Math.max(0, patch.radius))) };
   }
-  if (patch.density) next.density = patch.density;
+  if (patch.density && (DENSITIES as readonly string[]).includes(patch.density)) next.density = patch.density;
+  if (typeof patch.page === "string" && patch.page.trim()) {
+    const page = patch.page.trim();
+    const color = { ...next.color };
+    if (page.toLowerCase() === "none") delete color.page;
+    else {
+      try {
+        parseColor(page);
+        color.page = page;
+      } catch {
+        // Not a color: keep the page as it is.
+      }
+    }
+    next.color = color;
+  }
+  if (typeof patch.baseSize === "number" && Number.isFinite(patch.baseSize)) {
+    next.type = { ...next.type, baseSize: Math.round(Math.min(22, Math.max(14, patch.baseSize))) };
+  }
+  if (typeof patch.ratio === "number" && Number.isFinite(patch.ratio)) {
+    next.type = { ...next.type, ratio: +Math.min(1.333, Math.max(1.125, patch.ratio)).toFixed(3) };
+  }
+  if (patch.tracking === "tight" || patch.tracking === "normal") next.type = { ...next.type, tracking: patch.tracking };
+  // New faces don't inherit the old headline weight unless it's one they carry.
+  const weight = typeof patch.headingWeight === "number" ? patch.headingWeight : next.type.headingWeight;
+  if (weight && (FONT_WEIGHTS as readonly number[]).includes(weight)) {
+    const fresh = typeof patch.headingWeight === "number";
+    const face = next.type.display ?? next.type.sans;
+    if (fresh) next.type = withHeadingWeight(next.type, weight);
+    else if (!face.weights.includes(weight as never)) {
+      const type = { ...next.type };
+      delete type.headingWeight;
+      next.type = type;
+    }
+  }
   if (patch.motion && (MOTION_PROFILES as readonly string[]).includes(patch.motion)) next.motion = patch.motion;
   const personality = { energy: 0.3, warmth: 0.4, novelty: 0.3, ...next.personality };
   if (typeof patch.energy === "number") personality.energy = clamp01(patch.energy);
@@ -148,6 +199,11 @@ export function currentChoices(config: DesignConfig): DesignPatch {
     })(),
     radius: config.shape?.radius ?? 8,
     density: config.density ?? "comfortable",
+    page: config.color.page ?? null,
+    baseSize: config.type.baseSize ?? 16,
+    ratio: config.type.ratio ?? 1.2,
+    headingWeight: config.type.headingWeight ?? null,
+    tracking: config.type.tracking ?? "tight",
     motion: config.motion ?? "subtle",
     energy: config.personality?.energy ?? 0.3,
     warmth: config.personality?.warmth ?? 0.4,
@@ -164,12 +220,20 @@ export function describeChanges(before: DesignConfig, after: DesignConfig): stri
   const b = currentChoices(after);
   const label: Record<string, string> = {
     brand: "Brand color", neutral: "Grays", defaultMode: "Loads in", texture: "Texture", pairing: "Type", fonts: "Typefaces",
-    radius: "Corners", density: "Density", motion: "Motion", energy: "Energy", warmth: "Warmth",
+    radius: "Corners", density: "Density", page: "Page color", baseSize: "Body text", ratio: "Type scale", headingWeight: "Headline weight", tracking: "Letter-spacing", motion: "Motion", energy: "Energy", warmth: "Warmth",
     novelty: "Novelty", uiCase: "Label case", emoji: "Emoji", tone: "Voice",
   };
   const fmt = (k: string, v: unknown) => {
     if (v === null || v === undefined) return "none";
-    if (k === "radius") return `${v}px`;
+    if (k === "radius" || k === "baseSize") return `${v}px`;
+    if (k === "ratio" || k === "headingWeight") return String(v);
+    if (k === "page") {
+      try {
+        return toHex(parseColor(String(v)));
+      } catch {
+        return String(v);
+      }
+    }
     if (k === "pairing") return PAIRINGS.find((p) => p.id === v)?.name ?? String(v);
     if (k === "fonts") {
       const f = v as { sans: string; display: string | null };

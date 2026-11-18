@@ -228,7 +228,7 @@ export const KEYFRAMES = `@keyframes ad-enter {
   animation-timing-function: var(--ease-in-out);
 }`;
 
-export const baseLayer = (darkFirst: boolean) => `@layer base {
+export const baseLayer = (darkFirst: boolean, headingWeight?: string) => `@layer base {
   *,
   ::before,
   ::after {
@@ -253,7 +253,7 @@ export const baseLayer = (darkFirst: boolean) => `@layer base {
   }
   h1, h2, h3, h4 {
     text-wrap: balance;
-  }
+  }${headingWeight ? `\n  /* Headlines keep the product's own weight unless a class says otherwise. */\n  h1, h2, h3 {\n    font-weight: var(--font-weight-${headingWeight});\n  }` : ""}
   p, li, figcaption {
     text-wrap: pretty;
   }
@@ -388,7 +388,8 @@ export function emitCss(s: DesignSystem): string {
   if (modes === "both") {
     parts.push(darkFirst ? block(":root.light", rootTokens(s, "light")) : block(":root.dark", rootTokens(s, "dark")));
   }
-  parts.push(KEYFRAMES, REDUCED_MOTION, baseLayer(darkFirst));
+  const headingWeight = s.config.type.headingWeight;
+  parts.push(KEYFRAMES, REDUCED_MOTION, baseLayer(darkFirst, headingWeight ? WEIGHT_NAMES[headingWeight] : undefined));
   const texture = textureLayer(s);
   if (texture) parts.push(texture);
   if (s.config.surfaces.includes("code")) parts.push(codeLayer(darkFirst ? ":root:not(.light)" : ":root.dark"));

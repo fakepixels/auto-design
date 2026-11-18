@@ -101,8 +101,16 @@ const NEUTRAL_TINT: Record<NeutralTemperature, { h: number; c: number }> = {
   warm: { h: 70, c: 0.01 },
 };
 
-export function neutralScale(temperature: NeutralTemperature): Scale {
-  const { h, c } = NEUTRAL_TINT[temperature];
+/** The most color a gray may carry before it stops reading as a gray. */
+const MAX_NEUTRAL_CHROMA = 0.028;
+
+/**
+ * The grays, tinted by temperature. A product with its own page color passes
+ * it as `tint`: the grays take its hue, so ink, borders and panels belong to
+ * the same paper.
+ */
+export function neutralScale(temperature: NeutralTemperature, tint?: Oklch | null): Scale {
+  const { h, c } = tint && tint.c >= 0.004 ? { h: tint.h, c: Math.min(MAX_NEUTRAL_CHROMA, Math.max(0.01, tint.c)) } : NEUTRAL_TINT[temperature];
   const scale = {} as Scale;
   STEPS.forEach((step, i) => {
     scale[step] = inGamut({ l: NEUTRAL_L[i]!, c: c * NEUTRAL_CURVE[i]!, h });

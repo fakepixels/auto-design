@@ -15,6 +15,7 @@ import {
   variants,
 } from "../src/onboard/session.js";
 import { check } from "@auto-design/check";
+import { emptyMeasure } from "@auto-design/ai";
 import { publish, writeRepo, type Hosting } from "../src/onboard/publish.js";
 
 const tmp = () => mkdtempSync(join(tmpdir(), "ad-onboard-"));
@@ -68,7 +69,7 @@ describe("onboarding session", () => {
     s.site = {
       url: "https://meridian.dev/", title: "Meridian", description: "", themeColor: null,
       colors: [{ css: "#0f62fe", hex: "#0f62fe", score: 9 }], neutral: "cool", fonts: ["Inter"], pairing: null,
-      catalogFonts: null, radius: 6, dark: false, summary: "",
+      catalogFonts: null, radius: 6, dark: false, page: null, measure: emptyMeasure(), measuredFrom: "css", summary: "",
     };
     const made = generateOptions(s, ["#e4572e", "#29335c", "not a color"]);
     expect(made.map((g) => g.id)).toEqual(["gen:site", "gen:bold", "gen:images"]);
@@ -86,6 +87,41 @@ describe("onboarding session", () => {
     expect(s.history.at(-1)!.label).toBe("Started from your images");
   });
 
+  it("keeps a site's own look through the kind step, whatever kind is picked", () => {
+    const measure = { ...emptyMeasure(), background: "#efe6d3", bodyFont: "Outfit", headingFont: "Newsreader", bodyKind: "sans" as const, headingKind: "serif" as const, bodySize: 19, headingSize: 56, headingWeight: 400, headingTracking: 0, controlHeight: 52, radius: 10 };
+    for (const [kind, vibe] of [["saas", null], ["devtool", null], ["consumer", "playful"], ["ecommerce", null]] as const) {
+      const s = createSession({ name: "Doodle", description: "Medicare help for people turning 65" });
+      s.site = {
+        url: "https://doodle.example/", title: "Doodle", description: "", themeColor: null,
+        colors: [{ css: "#3f5a36", hex: "#3f5a36", score: 9 }], neutral: "warm", fonts: ["Newsreader", "Outfit"], pairing: "newsroom",
+        catalogFonts: { sans: "outfit", mono: "jetbrains-mono", display: "newsreader" }, radius: 10, dark: false,
+        page: { css: "#efe6d3", hex: "#efe6d3" }, measure, measuredFrom: "rendered", summary: "",
+      };
+      const made = generateOptions(s, []);
+      expect(made[0]!.name).toBe("Your site, as it is");
+      expect(made[0]!.note).toBe("#efe6d3 page, Newsreader + Outfit, 19px text");
+      startFrom(s, "gen:site");
+      setKind(s, kind, vibe);
+      const c = s.config;
+      expect(c.color.page, kind).toBe("#efe6d3");
+      expect(c.color.brand, kind).toBe("#3f5a36");
+      expect(c.type.baseSize, kind).toBe(19);
+      expect(c.type.display?.family, kind).toMatch(/^Newsreader/);
+      expect(c.type.sans.family, kind).toMatch(/^Outfit/);
+      expect(c.type.headingWeight, kind).toBe(400);
+      expect(c.type.tracking, kind).toBe("normal");
+      expect(c.density, kind).toBe("spacious");
+      expect(c.shape?.radius, kind).toBe(10);
+      expect(c.color.neutral, kind).toBe("warm");
+      // The kind still decides what the site didn't show.
+      if (kind === "devtool") expect(c.texture).toBe("technical");
+      // And once the person changes something themselves, the kind may change it again.
+      startFrom(s, "tactile");
+      setKind(s, "saas");
+      expect(s.config.type.baseSize, kind).not.toBe(19);
+    }
+  });
+
   it("takes a kind's direction, and a bolder take leads with the site's strongest color", () => {
     const s = createSession({ name: "Hello Kitty", description: "Characters and gifts" });
     setKind(s, "consumer", "playful");
@@ -95,7 +131,7 @@ describe("onboarding session", () => {
     s.site = {
       url: "https://sanrio.com/", title: "Sanrio", description: "", themeColor: null,
       colors: [{ css: "#007ace", hex: "#007ace", score: 9 }, { css: "#c70000", hex: "#c70000", score: 4 }], neutral: null, fonts: ["Jost"], pairing: null,
-      catalogFonts: null, radius: 3, dark: false, summary: "",
+      catalogFonts: null, radius: 3, dark: false, page: null, measure: emptyMeasure(), measuredFrom: "css", summary: "",
     };
     const made = generateOptions(s, []);
     const bold = made.find((g) => g.id === "gen:bold")!;

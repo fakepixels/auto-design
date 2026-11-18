@@ -26,7 +26,7 @@ const TRACKING: Record<TypeStep, string> = {
 /** Smallest size any text may use. */
 export const MIN_TEXT_PX = 12;
 
-export function typeScale(baseSize: number, ratio: number): Record<TypeStep, TypeStepValue> {
+export function typeScale(baseSize: number, ratio: number, tracking: "tight" | "normal" = "tight"): Record<TypeStep, TypeStepValue> {
   const out = {} as Record<TypeStep, TypeStepValue>;
   let previous = 0;
   for (const step of TYPE_STEPS) {
@@ -38,7 +38,8 @@ export function typeScale(baseSize: number, ratio: number): Record<TypeStep, Typ
       px,
       rem: `${+(px / 16).toFixed(4)}rem`,
       lineHeight: LINE_HEIGHT[step],
-      letterSpacing: TRACKING[step],
+      // Normal leaves large sizes as the face was drawn: a light serif headline shouldn't be pulled tight.
+      letterSpacing: tracking === "normal" && TRACKING[step].startsWith("-") ? "0em" : TRACKING[step],
     };
   }
   return out;
@@ -54,6 +55,7 @@ export const SPACING_STEPS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 16,
 
 /** Control heights by density, as Tailwind size multipliers. */
 export function controlHeights(density: ResolvedConfig["density"]) {
+  if (density === "spacious") return { sm: 10, md: 12, lg: 14 };
   return density === "compact" ? { sm: 7, md: 8, lg: 9 } : { sm: 8, md: 9, lg: 10 };
 }
 

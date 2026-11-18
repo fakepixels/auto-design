@@ -132,35 +132,93 @@ export class BuildError extends Error {
 
 const WHITE: Oklch = { l: 1, c: 0, h: 0 };
 
-function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], primary: Oklch): Roles {
-  const n = p.neutral;
-  const t = cfg.texture;
-  const light = mode === "light";
+/** The surfaces a mode is built from: the page and what sits on it. */
+interface Ground {
+  background: Oklch;
+  card: Oklch;
+  /** Gray panels and quiet fills: muted, secondary, accent. */
+  panel: Oklch;
+  border: Oklch;
+  input: Oklch;
+  sidebar: Oklch;
+  sidebarBorder: Oklch;
+}
 
-  const background = light ? (t === "minimal" || t === "technical" ? WHITE : n[50]) : n[950];
-  const card = light
-    ? t === "editorial" || t === "tactile" || t === "glass" ? WHITE : background
-    : t === "technical" ? n[950] : n[900];
+/** The product's own page color and the mode it belongs to, when the config names one. */
+export function pageOf(cfg: ResolvedConfig): { mode: Mode; color: Oklch } | null {
+  if (!cfg.color.page) return null;
+  const { l, c, h } = inGamut(parseColor(cfg.color.page));
+  return { mode: l >= 0.6 ? "light" : "dark", color: { l, c, h } };
+}
+
+const shift = (c: Oklch, dl: number, chroma = 1): Oklch => inGamut({ l: Math.min(1, Math.max(0, c.l + dl)), c: c.c * chroma, h: c.h });
+
+function groundFor(mode: Mode, cfg: ResolvedConfig, n: Scale): Ground {
+  const t = cfg.texture;
+  const own = pageOf(cfg);
+  // A page color of the product's own: everything else is a step of the same paper, never a gray from elsewhere.
+  if (own && own.mode === mode) {
+    const p = own.color;
+    if (mode === "light") {
+      const sheet = inGamut({ l: p.l + (1 - p.l) * 0.55, c: p.c * 0.45, h: p.h });
+      return {
+        background: p,
+        card: t === "minimal" || t === "technical" ? p : sheet,
+        panel: shift(p, -0.035, 1.1),
+        border: shift(p, t === "technical" ? -0.12 : -0.075, 1.1),
+        input: shift(p, -0.13, 1.1),
+        sidebar: shift(p, -0.02),
+        sidebarBorder: shift(p, -0.075, 1.1),
+      };
+    }
+    return {
+      background: p,
+      card: t === "technical" ? p : shift(p, 0.055),
+      panel: shift(p, 0.115),
+      border: shift(p, 0.115),
+      input: shift(p, 0.21),
+      sidebar: shift(p, 0.055),
+      sidebarBorder: shift(p, 0.115),
+    };
+  }
+  if (mode === "light") {
+    const background = t === "minimal" || t === "technical" ? WHITE : n[50];
+    return {
+      background,
+      card: t === "editorial" || t === "tactile" || t === "glass" ? WHITE : background,
+      panel: n[100],
+      border: t === "technical" ? n[300] : n[200],
+      input: n[300],
+      sidebar: background === WHITE ? n[50] : background,
+      sidebarBorder: n[200],
+    };
+  }
+  return { background: n[950], card: t === "technical" ? n[950] : n[900], panel: n[800], border: n[800], input: n[700], sidebar: n[900], sidebarBorder: n[800] };
+}
+
+function rolesFor(mode: Mode, g: Ground, p: DesignSystem["palettes"], primary: Oklch): Roles {
+  const n = p.neutral;
+  const light = mode === "light";
   const surfaceText = light ? n[950] : n[50];
 
   const brandHue = primary.h;
   const chart = (l: number, c: number, dh: number): Oklch => inGamut({ l, c, h: (brandHue + dh + 360) % 360 });
 
   return {
-    background,
+    background: g.background,
     foreground: surfaceText,
-    card,
+    card: g.card,
     "card-foreground": surfaceText,
-    popover: card,
+    popover: g.card,
     "popover-foreground": surfaceText,
     primary,
     "primary-foreground": light ? n[50] : n[50],
-    secondary: light ? n[100] : n[800],
+    secondary: g.panel,
     "secondary-foreground": light ? n[900] : n[50],
-    muted: light ? n[100] : n[800],
+    muted: g.panel,
     // Helper text sits on muted panels too, so it starts dark enough to read there (n500 alone is 4.3:1 on n100).
     "muted-foreground": light ? inGamut({ ...n[500], l: 0.525 }) : n[400],
-    accent: light ? n[100] : n[800],
+    accent: g.panel,
     "accent-foreground": light ? n[900] : n[50],
     destructive: light ? p.danger[600] : p.danger[400],
     "destructive-foreground": light ? n[50] : n[950],
@@ -168,8 +226,8 @@ function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], 
     "success-foreground": light ? n[50] : n[950],
     warning: light ? p.warning[400] : p.warning[400],
     "warning-foreground": n[950],
-    border: light ? (t === "technical" ? n[300] : n[200]) : n[800],
-    input: light ? n[300] : n[700],
+    border: g.border,
+    input: g.input,
     ring: primary,
     overlay: { l: 0, c: 0, h: 0, alpha: light ? 0.4 : 0.6 },
     "chart-1": primary,
@@ -177,13 +235,13 @@ function rolesFor(mode: Mode, cfg: ResolvedConfig, p: DesignSystem["palettes"], 
     "chart-3": chart(light ? 0.6 : 0.68, 0.11, 160),
     "chart-4": chart(light ? 0.78 : 0.8, 0.1, -60),
     "chart-5": light ? n[400] : n[500],
-    sidebar: light ? (background === WHITE ? n[50] : background) : n[900],
+    sidebar: g.sidebar,
     "sidebar-foreground": surfaceText,
     "sidebar-primary": primary,
     "sidebar-primary-foreground": n[50],
-    "sidebar-accent": light ? n[100] : n[800],
+    "sidebar-accent": g.panel,
     "sidebar-accent-foreground": light ? n[900] : n[50],
-    "sidebar-border": light ? n[200] : n[800],
+    "sidebar-border": g.sidebarBorder,
     "sidebar-ring": primary,
   };
 }
@@ -201,15 +259,16 @@ function primaryFor(
   seedStep: Step,
   n: Scale,
   report: BuildReport,
-  page: Oklch,
+  ground: Ground,
   defaultMode: Mode,
 ): Oklch {
+  const page = ground.background;
   const seed = brand[seedStep];
   const steps = Object.keys(brand).map(Number) as Step[];
 
   if (mode === defaultMode) {
     const onPage = contrast(seed, page);
-    const panel = mode === "light" ? n[100] : n[800];
+    const panel = ground.panel;
     const onPanel = contrast(seed, panel);
     if (onPage < TEXT_MIN) {
       report.notes.push(
@@ -223,7 +282,7 @@ function primaryFor(
     return seed;
   }
 
-  const hardest = mode === "dark" ? n[800] : n[100];
+  const hardest = ground.panel;
   if (contrast(seed, hardest) >= TEXT_MIN) return seed;
   // An ink or paper brand (almost no color) flips to the other end of the grays,
   // the way a black button becomes a white one in dark mode.
@@ -391,7 +450,7 @@ export function buildSystem(input: DesignConfig): DesignSystem {
   const { scale: brand, seedStep } = brandScale(seed);
   const palettes = {
     brand,
-    neutral: neutralScale(config.color.neutral),
+    neutral: neutralScale(config.color.neutral, pageOf(config)?.color),
     danger: statusScale("danger"),
     success: statusScale("success"),
     warning: statusScale("warning"),
@@ -401,9 +460,8 @@ export function buildSystem(input: DesignConfig): DesignSystem {
   const roles = {} as Record<Mode, Roles>;
   const defaultMode: Mode = config.color.modes === "dark" ? "dark" : config.color.modes === "light" ? "light" : config.color.defaultMode;
   for (const mode of ["light", "dark"] as const) {
-    const lightPage = config.texture === "minimal" || config.texture === "technical" ? WHITE : palettes.neutral[50];
-    const page = mode === "light" ? lightPage : palettes.neutral[950];
-    roles[mode] = rolesFor(mode, config, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report, page, defaultMode));
+    const ground = groundFor(mode, config, palettes.neutral);
+    roles[mode] = rolesFor(mode, ground, palettes, primaryFor(mode, brand, seedStep, palettes.neutral, report, ground, defaultMode));
     enforce(mode, roles[mode], palettes.neutral, report);
     collectChecks(mode, roles[mode], report, mode !== defaultMode);
   }
@@ -424,7 +482,7 @@ export function buildSystem(input: DesignConfig): DesignSystem {
     palettes,
     brand: { seed, step: seedStep },
     roles,
-    type: { scale: typeScale(config.type.baseSize, config.type.ratio), fonts, weights },
+    type: { scale: typeScale(config.type.baseSize, config.type.ratio, config.type.tracking), fonts, weights },
     spacing: SPACING_STEPS,
     controls: controlHeights(config.density),
     radius: radiusScale(config.shape.radius),

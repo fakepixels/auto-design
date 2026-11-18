@@ -1,16 +1,20 @@
 import { z } from "zod";
+import { parseColor } from "./color.js";
 
 /**
  * The design config is the only hand-edited source of truth in a design
  * system repo. Everything else (tokens, CSS, registry, agent files, rules)
  * is compiled from it. The schema is deliberately narrow: every field is a
- * choice between good options, never a free-form CSS value.
+ * choice between good options, never a free-form CSS value. The exceptions
+ * are what a product already owns and auto-design has no business changing:
+ * its brand color and its page color.
  */
 
 export const TEXTURES = ["minimal", "editorial", "glass", "tactile", "technical"] as const;
 export const MOTION_PROFILES = ["still", "subtle", "expressive"] as const;
 export const SURFACES = ["web-app", "marketing", "code", "chat", "mcp-apps", "messaging"] as const;
 export const FONT_WEIGHTS = [300, 400, 500, 600, 700] as const;
+export const DENSITIES = ["compact", "comfortable", "spacious"] as const;
 
 /** Licenses that allow a font to be committed to a public MIT repo. */
 export const OPEN_FONT_LICENSES = ["OFL-1.1", "Apache-2.0", "MIT", "system"] as const;
@@ -65,6 +69,13 @@ export const designConfigSchema = z
       /** Which modes the system supports, and which one loads first. */
       modes: z.enum(["light", "dark", "both"]).default("both"),
       defaultMode: z.enum(["light", "dark"]).default("light"),
+      /**
+       * The product's own page color, when it isn't plain white or black: paper,
+       * cream, a tinted dark. Any CSS color. It is kept exactly as the page in
+       * the mode it belongs to (light or dark, by its lightness); cards, panels,
+       * borders and the grays are tinted to sit on it.
+       */
+      page: z.string().min(1).optional(),
     }),
 
     type: z.object({
@@ -72,10 +83,14 @@ export const designConfigSchema = z
       mono: fontSchema,
       /** Optional display face for headlines (marketing, editorial). */
       display: fontSchema.optional(),
-      /** Body size in px. */
-      baseSize: z.number().int().min(14).max(18).default(16),
+      /** Body size in px. 19 and up suits products for older readers. */
+      baseSize: z.number().int().min(14).max(22).default(16),
       /** Modular scale ratio between steps. */
       ratio: z.number().min(1.125).max(1.333).default(1.2),
+      /** The weight headlines are set in, when the product has one of its own. It must be a weight the headline face carries. */
+      headingWeight: fontWeight.optional(),
+      /** Letter-spacing on large sizes. Tight (the default) pulls headlines together; normal leaves the face as it was drawn. */
+      tracking: z.enum(["tight", "normal"]).optional(),
     }),
 
     shape: z
@@ -85,7 +100,8 @@ export const designConfigSchema = z
       })
       .default({ radius: 8 }),
 
-    density: z.enum(["compact", "comfortable"]).default("comfortable"),
+    /** Compact: 32px controls. Comfortable: 36px. Spacious: 48px, for touch and for readers who need large targets. */
+    density: z.enum(DENSITIES).default("comfortable"),
     motion: z.enum(MOTION_PROFILES).default("subtle"),
     surfaces: z.array(z.enum(SURFACES)).min(1).default(["web-app"]),
 
@@ -103,6 +119,21 @@ export const designConfigSchema = z
     rules: z.record(z.string(), z.enum(["error", "warn", "off"])).default({}),
   })
   .superRefine((cfg, ctx) => {
+    if (cfg.color.page) {
+      try {
+        parseColor(cfg.color.page);
+      } catch {
+        ctx.addIssue({ code: "custom", path: ["color", "page"], message: `"${cfg.color.page}" isn't a CSS color. Use a hex, rgb(), hsl() or oklch() value.` });
+      }
+    }
+    const headlineFace = cfg.type.display ?? cfg.type.sans;
+    if (cfg.type.headingWeight && !headlineFace.weights.includes(cfg.type.headingWeight)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["type", "headingWeight"],
+        message: `Headlines are set in ${headlineFace.family}, which is configured with ${headlineFace.weights.join(", ")}. Add ${cfg.type.headingWeight} to its weights, or pick one of those.`,
+      });
+    }
     if (!cfg.private) {
       for (const role of ["sans", "mono", "display"] as const) {
         const font = cfg.type[role];
@@ -120,6 +151,7 @@ export const designConfigSchema = z
 export type DesignConfig = z.input<typeof designConfigSchema>;
 export type ResolvedConfig = z.output<typeof designConfigSchema>;
 export type Texture = (typeof TEXTURES)[number];
+export type Density = (typeof DENSITIES)[number];
 export type MotionProfileName = (typeof MOTION_PROFILES)[number];
 export type Surface = (typeof SURFACES)[number];
 export type FontConfig = z.output<typeof fontSchema>;

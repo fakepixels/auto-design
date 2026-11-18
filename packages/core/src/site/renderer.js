@@ -42,7 +42,7 @@
     v["--sp-ctl-sm"] = d.controls.sm + "px";
     v["--sp-ctl-md"] = d.controls.md + "px";
     v["--sp-ctl-lg"] = d.controls.lg + "px";
-    v["--sp-btn-px"] = (d.density === "compact" ? 12 : 16) + "px";
+    v["--sp-btn-px"] = (d.density === "compact" ? 12 : d.density === "spacious" ? 24 : 16) + "px";
     v["--sp-pad"] = d.pad + "px";
     v["--sp-fast"] = d.motion.fast + "ms";
     v["--sp-base"] = d.motion.base + "ms";
@@ -66,6 +66,8 @@
     el.setAttribute("data-labels", d.skin.tableMono ? "mono" : "sans");
     if (d.fonts.display && (d.texture === "editorial" || d.texture === "tactile")) el.setAttribute("data-display-titles", "");
     else el.removeAttribute("data-display-titles");
+    if (d.tracking === "normal") el.setAttribute("data-tracking", "normal");
+    else el.removeAttribute("data-tracking");
   }
 
   /** The product's mark: its first letter on the brand color. */

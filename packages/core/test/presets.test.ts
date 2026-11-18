@@ -74,6 +74,18 @@ describe("presets", () => {
         }
       });
 
+      it("still passes its guardrails with a page color, large text and spacious controls", async () => {
+        const own = buildSystem({ ...preset, surfaces: [...SURFACES], density: "spacious", color: { ...preset.color, page: preset.color.defaultMode === "dark" ? "#101a2c" : "#efe6d3" }, type: { ...preset.type, baseSize: 20, tracking: "normal" } });
+        expect(own.report.checks.filter((c) => !c.pass)).toEqual([]);
+        const g = buildGuardrails(own);
+        for (const c of componentSources(own)) {
+          if (c.content) expect(checkSource(c.content, c.file, g).violations, c.file).toEqual([]);
+        }
+        for (const e of componentExamples(own, defaultCopy("Northwind", "Project planning for agencies"))) expect(checkSource(e.code, `${e.name}.tsx`, g).violations, e.name).toEqual([]);
+        const { has } = await compiles(emitCss(own), ["h-10", "h-12", "h-14", "px-6", "bg-background"]);
+        for (const c of ["h-10", "h-12", "h-14", "px-6", "bg-background"]) expect(has(c), c).toBe(true);
+      });
+
       it("writes site examples that pass its own guardrails, for every component", () => {
         const all = buildSystem({ ...preset, surfaces: [...SURFACES] });
         const g = buildGuardrails(all);

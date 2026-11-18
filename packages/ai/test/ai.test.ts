@@ -16,6 +16,10 @@ import {
   copySchema,
   pairingForFonts,
   catalogFontsForSite,
+  emptyMeasure,
+  measureCss,
+  ownPage,
+  ratioFor,
   mockDesigner,
   type JsonRequest,
 } from "../src/index.js";
@@ -197,7 +201,7 @@ describe("site extraction", () => {
     expect(catalogFontsForSite(["Helvetica Neue"])).toBeNull();
     const patch = patchFromSite({
       url: "https://x", title: "", description: "", themeColor: null, summary: "", colors: [], neutral: null, fonts: ["Work Sans", "Gloock"],
-      pairing: null, catalogFonts: { sans: "work-sans", mono: "jetbrains-mono", display: "gloock" }, radius: null, dark: false,
+      pairing: null, catalogFonts: { sans: "work-sans", mono: "jetbrains-mono", display: "gloock" }, radius: null, dark: false, page: null, measure: emptyMeasure(), measuredFrom: "css",
     });
     const config = applyPatch(quiet, patch);
     expect(config.type.sans.family).toBe("Work Sans Variable");
@@ -208,9 +212,111 @@ describe("site extraction", () => {
   it("turns what it read into a patch", () => {
     const patch = patchFromSite({
       url: "https://x", title: "", description: "", themeColor: null, summary: "",
-      colors: [{ css: "", hex: "#0f766e", score: 9 }], neutral: "warm", fonts: [], pairing: "figtree", catalogFonts: null, radius: 12, dark: true,
+      colors: [{ css: "", hex: "#0f766e", score: 9 }], neutral: "warm", fonts: [], pairing: "figtree", catalogFonts: null, radius: 12, dark: true, page: null, measure: emptyMeasure(), measuredFrom: "css",
     });
     expect(patch).toEqual({ brand: "#0f766e", neutral: "warm", pairing: "figtree", radius: 12, defaultMode: "dark" });
     expect(validate(applyPatch(quiet, patch)).ok).toBe(true);
+  });
+
+  const PAPER_CSS = `
+    :root { --paper: #efe6d3; --moss: #3f5a36; }
+    body { background: var(--paper); font-family: "Outfit", sans-serif; font-size: 19px; }
+    h1, h2 { font-family: "Newsreader", serif; font-weight: 400; letter-spacing: 0; }
+    h1 { font-size: 56px; }
+    p { font-family: "Outfit", sans-serif; } label { font-family: "Outfit", sans-serif; } small { font-family: "Outfit", sans-serif; }
+    .cta { background: var(--moss); border-radius: 10px; min-height: 52px; }
+    @media (max-width: 600px) { h1 { font-size: 38px; } body { font-size: 17px; } }
+    @media (prefers-color-scheme: dark) { body { background: #111; } }
+    .dark body { background: #000; }`;
+  const PAPER_HTML = `<html><body><h1>Medicare for the long haul</h1><button class="cta">Compare</button></body></html>`;
+
+  it("measures how a page is set: its ground, faces by job, sizes, weight and buttons", () => {
+    expect(measureCss(PAPER_CSS, PAPER_HTML)).toEqual({
+      background: "#efe6d3", bodyFont: "Outfit", headingFont: "Newsreader", bodyKind: "sans", headingKind: "serif",
+      bodySize: 19, headingSize: 56, headingWeight: 400, headingTracking: 0, controlHeight: 52, radius: 10,
+    });
+  });
+
+  it("reads a Tailwind build the same way: classes on the elements, variables on the root, nested media", () => {
+    const css = `
+      @layer theme { :root, :host { --font-sans: "Outfit", ui-sans-serif, sans-serif; --font-serif: "Newsreader", ui-serif, serif; --text-4xl: 2.25rem; --background: 43 47% 88%; --spacing: 0.25rem; --font-weight-normal: 400; } }
+      @layer base { h1, h2 { font-size: inherit; font-weight: inherit; } html { font-family: var(--font-sans); } }
+      @layer utilities {
+        .bg-background { background-color: hsl(var(--background)); }
+        .font-serif { font-family: var(--font-serif); }
+        .text-\\[19px\\] { font-size: 19px; }
+        .text-4xl { font-size: var(--text-4xl); }
+        .font-normal { font-weight: var(--font-weight-normal); }
+        .h-14 { height: calc(var(--spacing) * 14); }
+        .md\\:text-\\[56px\\] { @media (width >= 48rem) { font-size: 56px; } }
+        .dark\\:bg-black { &:where(.dark, .dark *) { background-color: #000; } }
+      }`;
+    const html = `<html><body class="bg-background text-[19px] dark:bg-black"><h1 class="font-serif text-4xl md:text-[56px] font-normal">Hi</h1><button class="h-14">Go</button></body></html>`;
+    const m = measureCss(css, html);
+    expect(m).toMatchObject({ bodyFont: "Outfit", headingFont: "Newsreader", headingKind: "serif", bodySize: 19, headingSize: 56, headingWeight: 400, controlHeight: 56 });
+    expect(ownPage(m.background)?.hex).toBe("#efe7d2");
+  });
+
+  it("treats a page color as the product's own unless it's plain white or the stock near-black", () => {
+    expect(ownPage("#efe6d3")?.hex).toBe("#efe6d3");
+    expect(ownPage("#0b1220")?.hex).toBe("#0b1220");
+    expect(ownPage("#ffffff")).toBeNull();
+    expect(ownPage("#fdfdfd")).toBeNull();
+    expect(ownPage("#0a0a0a")).toBeNull();
+    // A saturated mid-tone isn't a ground text can sit on.
+    expect(ownPage("#3f5a36")).toBeNull();
+    expect(ownPage(null)).toBeNull();
+  });
+
+  it("gives each face the job the site gives it, whichever is named more often", () => {
+    const roles = { bodyFont: "Outfit", headingFont: "Newsreader", bodyKind: "sans", headingKind: "serif" } as const;
+    const want = { sans: "outfit", mono: "jetbrains-mono", display: "newsreader" };
+    expect(catalogFontsForSite(["Outfit", "Newsreader"], roles)).toEqual(want);
+    expect(catalogFontsForSite(["Newsreader", "Outfit"], roles)).toEqual(want);
+    // One face for everything stays one face.
+    expect(catalogFontsForSite(["Outfit"], { bodyFont: "Outfit", headingFont: "Outfit" })).toEqual({ sans: "outfit", mono: "jetbrains-mono", display: null });
+    // Faces the catalog doesn't have fall to a pairing of the same shape, not to a guess from another site.
+    expect(catalogFontsForSite(["Tiempos", "Sohne"], { bodyFont: "Sohne", headingFont: "Tiempos" })).toBeNull();
+    expect(pairingForFonts(["Tiempos", "Sohne"], { bodyFont: "Sohne", headingFont: "Tiempos", bodyKind: "sans", headingKind: "serif" })).toBe("newsroom");
+    expect(pairingForFonts(["Tiempos"], { bodyFont: "Tiempos", headingFont: "Tiempos", bodyKind: "serif", headingKind: "serif" })).toBe("source-serif");
+  });
+
+  it("finds a scale that has the site's own headline size on it", () => {
+    expect(ratioFor(19, 56)).toBe(1.197);
+    expect(ratioFor(16, 18)).toBeNull();
+    const system = validate(applyPatch(quiet, { baseSize: 19, ratio: ratioFor(19, 56)! }));
+    expect(system.ok && Object.values(system.system.type.scale).map((v) => v.px)).toContain(56);
+  });
+
+  it("keeps what a site measured: page, sizes, headline weight, faces and button height", () => {
+    const measure = measureCss(PAPER_CSS, PAPER_HTML);
+    const patch = patchFromSite({
+      url: "https://x", title: "", description: "", themeColor: null, summary: "", colors: [{ css: "", hex: "#3f5a36", score: 9 }], neutral: "warm",
+      fonts: ["Newsreader", "Outfit"], pairing: "newsroom", catalogFonts: catalogFontsForSite(["Newsreader", "Outfit"], measure), radius: 10, dark: false,
+      page: ownPage(measure.background), measure, measuredFrom: "css",
+    });
+    expect(patch).toMatchObject({ page: "#efe6d3", baseSize: 19, ratio: 1.197, headingWeight: 400, tracking: "normal", density: "spacious", radius: 10 });
+    // Started from the smallest, tightest preset on purpose: none of its defaults may survive what the site showed.
+    const config = applyPatch(quiet, patch);
+    const built = validate(config);
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.system.type.scale.base.px).toBe(19);
+    expect(config.type.display?.family).toMatch(/^Newsreader/);
+    expect(config.type.display?.weights).toEqual([400]);
+    expect(config.type.sans.family).toMatch(/^Outfit/);
+    expect(config.density).toBe("spacious");
+    expect(describeChanges(quiet, config).join("; ")).toMatch(/Page color: none → #efe6d3.*Body text: 14px → 19px.*Headline weight: none → 400/);
+  });
+
+  it("drops a headline weight the next typeface doesn't carry, and removes a page color on request", () => {
+    const paper = applyPatch(quiet, { page: "#efe6d3", fonts: { sans: "outfit", mono: "jetbrains-mono", display: "newsreader" }, headingWeight: 400 });
+    expect(paper.type.headingWeight).toBe(400);
+    const next = applyPatch(paper, { pairing: "bricolage", page: "none" });
+    expect(next.type.headingWeight).toBeUndefined();
+    expect(next.color.page).toBeUndefined();
+    expect(validate(next).ok).toBe(true);
+    // Not a color: ignored, never passed through.
+    expect(applyPatch(quiet, { page: "url(x)" }).color.page).toBeUndefined();
   });
 });

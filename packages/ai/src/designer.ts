@@ -27,7 +27,9 @@ function catalog(): string {
     `Or set fonts to faces picked from the catalog of ${FONT_CATALOG.length} open-source families when no pairing fits (a site's own typeface, say).`,
     "Motion profiles:",
     ...MOTION_PROFILES.map((m) => `- ${m}: ${MOTION_NOTES[m]}`),
-    "Corner radius: 0 to 20 px. Density: compact (32px controls) or comfortable (36px).",
+    "Corner radius: 0 to 20 px. Density: compact (32px controls), comfortable (36px) or spacious (48px, for touch and older readers).",
+    "Body text: 14 to 22 px. Headline weight: 300 to 700. Letter-spacing on headlines: tight or normal.",
+    "Page color: only when the product already has one that isn't white or black (paper, cream, a tinted dark).",
     "Grays: cool, neutral or warm. Modes: the product loads in light or dark; both always exist.",
   ].join("\n");
 }
@@ -41,6 +43,9 @@ Taste rules:
 - Avoid the generic AI look: no purple or violet by default, no neon on dark unless the product is
   for developers, no rainbow palettes. Prefer a brand color with a clear identity.
 - Match the texture to the product and its audience, not to a trend.
+- A product that already has a look keeps it. The goal is a system that makes the product consistent
+  with itself, not one that makes it look like other software. What its site shows (page color, text
+  size, headline weight, typefaces, corners) stays unless the person asks to change it.
 - Set a field to null when you have no reason to change it.`;
 
 export interface SuggestInput {
@@ -123,8 +128,8 @@ export async function suggest(model: ModelConfig, input: SuggestInput): Promise<
     input.imageColors?.length && `Dominant colors in their uploaded images: ${input.imageColors.join(", ")}`,
     input.images?.length && `${input.images.length} image(s) attached: their logo or screens they like. Use them for color, texture and type hints.`,
     `Current choices: ${JSON.stringify(currentChoices(input.current))}`,
-    "Suggest the design system that fits this product best. Keep their existing brand color if they clearly have one.",
-    "If it's a consumer product, take more risk than their site does: lead with the brand's most characterful color, and let type, corners and motion carry its personality instead of a generic template.",
+    "Suggest the design system that fits this product best. Keep their existing brand color if they clearly have one, and keep what their site measured: its page color, text size, headline weight and typefaces.",
+    "If it's a consumer product and their site leaves a choice open, take the more characterful option: lead with the brand's strongest color, and let motion and texture carry its personality instead of a generic template.",
   ].filter(Boolean);
   const content: Part[] = [{ type: "text", text: lines.join("\n\n") }, ...(input.images ?? []).slice(0, 4)];
   const { raw, config, patch } = await patchCall(model, input.current, system, content, suggestionSchema(), "design_suggestion", input.signal);

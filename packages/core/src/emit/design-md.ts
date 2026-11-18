@@ -1,6 +1,7 @@
 import { PRODUCT_MAX_STEP, TYPE_STEPS } from "../scales.js";
 import type { Texture } from "../schema.js";
-import type { DesignSystem } from "../system.js";
+import { pageOf, type DesignSystem } from "../system.js";
+import { toHex } from "../color.js";
 import { componentSources } from "./components.js";
 import { isDarkFirst } from "./css.js";
 import { RULES, buildGuardrails, type RuleId } from "./guardrails.js";
@@ -132,6 +133,12 @@ export function emitDesignMd(s: DesignSystem): string {
   if (isDarkFirst(s)) {
     push('- This system loads in dark mode. Light mode is opt-in with `<html class="light">`, and `dark:` utilities apply by default.');
   }
+  const own = pageOf(c);
+  if (own) {
+    push(
+      `- The page color is the product's own (\`bg-background\`, ${toHex(own.color)}), not ${own.mode === "light" ? "white" : "black"}. Cards, panels and borders are steps of the same color, so never lay a plain ${own.mode === "light" ? "white" : "black"} or gray block over it.`,
+    );
+  }
   for (const note of s.report.notes) push(`- ${note}`);
 
   push("", "Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings):", "");
@@ -151,7 +158,14 @@ export function emitDesignMd(s: DesignSystem): string {
     const dw = s.type.fonts.display.weights.map((w) => `\`font-${WEIGHT_NAMES[w]}\``).join(" or ");
     push(`- \`font-display\` (${s.type.fonts.display.family}) for headlines at \`text-2xl\` and up, with ${dw}. Never for body text, labels or buttons.`);
   }
+  if (c.type.headingWeight) {
+    push(`- Headlines are \`font-${WEIGHT_NAMES[c.type.headingWeight]}\` (${c.type.headingWeight}). That weight is the product's own: don't set them heavier or lighter.`);
+  }
+  if (c.type.tracking === "normal") {
+    push("- Letter-spacing stays as the typeface was drawn. Don't add `tracking-tight` to headlines.");
+  }
   push(
+    `- Body text is ${s.type.scale.base.px}px (\`text-base\`). When you move an existing screen onto this scale, use the step at or above each size it had, never the one below: don't trade text size for tidier wrapping.`,
     `- Weights that exist: ${s.type.weights.map((w) => `\`font-${WEIGHT_NAMES[w]}\` (${w})`).join(", ")}. No others compile.`,
     `- Product UI stops at \`text-${PRODUCT_MAX_STEP}\`. Larger steps are for marketing pages.`,
     "- Use `tabular-nums` for numbers in tables and anything that updates live.",

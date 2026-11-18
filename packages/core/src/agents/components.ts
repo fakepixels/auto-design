@@ -10,7 +10,7 @@ import { mcpHostModule } from "./mcp-app.js";
 export function agentComponentSources(s: DesignSystem): ComponentSource[] {
   const k = skinFor(s);
   const d = s.motion.durations;
-  const padX = s.config.density === "compact" ? 3 : 4;
+  const padX = s.config.density === "compact" ? 3 : s.config.density === "spacious" ? 6 : 4;
   const out: ComponentSource[] = [];
 
   if (s.config.surfaces.includes("chat")) {

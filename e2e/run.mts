@@ -9,6 +9,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, write
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createServer } from "node:http";
 import { chromium, type Browser, type Page } from "playwright";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -20,6 +21,26 @@ const SHOTS = flag("--shots") ? resolve(flag("--shots")!) : null;
 const TMP = mkdtempSync(join(tmpdir(), "auto-design-e2e-"));
 const PRESETS = ["quiet", "editorial", "glass", "terminal", "tactile"];
 const SIZES = { desktop: { width: 1440, height: 900 }, phone: { width: 390, height: 844 } };
+
+/** A product that already has a look of its own: warm paper, light serif headlines, large text and tall buttons. */
+const PAPER_SITE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Paper</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #efe6d3; --moss: #3f5a36; }
+body { margin: 0; background: var(--paper); color: #2b2a26; font-family: "Outfit", sans-serif; font-size: 19px; }
+main { max-width: 720px; margin: 0 auto; padding: 64px 24px; }
+h1 { font-family: "Newsreader", serif; font-weight: 400; letter-spacing: 0; font-size: 56px; margin: 0 0 16px; }
+.cta { background: var(--moss); color: #fff; border: 0; border-radius: 10px; font: 500 18px "Outfit", sans-serif; min-height: 52px; padding: 0 28px; }
+</style></head><body><main><h1>Medicare for the long haul</h1>
+<p>Turning 65 comes with a stack of mail and a short window to choose. We read the fine print with you.</p>
+<button class="cta">Compare my plans</button></main></body></html>`;
+
+async function paperSite(): Promise<{ url: string; close: () => void }> {
+  const server = createServer((_req, res) => res.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(PAPER_SITE));
+  await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+  const { port } = server.address() as { port: number };
+  return { url: `http://127.0.0.1:${port}/`, close: () => server.close() };
+}
 
 const failures: string[] = [];
 let checks = 0;
@@ -216,6 +237,26 @@ async function onboarding(browser: Browser, size: keyof typeof SIZES, port: numb
   await page.fill("#site", "not a site");
   await quietly(async () => { await page.click("#read-site"); await page.waitForFunction(() => document.querySelector("#site-out")?.textContent?.trim(), null, { timeout: 10_000 }).catch(() => {}); });
   ok(/web address/.test((await page.textContent("#site-out")) ?? ""), "start: a bad address says what to type instead");
+  // A product that already has a look keeps it: the page color, each face in its job, the sizes and the buttons.
+  const paper = await paperSite();
+  await page.fill("#site", paper.url);
+  await page.click("#read-site");
+  await page.waitForSelector("#site-out .found", { timeout: 30_000 }).catch(() => ok(false, "start: reading a site didn't finish"));
+  const found = ((await page.textContent("#site-out")) ?? "").replace(/\s+/g, " ");
+  ok(/#efe6d3\s*kept as your page color/.test(found), `start: says it keeps the site's page color (${found.slice(0, 120)})`);
+  ok(/Newsreader\s*headlines, weight 400, 56px/.test(found) && /Outfit\s*text, 19px/.test(found), "start: says which face sets headlines and which sets text, with their sizes");
+  ok(/52px buttons/.test(found), "start: says how tall the site's buttons are");
+  const asItIs = page.locator('#made-grid .proof[data-value="gen:site"]');
+  ok(/Your site, as it is/.test((await asItIs.textContent().catch(() => "")) ?? ""), "start: offers the site as it is");
+  await asItIs.click().catch(() => {});
+  await settle();
+  const kept = (await page.evaluate(() => fetch("/api/state").then((r) => r.json()))).choices ?? {};
+  ok(kept.page === "#efe6d3" && kept.baseSize === 19 && kept.headingWeight === 400 && kept.tracking === "normal" && kept.density === "spacious" && kept.radius === 10,
+    `start: the site as it is keeps its page, text size, headline weight, buttons and corners (${JSON.stringify(kept).slice(0, 300)})`);
+  ok(kept.fonts?.display === "newsreader" && kept.fonts?.sans === "outfit", "start: the serif stays on headlines and the sans on text");
+  const drawn = await asItIs.locator(".sp").first().evaluate((el) => getComputedStyle(el).getPropertyValue("--background")).catch(() => "");
+  ok(drawn.trim() && !/oklch\(1 0 0\)/.test(drawn), `start: its preview is drawn on the site's own page color (${drawn.trim()})`);
+  paper.close();
   await page.fill("#site", "");
   ok((await page.locator("#made-grid .proof[data-value]").count()) >= 1, "start: offers a starting point made from the kind");
   await pickEach("#start-grid .proof[data-value]", 0);

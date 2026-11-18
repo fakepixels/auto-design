@@ -68,6 +68,7 @@ Contrast is checked at build time (WCAG AA, 4.5:1 for text, 3:1 for focus rings)
 
 - `font-sans` (Inter Variable) for all UI text.
 - `font-mono` (JetBrains Mono Variable) for code, IDs, keys, numbers people copy.
+- Body text is 14px (`text-base`). When you move an existing screen onto this scale, use the step at or above each size it had, never the one below: don't trade text size for tidier wrapping.
 - Weights that exist: `font-normal` (400), `font-medium` (500), `font-semibold` (600). No others compile.
 - Product UI stops at `text-3xl`. Larger steps are for marketing pages.
 - Use `tabular-nums` for numbers in tables and anything that updates live.
