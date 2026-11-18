@@ -137,6 +137,11 @@ export function specimen(config: DesignConfig): SpecimenData {
 export function commit(session: Session, next: DesignConfig, label: string): string[] {
   buildSystem(next);
   const changes = describeChanges(session.config, next);
+  const had = session.config.surfaces ?? [], has = next.surfaces ?? [];
+  const names = (list: Surface[]) => list.map((s) => SURFACE_INFO[s]?.name ?? s).join(", ");
+  const added = has.filter((s) => !had.includes(s)), removed = had.filter((s) => !has.includes(s));
+  if (added.length) changes.push(`Added: ${names(added)}`);
+  if (removed.length) changes.push(`Removed: ${names(removed)}`);
   // Choosing what's already chosen changes nothing, so it leaves nothing to undo.
   if (!changes.length && JSON.stringify(session.config) === JSON.stringify(next)) return changes;
   session.history.push({ label, changes, config: session.config });

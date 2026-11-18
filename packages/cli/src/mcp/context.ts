@@ -138,7 +138,7 @@ export async function loadContext(cwd: string): Promise<Context> {
   }
 
   throw new Error(
-    `No design system found from ${cwd}. Run this in a system repo (with ${CONFIG_FILE}) or in an app where \`npx auto-design add\` installed one (with auto-design.json).`,
+    `No design system found in ${resolve(cwd)} or the folders above it. Run this in a system repo (with ${CONFIG_FILE}) or in an app where \`npx auto-design add\` installed one (with auto-design.json).`,
   );
 }
 

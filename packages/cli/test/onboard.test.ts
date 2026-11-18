@@ -14,6 +14,7 @@ import {
   undo,
   variants,
 } from "../src/onboard/session.js";
+import { check } from "@auto-design/check";
 import { publish, writeRepo, type Hosting } from "../src/onboard/publish.js";
 
 const tmp = () => mkdtempSync(join(tmpdir(), "ad-onboard-"));
@@ -51,6 +52,15 @@ describe("onboarding session", () => {
     undo(s);
     expect(s.config.texture).toBe("minimal");
     expect(() => setSurfaces(s, ["nope"])).toThrow(/at least one/);
+  });
+
+  it("says which surfaces a change added and removed", () => {
+    const s = createSession({ name: "Meridian" });
+    setSurfaces(s, ["web-app"]);
+    setSurfaces(s, ["web-app", "chat"]);
+    expect(s.history.at(-1)?.changes.join("; ")).toMatch(/^Added: .*chat/i);
+    setSurfaces(s, ["chat"]);
+    expect(s.history.at(-1)?.changes.join("; ")).toMatch(/^Removed: /);
   });
 
   it("makes starting points from a site and images, offered before the presets", () => {
@@ -151,6 +161,10 @@ describe("writeRepo", () => {
       expect(existsSync(join(dir, f)), f).toBe(true);
     }
     expect(readFileSync(join(dir, "public/index.html"), "utf8")).toContain("Meridian");
+    // `npm run check` in the new repo passes: the checker leaves the built site alone.
+    const result = await check({ cwd: dir });
+    expect(result.violations.map((v) => `${v.file} ${v.rule}`)).toEqual([]);
+    expect(result.files).toBeGreaterThan(0);
   }, 60_000);
 
   it("refuses a folder that already has files", () => {

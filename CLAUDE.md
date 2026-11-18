@@ -69,6 +69,19 @@ user-facing story; this file is how to work on it.
   rules and credit impeccable; no dependency on it. Tina asked for checks and her input at every step:
   show screenshots and the rule list before committing each one. Full plan: `claude/impeccable-plan.md` in
   the claude.ai project.
+- End-to-end pass (November 17, 2026). Tina asked to test the whole product end to end and fix what it
+  found. `npm run e2e` (`e2e/run.mts`) now does that in a real browser: every CLI command and its error
+  paths, the MCP server over stdio, onboarding at desktop and phone width through a local publish (GitHub
+  off, and any publish that asks for a repo is refused), the studio, and a crawl of every design site page
+  at both widths. Fixed from that pass: `check` scanned the built site in `public/_site`, so `npm run check`
+  failed in every new system repo; `message` called an empty text ready to send; an unknown command printed
+  help and exited 0; a missing Playwright browser printed Playwright's own notice; on phones onboarding hid
+  every status and error message, and the design site's Installation page scrolled sideways; the done
+  screen kept Undo and set its line beside the heading; surface changes read "No change" in the history;
+  animation previews put a second h1 on pages; `npm run brand` doubled its temp path on macOS; and
+  `examples/next-quiet` moved to Next 16.4.6 (16.4.2 stops `next build` over a security advisory). The film
+  was not re-rendered for these. Not done: the studio's color picker still hatches out-of-gamut colors,
+  which onboarding's no longer does.
 - Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
   so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
   sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
@@ -233,6 +246,7 @@ user-facing story; this file is how to work on it.
 npm install
 npm test                 # vitest, about 180 tests
 npm run typecheck
+npm run e2e              # the CLI and every screen in a real browser, about two minutes (--only cli,onboarding,site,studio; --shots <dir>)
 npx auto-design <command>   # runs the TypeScript sources through tsx
 ```
 

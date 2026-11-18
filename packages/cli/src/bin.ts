@@ -181,6 +181,12 @@ async function main() {
   try {
     cli.parse(process.argv, { run: false });
     if (!cli.matchedCommand && !process.argv.slice(2).some((a) => a === "-h" || a === "--help" || a === "-v" || a === "--version")) {
+      const asked = cli.args[0];
+      if (asked) {
+        console.error(`${pc.red("✗")} Unknown command "${asked}". Run \`npx auto-design --help\` for the list.`);
+        process.exitCode = 1;
+        return;
+      }
       cli.outputHelp();
       return;
     }

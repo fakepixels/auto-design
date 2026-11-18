@@ -579,7 +579,11 @@
     .rail ol { flex-direction: row; }
     .rail small { display: none; }
     .actions { padding: 0 16px; height: 60px; }
-    .crumb, .actions .status { display: none; }
+    .crumb { display: none; }
+    /* On phones the status takes its own row in the bar, so a message like a missing name is still seen. */
+    .actions { height: auto; min-height: 60px; flex-wrap: wrap; align-content: center; row-gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+    .actions .status { order: 9; flex: 0 0 100%; margin: 0; text-align: left; white-space: normal; }
+    .actions .status:empty { display: none; }
     .actions { justify-content: flex-end; }
     .step { padding: 20px 16px 40px; }
     .step-head { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -1508,7 +1512,7 @@
     const r = app.published, s = app.state;
     const head = $(".step-head");
     const hasSite = r.steps.some((x) => x.step === "Build the design site" && x.ok);
-    if (head) head.innerHTML = `<h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} ${hasSite ? "Its design site has a page for every foundation and component, drawn with the system itself." : "Install it in an app, tell your agents about it, and keep refining in the studio."}</p>`;
+    if (head) head.innerHTML = `<div class="txt"><h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} ${hasSite ? "Its design site has a page for every foundation and component, drawn with the system itself." : "Install it in an app, tell your agents about it, and keep refining in the studio."}</p></div>`;
     const src = r.registryUrl || r.dir;
     const agent = `Before writing or changing UI, read DESIGN.md. It is the ${s.displayName} design system.\nAfter every change run \`npx auto-design check\` and fix what it reports.`;
     root.append(h(`<div class="publish"><div class="form" style="max-width:640px">
@@ -1537,7 +1541,8 @@
     const pill = $("#model-pill");
     pill.classList.toggle("on", !!s.model);
     $("span", pill).textContent = s.model ? s.model.label : "No model";
-    $("#undo").hidden = !s.history.length;
+    // Once the system is written, undoing a choice here would no longer change it.
+    $("#undo").hidden = !s.history.length || !!(app.published && STEPS[app.step].id === "publish");
   }
   function paintRail() {
     const ol = $("#rail");

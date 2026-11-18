@@ -73,7 +73,7 @@
 <p class="leading-relaxed [&:not(:first-child)]:mt-4">The system works in any React app on Tailwind CSS v4: Next.js, Vite, React Router or Astro.</p>
 <h2 id="add" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">Add it to your app</h2>
 <p class="leading-relaxed [&:not(:first-child)]:mt-4">Run this in the app's folder. It installs the theme, every component, DESIGN.md and the guardrails, points AGENTS.md and CLAUDE.md at the rules, and registers the MCP server for coding agents.</p>
-<div class="mt-4"><div class="flex items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
+<div class="mt-4"><div class="flex min-w-0 items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
   <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap py-1.5 font-mono text-sm">npx auto-design add <span data-origin>{origin}</span>/r/ --components all</code>
   <button type="button" data-copy="npx auto-design add {origin}/r/ --components all" aria-label="Copy command" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"><svg aria-hidden="true" viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
 </div></div>
@@ -88,7 +88,7 @@ import &quot;@fontsource-variable/geist-mono&quot;;" aria-label="Copy code" clas
 </div></div>
 <h2 id="check" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">Check your work</h2>
 <p class="leading-relaxed [&:not(:first-child)]:mt-4">The check reads the guardrails and fails on anything off the system: raw colors, palette classes, sizes and spacing outside the scales.</p>
-<div class="mt-4"><div class="flex items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
+<div class="mt-4"><div class="flex min-w-0 items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
   <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap py-1.5 font-mono text-sm">npx auto-design check</code>
   <button type="button" data-copy="npx auto-design check" aria-label="Copy command" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"><svg aria-hidden="true" viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
 </div></div>
@@ -96,11 +96,11 @@ import &quot;@fontsource-variable/geist-mono&quot;;" aria-label="Copy code" clas
 <h2 id="shadcn" class="mt-12 scroll-mt-20 border-b pb-2 text-xl font-semibold tracking-tight first:mt-0">With the shadcn CLI</h2>
 <p class="leading-relaxed [&:not(:first-child)]:mt-4">The system is also a shadcn registry. Install the base first, then components one at a time.</p>
 <div class="mt-4 grid gap-2">
-  <div class="flex items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
+  <div class="flex min-w-0 items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
   <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap py-1.5 font-mono text-sm">npx shadcn@latest add <span data-origin>{origin}</span>/r/base.json</code>
   <button type="button" data-copy="npx shadcn@latest add {origin}/r/base.json" aria-label="Copy command" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"><svg aria-hidden="true" viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
 </div>
-  <div class="flex items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
+  <div class="flex min-w-0 items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
   <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap py-1.5 font-mono text-sm">npx shadcn@latest add <span data-origin>{origin}</span>/r/button.json</code>
   <button type="button" data-copy="npx shadcn@latest add {origin}/r/button.json" aria-label="Copy command" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"><svg aria-hidden="true" viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
 </div>

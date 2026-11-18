@@ -130,6 +130,14 @@ describe("MCP server", () => {
   });
 });
 
+describe("message command", () => {
+  it("refuses an empty message instead of calling it ready", async () => {
+    const { runMessage } = await import("../src/agents.js");
+    const opts = { cwd: systemRepo(), channel: "sms", kind: "transactional", first: false, json: true };
+    await expect(runMessage({ ...opts, text: "   " })).rejects.toThrow(/Pass the text/);
+  });
+});
+
 describe("DESIGN.md sections", () => {
   const md = "# T\n\n## Color\n\nc\n\n## Surfaces\n\nintro\n\n### In-app chat\n\nchat rules\n\n### iMessage and SMS\n\nsms rules\n\n## Components\n\nlist";
   it("finds sections by loose names and includes subsections", () => {
