@@ -69,6 +69,45 @@ user-facing story; this file is how to work on it.
   rules and credit impeccable; no dependency on it. Tina asked for checks and her input at every step:
   show screenshots and the rule list before committing each one. Full plan: `claude/impeccable-plan.md` in
   the claude.ai project.
+- End-to-end pass (November 17, 2026). Tina asked to test the whole product end to end and fix what it
+  found. `npm run e2e` (`e2e/run.mts`) now does that in a real browser: every CLI command and its error
+  paths, the MCP server over stdio, onboarding at desktop and phone width through a local publish (GitHub
+  off, and any publish that asks for a repo is refused), the studio, and a crawl of every design site page
+  at both widths. Fixed from that pass: `check` scanned the built site in `public/_site`, so `npm run check`
+  failed in every new system repo; `message` called an empty text ready to send; an unknown command printed
+  help and exited 0; a missing Playwright browser printed Playwright's own notice; on phones onboarding hid
+  every status and error message, and the design site's Installation page scrolled sideways; the done
+  screen kept Undo and set its line beside the heading; surface changes read "No change" in the history;
+  animation previews put a second h1 on pages; `npm run brand` doubled its temp path on macOS; and
+  `examples/next-quiet` moved to Next 16.4.6 (16.4.2 stops `next build` over a security advisory). The film
+  was not re-rendered for these. Not done: the studio's color picker still hatches out-of-gamut colors,
+  which onboarding's no longer does.
+- Keep a product's own look (November 17, 2026). Khoi Le ran auto-design on Doodle (Medicare for seniors:
+  beige paper, light serif headlines, large text) and got a SaaS look back: white page, bold sans headlines,
+  smaller text. Tina: "the goal def is to unify style rather than flatten it", and the project exists for
+  "much more diversity in beauty + designs"; a system should make a product consistent with itself, not with
+  a guideline. Cause: the site reader kept four things (brand color, gray temperature, font names, median
+  radius) and everything else fell to house defaults; the Kind step then replaced even those. Now:
+  - The reader measures how the page is set (`SiteMeasure` in `ai/src/extract.ts`): its background, which
+    face sets headlines and which sets text, body and headline size, headline weight and letter-spacing, and
+    the main button's height. `measureCss` reads this from markup and CSS with a small cascade (classes on
+    the elements, root variables, nested media, so Tailwind builds work); `cli/src/onboard/measure.ts` reads
+    computed styles in a real browser when Playwright is installed, and that reading wins. Set
+    `AUTO_DESIGN_NO_RENDER=1` to skip the browser.
+  - The config has room for it: `color.page` (the product's own page color; cards, panels, borders and the
+    grays become steps of it, in the mode its lightness belongs to), `type.baseSize` up to 22,
+    `type.headingWeight`, `type.tracking` ("normal" leaves large type as the face was drawn) and a third
+    density, `spacious` (40, 48 and 56px controls). All optional: a system without them emits what it did.
+    Patches can set them too (`page`, `baseSize`, `ratio`, `headingWeight`, `tracking`).
+  - Onboarding shows what it measured, offers "Your site, as it is" first, and a kind's direction now fills
+    in around what the system still holds from the site (`heldFromSite` in `session.ts`), never over it.
+  - DESIGN.md tells agents the page color and headline weight are the product's own, and to round text up
+    to the scale when moving an existing screen onto it, never down.
+  - Not done: the site's text (ink) color and line height aren't read; card style (border, shadow) still
+    comes from the texture; small parts (checkbox, switch) don't grow with `spacious`; onboarding's object
+    previews use fixed sizes, so a larger body size doesn't show in them; "Your site, bolder" for a SaaS
+    kind is the SaaS look in the site's color, which is the flattening as an option; the film and a What's
+    new clip weren't rendered for this. Tested on a mock of Khoi's description, not on Doodle itself.
 - Finding (not fixed): a dark-first system with the Ink palette keeps ink as the primary fill in dark mode,
   so the main button is near-invisible on the page (1.11:1; DESIGN.md warns, nothing flips it). `brand/`
   sidesteps it with a paper brand. The compiler should probably flip an ink or paper brand to the other end
@@ -118,6 +157,9 @@ user-facing story; this file is how to work on it.
 
 - Tina's bar for auto-design's own UI: simple, subtle and elevated, in the spirit of Apple, Linear and
   shadcn. No heavy drop shadows or decorative chrome.
+- That bar is for auto-design's own UI and for products starting from nothing. A product that already has a
+  look keeps it: auto-design's job is to make it consistent with itself, and anything measured from the
+  product outranks a preset, a kind's direction and the taste pass. Defaults only fill what wasn't measured.
 - The original onboarding (step list on the left, live specimen on the right) is the keeper. A full
   redesign ("stage and swatchbook", commit 6b39da1) was tried and reverted: it read as busier, not more
   elegant. Future polish refines the original in small steps.
@@ -231,8 +273,9 @@ user-facing story; this file is how to work on it.
 
 ```sh
 npm install
-npm test                 # vitest, about 180 tests
+npm test                 # vitest, about 200 tests
 npm run typecheck
+npm run e2e              # the CLI and every screen in a real browser, about two minutes (--only cli,onboarding,site,studio; --shots <dir>)
 npx auto-design <command>   # runs the TypeScript sources through tsx
 ```
 
@@ -270,7 +313,7 @@ Only families in the root devDependencies render in screenshots; others fall bac
   in light and dark mode and at phone width. Google Fonts isn't reachable from the sandbox; route its CSS
   to the @fontsource packages in node_modules when a screenshot needs the real typefaces.
 - Automated runs of onboarding must never create a real GitHub repo: untick the GitHub option before
-  publishing. `AUTO_DESIGN_MOCK_MODEL=1` adds a mock model; `AUTO_DESIGN_FORCE_UI=1` opens onboarding
+  publishing. `AUTO_DESIGN_NO_RENDER=1` reads sites from their CSS only, without a browser. `AUTO_DESIGN_MOCK_MODEL=1` adds a mock model; `AUTO_DESIGN_FORCE_UI=1` opens onboarding
   without a TTY; `AUTO_DESIGN_CHROMIUM` points cards and reviews at a Chromium binary.
 - Browser-side code embedded in template strings (`site/renderer.js` consumers, `review/audit.ts`,
   `emit/site.ts`) needs doubled backslashes in regexes.

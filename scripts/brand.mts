@@ -67,7 +67,8 @@ async function main() {
   for (const s of pub.steps) console.log(`  ${s.ok ? "✓" : "✗"} ${s.step}: ${s.detail}`);
   server.close();
 
-  const made: string = path.isAbsolute(pub.relDir) ? pub.relDir : path.join(SCRATCH, pub.relDir);
+  // The absolute folder: relDir is relative to the server's working folder, which on macOS is the temp folder's real path.
+  const made: string = pub.dir;
   if (!existsSync(path.join(made, "design.config.ts"))) throw new Error(`Publishing didn't write a system to ${made}.`);
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });

@@ -141,7 +141,7 @@ const announcement: AnimationTemplate = {
     <span class="adm-medium">${esc(str(props.name, copy.product))}</span>
   </div>
   <div>
-    <h1 class="adm-display" style="font-size:calc(var(--u)*${size});max-width:calc(var(--u)*150)">${words.html}</h1>
+    <p class="adm-display" style="font-size:calc(var(--u)*${size});max-width:calc(var(--u)*150)">${words.html}</p>
     ${str(props.subtitle) ? `<p class="adm-in adm-muted"${d(after, `margin-top:calc(var(--u)*4);font-size:calc(var(--u)*3);max-width:calc(var(--u)*100)`)}>${esc(str(props.subtitle))}</p>` : ""}
   </div>
   ${str(props.cta) ? `<span class="adm-button adm-pop"${d(after + lang.stagger * 2)}>${esc(str(props.cta))}</span>` : "<span></span>"}

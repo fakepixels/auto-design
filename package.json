@@ -9,6 +9,7 @@
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "tsx e2e/run.mts",
     "ad": "auto-design",
     "dev": "auto-design dev --cwd examples/quiet-design --app examples/next-quiet",
     "video": "tsx scripts/video/make.mts",

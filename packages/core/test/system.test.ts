@@ -6,6 +6,7 @@ import {
   contrast,
   emitAll,
   emitCss,
+  emitDesignMd,
   parseColor,
   type DesignConfig,
 } from "../src/index.js";
@@ -107,6 +108,67 @@ describe("buildSystem", () => {
   it("rejects free-form values the schema does not offer", () => {
     expect(() => buildSystem({ ...quiet, texture: "brutalist" as never })).toThrow(ConfigError);
     expect(() => buildSystem(withBrand("not-a-color"))).toThrow();
+  });
+});
+
+describe("a product's own look", () => {
+  const paper: DesignConfig = { ...quiet, color: { ...quiet.color, brand: "#3f5a36", page: "#efe6d3" } };
+
+  it("keeps the page color exactly, and tints every surface and gray to match it", () => {
+    const s = buildSystem(paper);
+    const page = parseColor("#efe6d3");
+    const L = s.roles.light;
+    expect(L.background.l).toBeCloseTo(page.l, 3);
+    expect(L.background.c).toBeCloseTo(page.c, 3);
+    // Panels and borders are darker steps of the same paper, not gray from somewhere else.
+    for (const role of ["muted", "secondary", "border", "input", "sidebar"] as const) {
+      expect(L[role].l, role).toBeLessThan(page.l);
+      expect(Math.abs(L[role].h - page.h), role).toBeLessThan(6);
+      expect(L[role].c, role).toBeGreaterThan(0.015);
+    }
+    expect(Math.abs(s.palettes.neutral[500].h - page.h)).toBeLessThan(6);
+    // Dark mode has no page of its own here, so it keeps its usual near-black.
+    expect(s.roles.dark.background.l).toBeLessThan(0.2);
+    expect(s.report.checks.filter((c) => !c.pass)).toEqual([]);
+  });
+
+  it("builds on any light or dark ground, for every texture", () => {
+    for (const page of ["#efe6d3", "#fbf7ee", "#e8eef7", "#f4e9f2", "ivory", "#000000", "#101a2c", "#221a14"]) {
+      for (const texture of ["minimal", "editorial", "glass", "tactile", "technical"] as const) {
+        for (const brand of ["#3f5a36", "#0f62fe", "#111111", "#f2c94c"]) {
+          const s = buildSystem({ ...quiet, texture, color: { ...quiet.color, brand, page } });
+          expect(s.report.checks.filter((c) => !c.pass), `${page} ${texture} ${brand}`).toEqual([]);
+          const mode = parseColor(page).l >= 0.6 ? "light" : "dark";
+          expect(s.roles[mode].background.l).toBeCloseTo(parseColor(page).l, 2);
+        }
+      }
+    }
+  });
+
+  it("changes nothing for a system without a page color", () => {
+    const { page: _page, ...color } = paper.color;
+    const plain = buildSystem({ ...quiet, color: { ...color, brand: quiet.color.brand } });
+    expect(emitCss(plain)).toBe(emitCss(buildSystem(quiet)));
+    expect(emitCss(plain)).not.toContain("font-weight: var(--font-weight");
+  });
+
+  it("allows body text up to 22px and puts 48px controls behind spacious", () => {
+    const s = buildSystem({ ...paper, density: "spacious", type: { ...paper.type, baseSize: 20 } });
+    expect(s.type.scale.base.px).toBe(20);
+    expect(s.controls).toEqual({ sm: 10, md: 12, lg: 14 });
+    expect(() => buildSystem({ ...paper, type: { ...paper.type, baseSize: 23 } })).toThrow(ConfigError);
+  });
+
+  it("sets headlines in the product's own weight, and leaves letter-spacing alone when asked", () => {
+    const s = buildSystem({ ...paper, type: { ...paper.type, headingWeight: 400, tracking: "normal" } });
+    expect(emitCss(s)).toMatch(/h1, h2, h3 \{\n\s+font-weight: var\(--font-weight-normal\);/);
+    for (const step of Object.values(s.type.scale)) expect(step.letterSpacing.startsWith("-")).toBe(false);
+    const md = emitDesignMd(s);
+    expect(md).toContain("Headlines are `font-normal` (400)");
+    expect(md).toContain("#efe6d3");
+    expect(md).toContain("never the one below");
+    // A weight the headline face doesn't carry is refused with what to do about it.
+    expect(() => buildSystem({ ...paper, type: { ...paper.type, headingWeight: 300 } })).toThrow(/Add 300 to its weights/);
   });
 });
 

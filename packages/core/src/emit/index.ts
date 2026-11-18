@@ -10,6 +10,7 @@ import { componentSources } from "./components.js";
 
 export { componentSources, generatedComponentSources, skinFor, type ComponentSource, type Skin } from "./components.js";
 export { emitSite } from "./site.js";
+export { WEIGHT_NAMES } from "./shared.js";
 export { codeLayer, emitCss, isDarkFirst, LOCKED_NAMESPACES, themeTokens, rootTokens } from "./css.js";
 export { emitDesignMd } from "./design-md.js";
 export { codeContrast, codeTheme, emitCodeThemes, syntaxColors, type CodeTheme, type SyntaxRole } from "./code.js";

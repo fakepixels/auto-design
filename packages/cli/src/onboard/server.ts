@@ -1,3 +1,4 @@
+import { measureRendered } from "./measure.js";
 import { existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { dirname, extname, join, normalize, relative, resolve, sep } from "node:path";
@@ -280,7 +281,7 @@ export async function runOnboard(opts: OnboardOptions) {
     "POST /api/site": async (b) => {
       const url = String(b.url ?? session.product.url ?? "").trim();
       if (!url) throw new Error("Enter your site's address.");
-      const material = await extractFromSite(url).catch((err) => {
+      const material = await extractFromSite(url, { measure: measureRendered }).catch((err) => {
         throw new Error(siteError(url, err));
       });
       const s = siteSuggestion(session, material);

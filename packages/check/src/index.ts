@@ -121,7 +121,8 @@ export async function check(options: CheckOptions = {}): Promise<CheckResult> {
   const g = prepare(guardrails);
   const files = await glob(options.patterns ?? DEFAULT_PATTERNS, {
     cwd,
-    ignore: [...g.ignore, ...(options.ignore ?? []), "**/next-env.d.ts", "**/*.config.{js,mjs,ts}"],
+    // The design site in public/_site is built by auto-design (compiled Tailwind and its own scripts), not written by the team.
+    ignore: [...g.ignore, ...(options.ignore ?? []), "**/public/_site/**", "**/next-env.d.ts", "**/*.config.{js,mjs,ts}"],
     absolute: true,
   });
 

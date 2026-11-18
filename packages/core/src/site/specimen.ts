@@ -19,6 +19,8 @@ export interface SpecimenData {
   description: string;
   texture: string;
   density: string;
+  /** "normal" when large type keeps the face's own letter-spacing. */
+  tracking: "tight" | "normal";
   modes: string;
   defaultMode: Mode;
   pairing: string | null;
@@ -70,6 +72,7 @@ export function specimenData(s: DesignSystem): SpecimenData {
     description: s.config.description,
     texture: s.config.texture,
     density: s.config.density,
+    tracking: s.config.type.tracking ?? "tight",
     modes: s.config.color.modes,
     defaultMode: s.config.color.modes === "dark" || isDarkFirst(s) ? "dark" : "light",
     pairing: pairingOf(s.config),
@@ -85,13 +88,13 @@ export function specimenData(s: DesignSystem): SpecimenData {
       body: pick([400]),
       medium: pick([500, 600]),
       strong: pick([600, 700, 500]),
-      display: s.type.fonts.display ? s.type.fonts.display.weights[s.type.fonts.display.weights.length - 1]! : pick([600, 700, 500]),
+      display: s.config.type.headingWeight ?? (s.type.fonts.display ? s.type.fonts.display.weights[s.type.fonts.display.weights.length - 1]! : pick([600, 700, 500])),
     },
     type,
     radius: s.config.shape.radius,
     shadows,
     controls: { sm: s.controls.sm * 4, md: s.controls.md * 4, lg: s.controls.lg * 4 },
-    pad: s.config.density === "compact" ? 16 : 24,
+    pad: s.config.density === "compact" ? 16 : s.config.density === "spacious" ? 32 : 24,
     skin: {
       press: skin.press.includes("translate") ? "translate" : skin.press.includes("scale") ? "scale" : "none",
       raised: skin.raised.trim().length > 0,

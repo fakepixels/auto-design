@@ -533,3 +533,6 @@
 .sp[data-texture="minimal"] .sp-stage .sp-beat { border-color: transparent; box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 7%, transparent), var(--sp-shadow-md); }
 .sp[data-texture="glass"] .sp-stage .sp-beat { background: color-mix(in oklab, var(--card) 62%, transparent); border-color: color-mix(in oklab, var(--foreground) 6%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); }
 .sp[data-texture="editorial"] .sp-stage .sp-beat { background: transparent; border-color: transparent; padding-left: 0; padding-right: 0; }
+
+/* A product whose headlines keep the face's own letter-spacing: previews don't pull them tight either. */
+.sp[data-tracking="normal"] :is(.sp-ob-h, .sp-title, .sp-hero h1, .sp-face .h, .sp-mcard .t, .sp-ag-say) { letter-spacing: 0; }

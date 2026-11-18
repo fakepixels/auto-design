@@ -40,7 +40,7 @@ export const codePanel = (highlighted: string, raw: string, opts: { maxHeight?: 
 
 /** A one-line command with a copy button. data-origin spans are filled with the site's address. */
 export const command = (html: string, raw: string) =>
-  `<div class="flex items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
+  `<div class="flex min-w-0 items-center gap-2 rounded-lg border bg-muted py-1 pl-4 pr-1">
   <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap py-1.5 font-mono text-sm">${html}</code>
   ${copyButton(raw, "Copy command")}
 </div>`;

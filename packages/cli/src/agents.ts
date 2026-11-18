@@ -16,7 +16,10 @@ import { loadContext } from "./mcp/context.js";
 /** `auto-design message`: check a text against the system's voice and texting rules. */
 export async function runMessage(opts: { text: string; cwd: string; channel: string; kind: string; first: boolean; json: boolean }) {
   let text = opts.text;
+  const usage = 'Pass the text to check, like `npx auto-design message "Your report is ready"`, or pipe it in.';
+  if (!text && process.stdin.isTTY) throw new Error(usage);
   if (text === "-" || !text) text = readFileSync(0, "utf8");
+  if (!text.trim()) throw new Error(usage);
   const ctx = await loadContext(opts.cwd).catch(() => null);
   const report = checkMessage(text, {
     channel: opts.channel as MessageChannel,
@@ -65,7 +68,15 @@ export async function launchBrowser(): Promise<Browser> {
     }
   }
   const executablePath = process.env.AUTO_DESIGN_CHROMIUM || undefined;
-  return pw.chromium.launch({ executablePath });
+  try {
+    return await pw.chromium.launch({ executablePath });
+  } catch (err) {
+    // Playwright without its browser fails with a boxed notice; say the one thing to do instead.
+    if (/Executable doesn't exist|playwright install/i.test((err as Error).message ?? "")) {
+      throw new Error("Playwright is installed but its browser isn't. Run `npx playwright install chromium`, or set AUTO_DESIGN_CHROMIUM to a Chrome or Chromium binary.");
+    }
+    throw err;
+  }
 }
 
 /** `auto-design card`: an image card in the system's style, as SVG or PNG. */

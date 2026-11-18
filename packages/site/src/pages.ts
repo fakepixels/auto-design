@@ -3,6 +3,7 @@ import {
   ROLE_NAMES,
   STEPS,
   TYPE_STEPS,
+  WEIGHT_NAMES,
   bezier,
   toCss,
   toHex,
@@ -85,6 +86,12 @@ function exampleTabs(ctx: PageContext, e: ComponentExample): string {
 
 const SHOWCASE = ["card", "approval", "table", "message", "input-with-button", "switch", "tabs", "badge", "dialog", "citation", "streaming-text", "file-card", "toaster", "avatar"];
 
+/** How this system sets a headline: its own weight and letter-spacing when it has them, the site's defaults otherwise. */
+function headlineStyle(s: DesignSystem): string {
+  const w = s.config.type.headingWeight;
+  return `${w ? `font-${WEIGHT_NAMES[w]}` : "font-semibold"}${s.config.type.tracking === "normal" ? "" : " tracking-tight"}`;
+}
+
 export function homePage(ctx: PageContext): PageInput {
   const { s, copy } = ctx;
   const display = s.type.fonts.display ? " font-display" : "";
@@ -111,7 +118,7 @@ export function homePage(ctx: PageContext): PageInput {
     {
       title: "Type",
       href: "docs/typography/",
-      body: `<p class="text-4xl font-semibold leading-none${display}">Aa</p>
+      body: `<p class="text-4xl ${headlineStyle(s).split(" ")[0]} leading-none${display}">Aa</p>
       <p class="mt-3 text-sm text-muted-foreground">${esc((s.type.fonts.display ?? s.type.fonts.sans).family.replace(/ Variable$/, ""))}${s.type.fonts.display ? ` and ${esc(s.type.fonts.sans.family.replace(/ Variable$/, ""))}` : ""}, ${s.type.scale.base.px}px base.</p>`,
     },
     {
@@ -130,7 +137,7 @@ export function homePage(ctx: PageContext): PageInput {
 
   const body = `
 <section class="mx-auto max-w-7xl px-4 pb-16 pt-16 md:px-6 md:pt-24">
-  <h1 class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl${display}">${esc(systemTitle(s))}</h1>
+  <h1 class="max-w-3xl text-4xl ${headlineStyle(s)} md:text-5xl lg:text-6xl${display}">${esc(systemTitle(s))}</h1>
   <p class="mt-5 max-w-2xl text-lg text-muted-foreground">${esc(s.config.description || `Tokens, components and rules for ${copy.product}.`)}</p>
   <div class="mt-8 flex flex-wrap gap-2">${btn("primary", s, "docs/installation/", "Get started")}${btn("outline", s, "docs/components/", "Browse components")}</div>
 </section>
@@ -392,7 +399,7 @@ ${p(`${inlineCode(`text-${TYPE_STEPS[maxProduct + 1]}`)} and up are for marketin
       const sample = big ? copy.headline : copy.pageSummary;
       return `<div class="grid gap-2 px-4 py-4 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-baseline">
       <div class="text-xs text-muted-foreground"><p class="font-mono text-foreground">text-${st}</p><p class="tabular-nums">${v.px}px / ${v.lineHeight}</p></div>
-      <p class="truncate text-${st}${big && s.type.fonts.display ? " font-display" : ""}${big ? " font-semibold" : ""}">${esc(sample)}</p>
+      <p class="truncate text-${st}${big && s.type.fonts.display ? " font-display" : ""}${big ? ` ${s.config.type.headingWeight ? `font-${WEIGHT_NAMES[s.config.type.headingWeight]}` : "font-semibold"}` : ""}">${esc(sample)}</p>
     </div>`;
     })
     .join("")}

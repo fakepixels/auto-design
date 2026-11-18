@@ -247,6 +247,25 @@ export function customFonts(pick: { sans: string; mono: string; display?: string
   };
 }
 
+/**
+ * Set headlines in a weight the product already uses. With a display face,
+ * that face carries only that weight (or the nearest one it has). Without one,
+ * headlines share the body face, so the weight snaps to one it already loads.
+ */
+export function withHeadingWeight<T extends DesignConfig["type"]>(type: T, weight: number): T {
+  const next = { ...type };
+  const nearest = (pool: readonly number[]) => pool.reduce((a, b) => (Math.abs(b - weight) < Math.abs(a - weight) ? b : a));
+  if (next.display) {
+    const entry = FONT_CATALOG.find((e) => e.family === next.display!.family);
+    const w = entry ? weightsFor(entry, [weight])[0]! : nearest(next.display.weights);
+    next.display = { ...next.display, weights: [w] as FontInput["weights"] };
+    next.headingWeight = w as FontInput["weights"][number];
+  } else {
+    next.headingWeight = nearest(next.sans.weights) as FontInput["weights"][number];
+  }
+  return next;
+}
+
 /** Which pairing a config uses, matched by its sans and display families. */
 export function pairingOf(config: Pick<DesignConfig, "type">): string | null {
   for (const p of PAIRINGS) {

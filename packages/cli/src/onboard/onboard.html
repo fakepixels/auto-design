@@ -413,6 +413,8 @@
   .sw.dot i { width: 22px; height: 22px; }
   .fact { display: inline-flex; align-items: center; gap: 8px; margin-right: 14px; animation: pop 450ms var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
   .fact .aa { font-size: 19px; line-height: 1; font-weight: 500; letter-spacing: -0.02em; }
+  .fact .note { color: var(--faint); font-size: 12px; }
+  .fact .chip { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgb(127 127 127 / .28); }
   .fact .corner { width: 16px; height: 16px; border: 1.5px solid var(--muted); border-right: 0; border-bottom: 0; }
   .made-note { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 13px; animation: rise 400ms var(--ease) both; }
   .made-note .spark { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 10px var(--ink); animation: breathe 1.4s ease-in-out infinite; }
@@ -579,7 +581,11 @@
     .rail ol { flex-direction: row; }
     .rail small { display: none; }
     .actions { padding: 0 16px; height: 60px; }
-    .crumb, .actions .status { display: none; }
+    .crumb { display: none; }
+    /* On phones the status takes its own row in the bar, so a message like a missing name is still seen. */
+    .actions { height: auto; min-height: 60px; flex-wrap: wrap; align-content: center; row-gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+    .actions .status { order: 9; flex: 0 0 100%; margin: 0; text-align: left; white-space: normal; }
+    .actions .status:empty { display: none; }
     .actions { justify-content: flex-end; }
     .step { padding: 20px 16px 40px; }
     .step-head { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -1073,7 +1079,7 @@
     const host = url.replace(/^https?:\/\//i, "").replace(/\/$/, "");
     out.innerHTML = `<div class="scan"><div class="scan-chrome"><i></i><i></i><i></i><span>${esc(host)}</span></div>
       <div class="scan-body"><i style="width:30%"></i><i style="width:74%"></i><i style="width:58%"></i><i class="a"></i><div class="beam"></div></div>
-      <ol class="scan-steps"><li class="on">Fetching the page</li><li>Finding its colors</li><li>Reading type and corners</li></ol></div>`;
+      <ol class="scan-steps"><li class="on">Fetching the page</li><li>Finding its colors</li><li>Measuring type, sizes and corners</li></ol></div>`;
     const steps = [...out.querySelectorAll(".scan-steps li")];
     const advance = (i) => steps.forEach((li, j) => { li.className = j < i ? "ok" : j === i ? "on" : ""; });
     const timers = [setTimeout(() => advance(1), 700), setTimeout(() => advance(2), 1500)];
@@ -1103,10 +1109,19 @@
     if (!out) return;
     const colors = m.colors.slice(0, 6);
     const font = (m.fonts[0] || "").split(",")[0].replace(/["']/g, "").trim();
-    const shape = [m.radius !== null ? `<span class="fact" style="--i:${colors.length + 1}"><i class="corner" style="border-top-left-radius:${Math.min(16, m.radius)}px"></i>${m.radius}px corners</span>` : "", m.dark ? `<span class="fact" style="--i:${colors.length + 2}">Dark first</span>` : ""].join("");
+    // Which face does which job, and how big and heavy: the things a system must not flatten.
+    const t = m.measure || {};
+    const face = (name, what, i) => `<span class="fact" style="--i:${colors.length + i}"><span class="aa" style="font-family:'${esc(name)}', inherit">Aa</span>${esc(name)}<span class="note">${esc(what)}</span></span>`;
+    const px = (n) => `${Math.round(n)}px`;
+    const headline = t.headingFont ? face(t.headingFont, ["headlines", t.headingWeight ? `weight ${t.headingWeight}` : "", t.headingSize ? px(t.headingSize) : ""].filter(Boolean).join(", "), 0) : "";
+    const text = t.bodyFont && (t.bodyFont !== t.headingFont || t.bodySize) ? face(t.bodyFont, ["text", t.bodySize ? px(t.bodySize) : ""].filter(Boolean).join(", "), 1) : !t.bodyFont && t.bodySize ? `<span class="fact" style="--i:${colors.length + 1}">${px(t.bodySize)} text</span>` : "";
+    const type = headline || text ? headline + text : font ? `<span class="fact" style="--i:${colors.length}"><span class="aa" style="font-family:'${esc(font)}', inherit">Aa</span>${esc(font)}</span>` : "";
+    const page = m.page ? `<div class="found-row"><span class="found-label">Page</span><div><span class="fact" style="--i:${colors.length}"><i class="chip" style="background:${esc(m.page.hex)}"></i>${esc(m.page.hex)}<span class="note">kept as your page color</span></span></div></div>` : "";
+    const shape = [t.controlHeight ? `<span class="fact" style="--i:${colors.length + 3}">${t.controlHeight}px buttons</span>` : "", m.radius !== null ? `<span class="fact" style="--i:${colors.length + 1}"><i class="corner" style="border-top-left-radius:${Math.min(16, m.radius)}px"></i>${m.radius}px corners</span>` : "", m.dark ? `<span class="fact" style="--i:${colors.length + 2}">Dark first</span>` : ""].join("");
     out.innerHTML = `<div class="found">
       <div class="found-row"><span class="found-label">Colors</span><div class="sw-row">${colors.length ? colors.map((c, i) => `<button class="sw" style="--c:${esc(c.hex)};--i:${i}" data-hex="${esc(c.hex)}" aria-pressed="${i === 0}" title="Lead with ${esc(c.hex)}"><i></i>${esc(c.hex)}</button>`).join("") : `<span class="note">No brand color on that page</span>`}</div></div>
-      <div class="found-row"><span class="found-label">Type</span><div>${font ? `<span class="fact" style="--i:${colors.length}"><span class="aa" style="font-family:'${esc(font)}', inherit">Aa</span>${esc(font)}</span>` : `<span class="note">No web font found</span>`}</div></div>
+${page}
+      <div class="found-row"><span class="found-label">Type</span><div>${type || `<span class="note">No web font found</span>`}</div></div>
       <div class="found-row"><span class="found-label">Shape</span><div>${shape || `<span class="note">No corners found</span>`}</div></div>
     </div>`;
     if (!animate) out.querySelectorAll(".found, .sw, .fact").forEach((el) => (el.style.animation = "none"));
@@ -1508,7 +1523,7 @@
     const r = app.published, s = app.state;
     const head = $(".step-head");
     const hasSite = r.steps.some((x) => x.step === "Build the design site" && x.ok);
-    if (head) head.innerHTML = `<h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} ${hasSite ? "Its design site has a page for every foundation and component, drawn with the system itself." : "Install it in an app, tell your agents about it, and keep refining in the studio."}</p>`;
+    if (head) head.innerHTML = `<div class="txt"><h1>${esc(s.displayName)} is ready</h1><p>${r.steps.every((x) => x.ok) ? "Everything below is done." : "Most of it is done; the steps marked in red need you."} ${hasSite ? "Its design site has a page for every foundation and component, drawn with the system itself." : "Install it in an app, tell your agents about it, and keep refining in the studio."}</p></div>`;
     const src = r.registryUrl || r.dir;
     const agent = `Before writing or changing UI, read DESIGN.md. It is the ${s.displayName} design system.\nAfter every change run \`npx auto-design check\` and fix what it reports.`;
     root.append(h(`<div class="publish"><div class="form" style="max-width:640px">
@@ -1537,7 +1552,8 @@
     const pill = $("#model-pill");
     pill.classList.toggle("on", !!s.model);
     $("span", pill).textContent = s.model ? s.model.label : "No model";
-    $("#undo").hidden = !s.history.length;
+    // Once the system is written, undoing a choice here would no longer change it.
+    $("#undo").hidden = !s.history.length || !!(app.published && STEPS[app.step].id === "publish");
   }
   function paintRail() {
     const ol = $("#rail");

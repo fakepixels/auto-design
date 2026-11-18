@@ -137,6 +137,11 @@ export function specimen(config: DesignConfig): SpecimenData {
 export function commit(session: Session, next: DesignConfig, label: string): string[] {
   buildSystem(next);
   const changes = describeChanges(session.config, next);
+  const had = session.config.surfaces ?? [], has = next.surfaces ?? [];
+  const names = (list: Surface[]) => list.map((s) => SURFACE_INFO[s]?.name ?? s).join(", ");
+  const added = has.filter((s) => !had.includes(s)), removed = had.filter((s) => !has.includes(s));
+  if (added.length) changes.push(`Added: ${names(added)}`);
+  if (removed.length) changes.push(`Removed: ${names(removed)}`);
   // Choosing what's already chosen changes nothing, so it leaves nothing to undo.
   if (!changes.length && JSON.stringify(session.config) === JSON.stringify(next)) return changes;
   session.history.push({ label, changes, config: session.config });
@@ -237,6 +242,32 @@ function stockBrand(brand: string | undefined): boolean {
   return Object.values(presets).some((p) => p.color.brand === brand) || Object.values(DIRECTIONS).some((d) => d.brand === brand);
 }
 
+/**
+ * What the system still holds from the person's own site: its page, sizes,
+ * faces, corners and so on. A kind's direction fills in around these and never
+ * over them, so a product that has a look keeps it whatever kind it is.
+ */
+export function heldFromSite(session: Session, config: DesignConfig = session.config): Partial<DesignPatch> {
+  if (!session.site) return {};
+  const patch = patchFromSite(session.site);
+  const now = currentChoices(config);
+  const held: Partial<DesignPatch> = {};
+  for (const k of Object.keys(patch) as (keyof DesignPatch)[]) {
+    if (k === "brand") continue;
+    // Still the site's value if setting it again would change nothing the person can see.
+    const one = { [k]: patch[k] } as Partial<DesignPatch>;
+    const after = currentChoices(applyPatch(config, one));
+    const key = k === "fonts" || k === "pairing" ? (["fonts", "pairing"] as const) : ([k] as const);
+    if (key.every((f) => JSON.stringify(after[f]) === JSON.stringify(now[f]))) Object.assign(held, one);
+  }
+  return held;
+}
+
+/** A kind's direction on this session's system, around what its site already decided. */
+function directed(session: Session, dir: Direction): DesignConfig {
+  return applyPatch(withDirection(session.config, dir), heldFromSite(session));
+}
+
 function withDirection(config: DesignConfig, dir: Direction): DesignConfig {
   const patch: Partial<DesignPatch> = { ...dir.patch };
   if (stockBrand(config.color.brand)) patch.brand = dir.brand;
@@ -257,7 +288,7 @@ export function setKind(session: Session, kind: string, vibe?: string | null) {
   if (!KINDS.some((k) => k.id === kind)) throw new Error(`Unknown kind "${kind}"`);
   session.kind = kind;
   session.vibe = kind === "consumer" ? (vibe && VIBES.some((v) => v.id === vibe) ? vibe : session.vibe ?? "dreamy") : null;
-  commit(session, withDirection(session.config, directionFor(session.kind, session.vibe)!), `Kind: ${kindLabel(session.kind, session.vibe)}`);
+  commit(session, directed(session, directionFor(session.kind, session.vibe)!), `Kind: ${kindLabel(session.kind, session.vibe)}`);
   // The kind is a starting point of its own, shown with the ones made from material.
   const label = kindLabel(session.kind, session.vibe);
   const c = session.config;
@@ -339,7 +370,9 @@ export function generateOptions(session: Session, imageColors: string[] = sessio
   const [first, second] = session.imageColors;
   // In order of how much they say about the person; the first three are shown.
   if (site && Object.keys(sitePatch).length) {
-    add({ id: "gen:site", name: "Your site", tag: "From your site", note: siteNote(site), label: "Started from your site" }, () => applyPatch(base(), sitePatch));
+    // The site as it is: everything that was measured, unchanged. The kind only fills in what the page didn't show.
+    const measured = !!(site.page || site.measure.bodySize || site.measure.headingWeight);
+    add({ id: "gen:site", name: measured ? "Your site, as it is" : "Your site", tag: "From your site", note: siteNote(site), label: "Started from your site" }, () => applyPatch(base(), sitePatch));
   }
   // A bolder take: the material's most characterful color in the kind's full direction, the risk the site doesn't take.
   const signature = mostVivid([...(site?.colors.map((c) => c.hex) ?? []), ...session.imageColors]);
@@ -404,8 +437,16 @@ function mostVivid(colors: string[]): string | null {
 }
 
 function siteNote(site: SiteMaterial): string {
-  const font = site.fonts[0]?.split(",")[0]?.replace(/["']/g, "").trim();
-  return [site.colors[0]?.hex, font, site.radius !== null ? `${site.radius}px corners` : "", site.dark ? "dark first" : ""].filter(Boolean).join(", ") || "What your site shows";
+  const t = site.measure;
+  const faces = [...new Set([t.headingFont, t.bodyFont].filter(Boolean))].join(" + ");
+  const font = faces || site.fonts[0]?.split(",")[0]?.replace(/["']/g, "").trim();
+  const parts = [
+    site.page ? `${site.page.hex} page` : site.colors[0]?.hex,
+    font,
+    t.bodySize ? `${Math.round(t.bodySize)}px text` : site.radius !== null ? `${site.radius}px corners` : "",
+    site.dark && !site.page ? "dark first" : "",
+  ];
+  return parts.filter(Boolean).join(", ") || "What your site shows";
 }
 
 /** The options for a taste question, each drawn on the person's own system. */
@@ -435,6 +476,7 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
     case "density":
       list.push({ value: "compact", name: "Compact", note: "32px controls. More on screen, for tools used all day.", config: with_({ density: "compact" }) });
       list.push({ value: "comfortable", name: "Comfortable", note: "36px controls and more air. Easier to scan and tap.", config: with_({ density: "comfortable" }) });
+      list.push({ value: "spacious", name: "Spacious", note: "48px controls. For touch, older eyes and unhurried products.", config: with_({ density: "spacious" }) });
       break;
     case "motion":
       for (const m of MOTION_PROFILES) list.push({ value: m, ...MOTION_INFO[m], config: with_({ motion: m }) });
@@ -450,11 +492,11 @@ export function variants(session: Session, field: VariantField, opts: { mood?: s
       break;
     case "kind":
       for (const k of KINDS) {
-        list.push({ value: k.id, name: k.name, note: k.note, scene: k.scene, config: () => withDirection(session.config, directionFor(k.id, k.id === "consumer" ? session.vibe ?? "dreamy" : null)!) });
+        list.push({ value: k.id, name: k.name, note: k.note, scene: k.scene, config: () => directed(session, directionFor(k.id, k.id === "consumer" ? session.vibe ?? "dreamy" : null)!) });
       }
       break;
     case "vibe":
-      for (const v of VIBES) list.push({ value: v.id, name: v.name, note: v.note, scene: "moment", config: () => withDirection(session.config, directionFor("consumer", v.id)!) });
+      for (const v of VIBES) list.push({ value: v.id, name: v.name, note: v.note, scene: "moment", config: () => directed(session, directionFor("consumer", v.id)!) });
       break;
     case "brand": {
       // The current color first, then colors from the person's material, then ready palettes.

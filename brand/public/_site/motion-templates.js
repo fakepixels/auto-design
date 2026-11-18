@@ -10,7 +10,7 @@
     <span class="adm-medium">${o(c(a.name,t.product))}</span>
   </div>
   <div>
-    <h1 class="adm-display" style="font-size:calc(var(--u)*${m});max-width:calc(var(--u)*150)">${l.html}</h1>
+    <p class="adm-display" style="font-size:calc(var(--u)*${m});max-width:calc(var(--u)*150)">${l.html}</p>
     ${c(a.subtitle)?`<p class="adm-in adm-muted"${r(i,"margin-top:calc(var(--u)*4);font-size:calc(var(--u)*3);max-width:calc(var(--u)*100)")}>${o(c(a.subtitle))}</p>`:""}
   </div>
   ${c(a.cta)?`<span class="adm-button adm-pop"${r(i+e.stagger*2)}>${o(c(a.cta))}</span>`:"<span></span>"}

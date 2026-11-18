@@ -141,7 +141,7 @@ export function generatedComponentSources(s: DesignSystem): ComponentSource[] {
   const d = s.motion.durations;
   const k = skinFor(s);
   const press = k.press;
-  const padX = s.config.density === "compact" ? 3 : 4;
+  const padX = s.config.density === "compact" ? 3 : s.config.density === "spacious" ? 6 : 4;
 
   const button = `import * as React from "react";
 import { Slot } from "radix-ui";
