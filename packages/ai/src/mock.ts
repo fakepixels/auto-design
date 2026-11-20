@@ -12,9 +12,11 @@ export function quickTweak(config: DesignConfig, request: string): Partial<Desig
   const now = currentChoices(config);
   const p: Partial<DesignPatch> = {};
   const nudge = (v: number | null, d: number) => Math.min(1, Math.max(0, (v ?? 0.4) + d));
-  if (/warm/.test(r)) Object.assign(p, { neutral: "warm", warmth: nudge(now.warmth, 0.2) });
+  if (/\b(?:less|not)\s+warm(?:er|th)?\b/.test(r)) p.warmth = nudge(now.warmth, -0.2);
+  else if (/\bwarm(?:er|th)?\b/.test(r)) Object.assign(p, { neutral: "warm", warmth: nudge(now.warmth, 0.2) });
   if (/cool|colder|crisp/.test(r)) Object.assign(p, { neutral: "cool", warmth: nudge(now.warmth, -0.2) });
-  if (/round|soft|friendl/.test(r)) p.radius = Math.min(20, (now.radius ?? 8) + 4);
+  if (/\b(?:less|not)\s+(?:round(?:ed|er)?|soft|friendl\w*)\b/.test(r)) p.radius = Math.max(0, (now.radius ?? 8) - 3);
+  else if (/\b(?:round(?:ed|er)?|soft|friendl\w*)\b/.test(r)) p.radius = Math.min(20, (now.radius ?? 8) + 4);
   if (/sharp|square|serious/.test(r)) p.radius = Math.max(0, (now.radius ?? 8) - 3);
   if (/dens|compact|tight|linear/.test(r)) p.density = "compact";
   if (/roomi|spacious|airy|breath/.test(r)) p.density = "comfortable";
