@@ -56,7 +56,9 @@ export function mergeCopy(base: SpecimenCopy, partial: Partial<SpecimenCopy>): S
   out.nav = (partial.nav ?? base.nav).slice(0, 5);
   while (out.nav.length < 5) out.nav.push(base.nav[out.nav.length]!);
   out.metrics = (partial.metrics ?? base.metrics).slice(0, 3);
+  while (out.metrics.length < 3) out.metrics.push(base.metrics[out.metrics.length]!);
   const rows = (partial.table?.rows ?? base.table.rows).slice(0, 4);
+  while (rows.length < 4) rows.push(base.table.rows[rows.length]!);
   const cols = (partial.table?.columns ?? base.table.columns).slice(0, 4);
   out.table = { columns: (cols.length === 4 ? cols : base.table.columns) as SpecimenCopy["table"]["columns"], rows: rows.length ? rows : base.table.rows };
   out.sms = (partial.sms ?? base.sms).slice(0, 4);
