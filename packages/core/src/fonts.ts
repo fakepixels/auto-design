@@ -247,12 +247,13 @@ export function customFonts(pick: { sans: string; mono: string; display?: string
   };
 }
 
-/** Which pairing a config uses, matched by its sans and display families. */
+/** Which pairing a config uses, matched by its sans, mono, and display families. */
 export function pairingOf(config: Pick<DesignConfig, "type">): string | null {
   for (const p of PAIRINGS) {
     const sans = FONTS[p.sans.font]!.family;
+    const mono = FONTS[p.mono.font]!.family;
     const display = p.display ? FONTS[p.display.font]!.family : undefined;
-    if (config.type.sans.family === sans && config.type.display?.family === display) return p.id;
+    if (config.type.sans.family === sans && config.type.mono.family === mono && config.type.display?.family === display) return p.id;
   }
   return null;
 }
