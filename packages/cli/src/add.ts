@@ -296,6 +296,7 @@ export async function runAdd(opts: AddOptions) {
         if (!f.content) continue;
         const target = join(f.type === "registry:lib" ? dirs.lib : dirs.ui, f.path.split("/").pop()!);
         mkdirSync(dirname(target), { recursive: true });
+        if (existsSync(target)) continue;
         writeFileSync(target, f.content);
         written.push(target);
       }
