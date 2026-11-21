@@ -205,7 +205,7 @@ export function checkMessage(original: string, opts: MessageOptions): MessageRep
 
   const urls = out.match(URL_RE) ?? [];
   if (urls.length > 1 && channel !== "chat") add("links", "warn", `${urls.length} links. Send one, and put the rest behind it.`);
-  if (urls.some((u) => SHORTENERS.test(u + "/"))) add("shortener", "error", "Public link shorteners get texts filtered by carriers. Link to your own domain.");
+  if (SHORTENERS.test(out + "/")) add("shortener", "error", "Public link shorteners get texts filtered by carriers. Link to your own domain.");
 
   const afterSender = opts.product ? out.replace(new RegExp(`^${opts.product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[:-]\\s*`, "i"), "") : out;
   if (FILLER.test(afterSender)) add("filler", "warn", "Lead with the point. Skip the greeting and the excitement.");
